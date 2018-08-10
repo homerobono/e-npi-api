@@ -1,0 +1,26 @@
+{
+  "name": "enpi-server",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "nodemon ./bin/www"
+  },
+  "dependencies": {
+    "ajv": "^6.5.2",
+    "bcrypt": "^3.0.0",
+    "bluebird": "^3.5.1",
+    "cookie-parser": "~1.4.3",
+    "crypto-js": "^3.1.9-1",
+    "debug": "~2.6.9",
+    "ejs": "~2.5.7",
+    "express": "~4.16.0",
+    "http-errors": "~1.6.2",
+    "jsonwebtoken": "^8.3.0",
+    "mongoose": "^5.2.6",
+    "mongoose-paginate": "^5.0.3",
+    "mongoose-unique-validator": "^2.0.1",
+    "morgan": "~1.9.0",
+    "nodemailer": "^4.6.7",
+    "nodemon": "^1.18.3"
+  }
+}
