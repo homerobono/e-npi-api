@@ -1,13 +1,12 @@
 var mongoose = require('mongoose')
 var mongoosePaginate = require('mongoose-paginate')
-let User = require('./user.model')
+var sequence = require('mongoose-sequence')(mongoose);
 
 var options = { discriminatorKey: String };
 
 var NpiSchema = new mongoose.Schema({
     number: {
         type : Number,
-        required : true,
         unique : true
     },
     created: {
@@ -55,6 +54,7 @@ var NpiSchema = new mongoose.Schema({
     options
 });
 
+NpiSchema.plugin(sequence, {inc_field: 'number'})
 NpiSchema.plugin(mongoosePaginate)
 const Npi = mongoose.model('Npi', NpiSchema)
 
