@@ -1,12 +1,11 @@
 var mongoose = require('mongoose')
 var mongoosePaginate = require('mongoose-paginate')
-let User = require('./user.model')
 let Npi = require('./npi.model')
 
-var options = { discriminatorKey: 'kind' };
+var options = { discriminatorKey: 'String' };
 
-var PixelNpiSchema = Npi.discriminate(
-    'Pixel', 
+var PixelNpiSchema = Npi.discriminator(
+    'pixel', 
     new mongoose.Schema({
         cost : {
             type : Number,
@@ -24,19 +23,18 @@ var PixelNpiSchema = Npi.discriminate(
             activityOne : {
                 deadline : Date,
                 comment : String,
-                annex: [File]
+                annex: String
             },
             activityTwo : {
                 deadline : Date,
                 comment : String,
-                annex: [File]
+                annex: String
             }
         },
         options
     })
 );
 
-PixelNpiSchema.plugin(mongoosePaginate)
-const PixelNpi = mongoose.model('PixelNpi', PixelNpiSchema)
+const PixelNpi = mongoose.model('pixel')
 
 module.exports = PixelNpi;

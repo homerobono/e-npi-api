@@ -1,4 +1,5 @@
 var Npi = require('../npi.model')
+var PixelNpi = require('../npi.pixel.model')
 
 _this = this
 
@@ -20,11 +21,23 @@ exports.getNpis = async function(query, page, limit){
 exports.createNpi = async function(data){
     
     data.created = Date.now();
+    console.log(data.entry)
+
+    var kind = data.entry
+
     console.log(data)
     try{
         // Saving the Npi
-        let newNpi = await Npi.create(data);
-        console.log('saved: '+newNpi)
+        let newNpi = new Npi();
+        switch(kind) {
+            case 'pixel' : 
+                newNpi = await PixelNpi.create(data);
+                break;
+            default :
+                console.log('NPI entry: '+kind)
+                throw Error('Tipo de NPI inválido')
+        } 
+        console.log('saved: ' + newNpi)
         return newNpi;
     } catch(e) {
         console.log(e)

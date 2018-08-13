@@ -2,7 +2,7 @@ var mongoose = require('mongoose')
 var mongoosePaginate = require('mongoose-paginate')
 var sequence = require('mongoose-sequence')(mongoose);
 
-var options = { discriminatorKey: String };
+var options = { discriminatorKey: 'String' };
 
 var NpiSchema = new mongoose.Schema({
     number: {

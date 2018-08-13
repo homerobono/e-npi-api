@@ -75,7 +75,7 @@ exports.removeNpi = async function(req, res, next){
           let npi = await npiDAO.deleteNpi(req.params.npiId);
           res.status(200).send(npi);
         } catch (err) {
-          res.status(200).send({
+          res.status(400).send({
             message: err.message
           });
         }
