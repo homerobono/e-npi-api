@@ -2,16 +2,8 @@ var mongoose = require('mongoose')
 let Npi = require('./npi.model')
 
 Npi.discriminator(
-    'pixel', 
+    'oem', 
     new mongoose.Schema({
-        cost : {
-            type : Number,
-            required : true
-        },
-        price : {
-            type : Number,
-            required : true
-        },
         inStockDate : {
             required : true,
             type : Date
@@ -26,9 +18,21 @@ Npi.discriminator(
                 type : String,
                 enum : ['year','month','day','unique']
             }
+        },
+        OemActivities : {
+            activityOne : {
+                deadline : Date,
+                comment : String,
+                annex: String
+            },
+            activityTwo : {
+                deadline : Date,
+                comment : String,
+                annex: String
+            }
         }
     })
 );
 
-const PixelNpi = mongoose.model('pixel')
-module.exports = PixelNpi;
+const OemNpi = mongoose.model('oem')
+module.exports = OemNpi;

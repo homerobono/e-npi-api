@@ -19,7 +19,10 @@ var NpiSchema = new mongoose.Schema({
         default : 'Análise Crítica'
     },
     npiRef : Number,
-    complexity : String,
+    complexity : {
+        type : String,
+        //required : true
+    },
     annex : String,
     client : String,
     requester : String,
@@ -30,18 +33,7 @@ var NpiSchema = new mongoose.Schema({
             type : [String]
         }
     },
-    regulations : {
-        type : [String],
-        enum : ['ABNT', 'ANATEL', 'INMETRO', 'ANVISA', 'other'],
-    },
     norms : String,
-    demand : {
-        amount : Number,
-        period : {
-            type : String,
-            enum : ['year','month','day','unique']
-        }
-    },
     investment : Number,
     fiscals : Number,
     projectCost : {
@@ -50,6 +42,18 @@ var NpiSchema = new mongoose.Schema({
             //required : true
         },
         annex : [String]
+    },
+    activities : {
+        activityOne : {
+            deadline : Date,
+            comment : String,
+            annex: String
+        },
+        activityTwo : {
+            deadline : Date,
+            comment : String,
+            annex: String
+        }
     },
     options
 });

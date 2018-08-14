@@ -2,8 +2,12 @@ var mongoose = require('mongoose')
 let Npi = require('./npi.model')
 
 Npi.discriminator(
-    'pixel', 
+    'custom', 
     new mongoose.Schema({
+        npiRef : {
+            type : Number,
+            required : true
+        },
         cost : {
             type : Number,
             required : true
@@ -19,16 +23,16 @@ Npi.discriminator(
         regulations : {
             type : [String],
             enum : ['ABNT', 'ANATEL', 'INMETRO', 'ANVISA', 'other'],
-        },        
+        },
         demand : {
             amount : Number,
             period : {
                 type : String,
                 enum : ['year','month','day','unique']
             }
-        }
+        },
     })
 );
 
-const PixelNpi = mongoose.model('pixel')
-module.exports = PixelNpi;
+const CustomNpi = mongoose.model('custom')
+module.exports = CustomNpi;

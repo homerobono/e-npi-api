@@ -1,5 +1,8 @@
 var Npi = require('../npi.model')
 var PixelNpi = require('../npi.pixel.model')
+var OemNpi = require('../npi.oem.model')
+var InternalNpi = require('../npi.internal.model')
+var CustomNpi = require('../npi.custom.model')
 
 _this = this
 
@@ -32,6 +35,15 @@ exports.createNpi = async function(data){
         switch(kind) {
             case 'pixel' : 
                 newNpi = await PixelNpi.create(data);
+                break;
+            case 'internal' : 
+                newNpi = await InternalNpi.create(data);
+                break;
+            case 'oem' : 
+                newNpi = await OemNpi.create(data);
+                break;
+            case 'custom' : 
+                newNpi = await CustomNpi.create(data);
                 break;
             default :
                 console.log('NPI entry: '+kind)

@@ -48,7 +48,6 @@ exports.findNpiById = async (req, res, next) => {
 exports.createNpi = async function(req, res, next){
 // Req.Body contains the form submit values.
     var npi = req.body;
-
     try{
         // Calling the Service function with the new object from the Request Body
         var createdNpi = await npiDAO.createNpi(npi)
