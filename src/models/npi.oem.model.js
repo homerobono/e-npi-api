@@ -6,7 +6,9 @@ Npi.discriminator(
     new mongoose.Schema({
         inStockDate : {
             required : true,
-            type : Date
+            type : { Date, Number },
+            fixed: Date,
+            offset: Number
         },
         regulations : {
             type : [String],

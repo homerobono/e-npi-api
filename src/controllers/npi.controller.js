@@ -22,7 +22,7 @@ exports.getNpi = async (req, res, next) => {
 exports.getNpis = async function(req, res, next){
     // Check the existence of the query parameters, If the exists doesn't exists assign a default value
     var page = req.query.page ? req.query.page : 1
-    var limit = req.query.limit ? req.query.limit : 10; 
+    var limit = req.query.limit ? req.query.limit : 1000; 
 
     try{
         var npis = await npiDAO.getNpis({}, page, limit)
@@ -45,15 +45,23 @@ exports.findNpiById = async (req, res, next) => {
     }
   };
 
+exports.findNpiByNumber = async (req, res, next) => {
+    try {
+      let npi = await npiDAO.findNpiByNumber(req.params.npiNumber);
+      res.status(200).send(npi);
+    } catch (err) {
+      res.status(400).send({
+        message: err.message
+      });
+    }
+  };
+
 exports.createNpi = async function(req, res, next){
-// Req.Body contains the form submit values.
     var npi = req.body;
     try{
-        // Calling the Service function with the new object from the Request Body
         var createdNpi = await npiDAO.createNpi(npi)
         return res.status(201).send({data: createdNpi, message: "Succesfully Created Npi"})
     } catch(e) {
-        //Return an Error Response Message with Code and the Error Message.
         return res.status(401).send({message: e.message})
     }
 }

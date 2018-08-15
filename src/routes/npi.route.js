@@ -6,7 +6,8 @@ const npiController = require('../controllers/npi.controller');
 
 router.get('/npi', authService.authorize, npiController.getNpis)
 router.get('/npis', authService.authorize, npiController.getNpis)
-router.get('/npi/:npiId', authService.authorize, npiController.findNpiById);
+//router.get('/npi/:npiId', authService.authorize, npiController.findNpiById);
+router.get('/npi/:npiNumber', authService.authorize, npiController.findNpiByNumber);
 router.post('/npi', npiController.createNpi)
 router.post('/npis', npiController.createNpi)
 router.put('/npi', authService.authorize, npiController.updateNpi)

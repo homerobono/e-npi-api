@@ -101,3 +101,12 @@ exports.deleteNpi = async function(id){
         throw Error("Error Occured while Deleting the Npi: "+e)
     }
 }
+
+exports.findNpiById = async npiId => 
+    await Npi.findById(npiId);
+
+exports.findNpiByNumber = async npiNumber => {
+    var npi = await Npi.findOne({number : npiNumber});
+    if (!npi || npi==null) throw Error('There is no NPI with this number')
+    return npi
+}
