@@ -12,14 +12,34 @@ var bluebird = require('bluebird');
 var usersRouter = require('./routes/user.route');
 var authRouter = require('./routes/auth.route');
 var npiRouter = require('./routes/npi.route');
+var mongoose = require('mongoose');
+
+var userDAO = require('./models/DAO/user.dao')
 
 var app = express();
 
-var mongoose = require('mongoose');
+var dbUrl = 'mongodb://127.0.0.1/enpi'
 mongoose.Promise = bluebird;
-mongoose.connect('mongodb://127.0.0.1/enpi-users')
-.then(()=> { console.log(`Succesfully Connected to the Mongodb Database at URL : mongodb://127.0.0.1/enpi-users`)})
-.catch(()=> { console.error(`Error Connecting to the Mongodb Database at URL : mongodb://127.0.0.1/enpi-users`)});
+mongoose.connect(dbUrl)
+
+mongoose.connection.on('connected', 
+()=> { 
+  console.log('Succesfully Connected to the Mongodb Database at ' + dbUrl) 
+  mongoose.connection.db.collection('users').countDocuments(
+    (error, count) => {
+      if (error) return error
+      if(count == 0){
+        userDAO.createUser({
+          email : 'admin',
+          newPassword : 'admin',
+          firstName : 'Administrador',
+          level: 2
+        })
+        console.info('Users DB empty, created admin-admin user')
+      }
+    }
+  )
+})
 
 // view engine setup
 app.set('views', path.join(__dirname, '../views'));

@@ -1,6 +1,6 @@
 "use strict";
 
-global.URL_BASE = "http://localhost:3000";
+global.URL_BASE = "http://localhost:1100";
 
 global.ENCRYPT_KEY = 
 "addc92733c4b0545ca7d036027d197e3aafe8fdc33e1b3bb34b7bea76d" +

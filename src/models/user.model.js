@@ -1,7 +1,6 @@
 var mongoose = require('mongoose')
 var uniqueValidator = require('mongoose-unique-validator');
 let encryptoService = require('../services/encrypto.service')
-//var mongoosePaginate = require('mongoose-paginate')
 
 var UserSchema = new mongoose.Schema({
     username: String,

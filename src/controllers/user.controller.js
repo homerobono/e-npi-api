@@ -19,20 +19,13 @@ exports.getUser = async (req, res, next) => {
     }
   };
 
-
-// Async Controller function to get the To do List
 exports.getUsers = async function(req, res, next){
-    // Check the existence of the query parameters, If the exists doesn't exists assign a default value
-    //var page = req.query.page ? req.query.page : 1
-    //var limit = req.query.limit ? req.query.limit : 10; 
-
     try{
         var users = await userDAO.getUsers({})//, page, limit)
-        // Return the users list with the appropriate HTTP Status Code and Message.
-        return res.status(200).json({status: 200, data: users, message: "Succesfully Users Received"});
+        return res.status(200).send({data: users, message: "Succesfully users received"});
     } catch(e) {
         //Return an Error Response Message with Code and the Error Message.
-        return res.status(400).json({status: 400, message: e.message});
+        return res.status(400).send({message: e.message});
     }
 }
 
