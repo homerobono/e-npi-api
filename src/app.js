@@ -13,10 +13,12 @@ var usersRouter = require('./routes/user.route');
 var authRouter = require('./routes/auth.route');
 var npiRouter = require('./routes/npi.route');
 var mongoose = require('mongoose');
+var multer = require('multer')
 
 var userDAO = require('./models/DAO/user.dao')
-
 var app = express();
+
+var npiDIR = './npi-files/'
 
 var dbUrl = 'mongodb://127.0.0.1/enpi'
 mongoose.Promise = bluebird;
@@ -52,12 +54,26 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", "http://localhost:4200");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header('Access-Control-Allow-Credentials', true);
   next();
 });
 
+/*app.use(multer({
+  dest: npiDIR,
+  rename: function (fieldname, filename) {
+    return filename + Date.now();
+  },
+  onFileUploadStart: function (file) {
+    console.log(file.originalname + ' is starting ...');
+  },
+  onFileUploadComplete: function (file) {
+    console.log(file.fieldname + ' uploaded to  ' + file.path);
+  }
+}));
+*/
 app.use(config.pathVersion, authRouter); 
 app.use(config.pathVersion, usersRouter);
 app.use(config.pathVersion, npiRouter);

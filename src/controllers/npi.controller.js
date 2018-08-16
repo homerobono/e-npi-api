@@ -2,6 +2,10 @@ var async = require('async');
 var crypto = require('crypto');
 var mailerService = require('../services/mail.service');
 
+var multer = require('multer')
+var npiDIR = './npi-files/'
+var upload = multer({dest: npiDIR})
+
 var userDAO = require('../models/DAO/user.dao');
 var npiDAO = require('../models/DAO/npi.dao');
 
@@ -86,4 +90,22 @@ exports.removeNpi = async function(req, res, next){
             message: err.message
           });
         }
+}
+
+exports.uploadFiles = async function(req,res,next){
+  var path = '';
+     upload(req, res, function (err) {
+        if (err) {
+          // An error occurred when uploading
+          console.log(err);
+          return res.status(422).send("an error occured while uploading")
+        }  
+       // No error occured.
+        path = req.file.path;
+        return res.send("Upload completed for " + path); 
+    });     
+}
+
+exports.downloadFiles = async function(req,res,next){
+  return res.status(404).send("Bleh"); 
 }

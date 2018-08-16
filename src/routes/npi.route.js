@@ -13,4 +13,9 @@ router.post('/npis', npiController.createNpi)
 router.put('/npi', authService.authorize, npiController.updateNpi)
 router.delete('/npi/:npiId', authService.authorize, npiController.removeNpi)
 
+router.post('/npi/:npiId/', authService.authorize, npiController.uploadFiles);
+router.get('/npi/:npiId/', authService.authorize, npiController.downloadFiles);
+router.post('/files/', npiController.uploadFiles);
+router.get('/files/', npiController.downloadFiles);
+
 module.exports = router;
