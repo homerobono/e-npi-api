@@ -31,7 +31,7 @@ exports.authorize = (req, res, next) => {
 const verifyLevelUser = (next, method, res, decoded) => {
   if (decoded.data.type == "USER" && method == "GET") next();
   else
-    res.status(401).json({
+    res.status(403).json({
       message: "Acesso restrito!"
     });
 };

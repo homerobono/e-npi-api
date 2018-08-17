@@ -11,7 +11,7 @@ exports.authUserByEmailAndPassword = async (req, res, next) => {
     let data = await authDAO.authUser(req.body);
     res.status(200).send(data);
   } catch (err) {
-    res.status(400).send({
+    res.status(404).send({
       message: err.message
     });
   }

@@ -21,13 +21,14 @@ exports.getNpis = async function(query, page, limit){
     }
 }
 
-exports.createNpi = async function(data){
-    
+exports.createNpi = async function(req){
+    console.log(req.user)
+    let data = req.body
     data.created = Date.now();
-    console.log(data.entry)
-
+    data.requester = req.user.data._id
+    
     var kind = data.entry
-
+    
     console.log(data)
     try{
         // Saving the Npi
@@ -47,7 +48,7 @@ exports.createNpi = async function(data){
                 break;
             default :
                 console.log('NPI entry: '+kind)
-                throw Error('Tipo de NPI inválido')
+                throw Error('Tipo de NPI inválido: '+kind)
         } 
         console.log('saved: ' + newNpi)
         return newNpi;
@@ -103,10 +104,10 @@ exports.deleteNpi = async function(id){
 }
 
 exports.findNpiById = async npiId => 
-    await Npi.findById(npiId);
+    await Npi.findById(npiId).populate('requester', "firstName", 'lastName');
 
 exports.findNpiByNumber = async npiNumber => {
-    var npi = await Npi.findOne({number : npiNumber});
+    var npi = await Npi.findOne({number : npiNumber}).populate('requester', 'firstName lastName');
     if (!npi || npi==null) throw Error('There is no NPI with this number')
     return npi
 }

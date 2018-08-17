@@ -54,7 +54,7 @@ exports.findNpiByNumber = async (req, res, next) => {
       let npi = await npiDAO.findNpiByNumber(req.params.npiNumber);
       res.status(200).send(npi);
     } catch (err) {
-      res.status(400).send({
+      res.status(404).send({
         message: err.message
       });
     }
@@ -63,7 +63,7 @@ exports.findNpiByNumber = async (req, res, next) => {
 exports.createNpi = async function(req, res, next){
     var npi = req.body;
     try{
-        var createdNpi = await npiDAO.createNpi(npi)
+        var createdNpi = await npiDAO.createNpi(req)
         return res.status(201).send({data: createdNpi, message: "Succesfully Created Npi"})
     } catch(e) {
         return res.status(401).send({message: e.message})

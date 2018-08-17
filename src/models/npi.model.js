@@ -25,7 +25,11 @@ var NpiSchema = new mongoose.Schema({
     },
     annex : String,
     client : String,
-    requester : String,
+    requester : { 
+        type : mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     name : String,
     resources : {
         description : String,
