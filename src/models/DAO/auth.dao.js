@@ -10,16 +10,17 @@ exports.authUser = async data => {
   console.log(password)
   let userFinds = await User.findOne({
     email: data.email,
-    password: password
+    password: password,
+    status: 'active'
   });
 
   if (userFinds) {
-        userFinds.password = null
-          let token = await authService.generateToken(userFinds);
-          console.log('User '+ userFinds.email +' logged');
-          return (data = {
-            token: token,
-          });
+    userFinds.password = null
+    let token = await authService.generateToken(userFinds);
+    console.log('User '+ userFinds.email +' logged');
+    return (data = {
+      token: token,
+    });
   } else
     throw new Error(
       "E-mail ou senha incorretos. Insira os dados de login e tente novamente."
@@ -47,6 +48,18 @@ exports.verifyResetToken = async resetToken => {
     if (!user) throw new Error ('Token inválido ou expirado');
     return user;
   };
+
+exports.verifyRegisterToken = async registerToken => {
+  console.log('token: ')
+  console.log(registerToken)
+  if (!registerToken || registerToken == '') throw new Error ('Nenhum token de cadastro fornecido');
+  user = await User.findOne(
+  {
+    registerToken: registerToken, registerExpires: { $gt: Date.now() } 
+  });
+  if (!user) throw new Error ('Token de cadastro inválido ou expirado');
+  return user;
+};
 
 const verifyStatusUser = userStatus => {
   if (userStatus.status == "AGUARDANDO_CONFIRMACAO") {

@@ -11,11 +11,9 @@ var UserSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true
     },
     firstName: {
         type: String,
-        required: true
     },
     lastName: String,
     department: String,
@@ -30,6 +28,14 @@ var UserSchema = new mongoose.Schema({
     },
     status: String,
     lastUpdate: Date,
+    registerToken: {
+        type: String,
+        default: ''
+    },
+    registerExpires: {
+        type: Date,
+        default: Date.now() + 3600000*24*30
+    },
     resetToken: {
         type: String,
         default: ''
@@ -37,6 +43,10 @@ var UserSchema = new mongoose.Schema({
     resetExpires: {
         type: Date,
         default: Date.now() + 3600000
+    },
+    status: {
+        type: String,
+        enum: ['active', 'pending', 'disabled']
     }
 });
 

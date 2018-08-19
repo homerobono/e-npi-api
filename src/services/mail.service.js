@@ -24,7 +24,7 @@ exports.sendResetEmail = async (email, token) => {
     html: 'Você está recebendo esse e-mail porque você (ou outra pessoa) solicitou a alteração da sua senha ' +
         'no sistema <a href="http://pixelti.com.br">e-NPI</a>.<br><br>'+
         'Clique no link a seguir ou copie e cole no navegador para completar o processo: '+
-        '<a href=\"http://10.0.0.174:4200/reset/' + token +'\"> Redefinir Senha</a><br><br>'+
+        '<a href=\"http://192.168.10.121:4200/reset/' + token +'\"> Redefinir Senha</a><br><br>'+
         'Se você não fez essa solicitação, ou não sabe do que essa mensagem se trata, ignore esse e-mail.<br><br>'+
         ''
     };
@@ -32,7 +32,7 @@ exports.sendResetEmail = async (email, token) => {
     return await smtpTransport.sendMail(mailOptions)
 }
 
-exports.sendRegisterEmail = async (user) => {
+exports.sendRegisterEmail = async (email, token) => {
     console.log('preparing email to '+ email);
     var smtpTransport = await this.createTransport();
 
@@ -43,11 +43,10 @@ exports.sendRegisterEmail = async (user) => {
     html: 'Você está recebendo esse e-mail porque você (ou outra pessoa) solicitou a alteração da sua senha ' +
         'no sistema <a href="http://pixelti.com.br">e-NPI</a>.<br><br>'+
         'Clique no link a seguir ou copie e cole no navegador para completar o processo: '+
-        '<a href=\"http://10.0.0.174:4200/reset/' + token +'\"> Redefinir Senha</a><br><br>'+
+        '<a href=\"http://192.168.10.121:4200/complete-registration/' + token +'\"> Redefinir Senha</a><br><br>'+
         'Se você não fez essa solicitação, ou não sabe do que essa mensagem se trata, ignore esse e-mail.<br><br>'+
         ''
     };
     console.log('sending mail');  
-    return await smtpTransport.sendMail(mailOptions)
-    
+    return await smtpTransport.sendMail(mailOptions)   
 }

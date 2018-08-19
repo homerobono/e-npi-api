@@ -36,6 +36,33 @@ exports.resetPassword = async (req, res, next) => {
     }  
 };
 
+exports.authorizeRegisterToken = async (req, res, next) => {
+  try{
+    console.log(req.params.registerToken);
+    let result = await authDAO.verifyRegisterToken(req.params.registerToken);
+    next()
+  } catch (err){
+    res.status(400).send({
+      message: err.message
+    });
+  }
+};
+
+exports.verifyRegisterToken = async (req, res, next) => {
+  try{
+    console.log(req.params.registerToken);
+    let result = await authDAO.verifyRegisterToken(req.params.registerToken);
+    res.status(200).send({
+      success: true,
+      user: result
+    });
+  } catch (err){
+    res.status(400).send({
+      message: err.message
+    });
+  }
+};
+
 exports.verifyResetToken = async (req, res, next) => {
   try{
     console.log(req.params.resetToken);
