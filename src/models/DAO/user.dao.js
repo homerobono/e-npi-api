@@ -95,7 +95,7 @@ exports.updateUser = async function(thisUser, data){
     if (data.user) {
         if (data.user.password) {
             let oldPasswordEnc = await encrypto.encryptData(data.user.password);
-            if(oldPasswordEnc!=oldUser.password) throw Error("Wrong password")
+            if(oldPasswordEnc!=oldUser.password) throw Error("Senha incorreta")
             data.user.password = data.user.newPassword
         }
         
@@ -138,7 +138,21 @@ exports.deleteUser = async function(id){
 }
 
 exports.findUserById = async userId => 
-    await User.findById(userId);
+    { 
+        let user = await User.findById(userId);
+        if (user) {
+            user.password = null
+            user.resetToken = null
+        }
+        return user
+    }
 
 exports.findUserByEmail = async userEmail => 
-    await User.findOne({email : userEmail});
+    { 
+        let user = await User.findOne({email : userEmail})
+        if (user) {
+            user.password = null
+            user.resetToken = null
+        }
+        return user
+    }

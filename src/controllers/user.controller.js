@@ -56,6 +56,9 @@ exports.findUserById = async (req, res, next) => {
   // Req.Body contains the form submit values.
     var user = req.body;
 
+    var existingUser = await userDAO.findUserByEmail(user.email)
+    if (existingUser)
+      return res.status(403).send({data: existingUser, message: 'Já existe uma conta cadastrada com o email '+user.email})
     try{
         // Calling the Service function with the new object from the Request Body
         var createdUser = await userDAO.createPendingUser(user)
@@ -63,7 +66,9 @@ exports.findUserById = async (req, res, next) => {
         return res.status(201).send(
           {
             data: createdUser, 
-            message: "Usuário criado com sucesso. Um e-mail foi enviado para ' + user.email + ' com instruções para completar o cadastro no sistema."})
+            message: "Usuário criado com sucesso. Um e-mail foi enviado para ' + user.email + ' com instruções para completar o cadastro no sistema."
+          }
+        )
     } catch(e) {
         //Return an Error Response Message with Code and the Error Message.
         return res.status(401).send({message: e.message})
