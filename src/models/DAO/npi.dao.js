@@ -23,7 +23,18 @@ exports.getNpis = async function(query, page, limit){
 
 exports.createNpi = async function(req){
     console.log(req.user)
+    
     let data = req.body
+
+    try { 
+        if (data.npiRef) 
+        await this.findNpiByNumber(data.npiRef) 
+    } catch(e) {
+        console.log(e)
+        throw Error('Npi de referência: '+e)
+    }
+
+
     data.created = Date.now();
     data.requester = req.user.data._id
     
@@ -108,6 +119,6 @@ exports.findNpiById = async npiId =>
 
 exports.findNpiByNumber = async npiNumber => {
     var npi = await Npi.findOne({number : npiNumber}).populate('requester', 'firstName lastName');
-    if (!npi || npi==null) throw Error('There is no NPI with this number')
+    if (!npi || npi==null) throw Error('There is no NPI with this number: '+npiNumber)
     return npi
 }

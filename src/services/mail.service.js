@@ -23,8 +23,9 @@ exports.sendResetEmail = async (email, token) => {
     subject: 'e-NPI - Alteração de Senha',
     html: 'Você está recebendo esse e-mail porque você (ou outra pessoa) solicitou a alteração da sua senha ' +
         'no sistema <a href="http://pixelti.com.br">e-NPI</a>.<br><br>'+
-        'Clique no link a seguir ou copie e cole no navegador para completar o processo: '+
-        '<a href=\"http://192.168.10.121:4200/reset/' + token +'\"> Redefinir Senha</a><br><br>'+
+        'Clique no link a seguir ou copie e cole no navegador para completar o processo:<br><br>'+
+        '<div style=\'text-align:center\'><big>' + 
+        '<a href=\"http://192.168.10.121:4200/reset/' + token +'\"> Redefinir Senha</a></big></div><br><br>'+
         'Se você não fez essa solicitação, ou não sabe do que essa mensagem se trata, ignore esse e-mail.<br><br>'+
         ''
     };
