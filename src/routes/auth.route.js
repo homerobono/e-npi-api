@@ -10,7 +10,7 @@ router.post('/login', authController.authUserByEmailAndPassword);
 router.put('/complete-registration/:registerToken', authController.authorizeRegisterToken, UserController.createUser)
 router.get('/complete-registration/:registerToken', authController.verifyRegisterToken)
 router.get('/forgot/:email', authController.sendResetToken);
-router.post('/reset/:resetToken', authController.verifyResetToken, authController.resetPassword);
+router.post('/reset/:resetToken', authController.authorizeResetToken, authController.resetPassword);
 router.get('/reset/:resetToken', authController.verifyResetToken);
 
 module.exports = router;

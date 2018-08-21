@@ -63,6 +63,19 @@ exports.verifyRegisterToken = async (req, res, next) => {
   }
 };
 
+exports.authorizeResetToken = async (req, res, next) => {
+  try{
+    console.log(req.params.ResetToken);
+    let result = await authDAO.verifyResetToken(req.params.resetToken);
+    next()
+  } catch (err){
+    res.status(400).send({
+      message: err.message
+    });
+  }
+};
+
+
 exports.verifyResetToken = async (req, res, next) => {
   try{
     console.log(req.params.resetToken);
