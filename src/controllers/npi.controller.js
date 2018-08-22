@@ -71,9 +71,10 @@ exports.createNpi = async function(req, res, next){
 }
 
 exports.updateNpi = async function(req, res, next){
+    console.log('body')
     console.log(req.body)
     try{
-        var updatedNpi = await npiDAO.updateNpi(req.npi.data, req.body)
+        var updatedNpi = await npiDAO.updateNpi(req.user.data, req.body)
         return res.status(200).send({data: updatedNpi, message: "Succesfully Updated Npi"})
     }catch(e){
         return res.status(400).send({message: e.message})

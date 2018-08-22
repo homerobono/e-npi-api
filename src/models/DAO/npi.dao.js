@@ -69,25 +69,28 @@ exports.createNpi = async function(req){
     }
 }
 
-exports.updateNpi = async function(npi){
+exports.updateNpi = async function(user, npi){
     var id = npi.id
+    console.log('npi')
+    console.log(npi)
 
     try {
         var oldNpi = await Npi.findById(id);
     } catch(e){
+        console.log('no npi '+id)
         throw Error("Error occured while Finding the Npi")
     }
+
     if(!oldNpi){
-        return false;
+        throw Error("No NPI id "+id)
     }
 
     console.log(oldNpi)
 
-    //Edit the Npi Object
-    oldNpi.title = npi.title
-    oldNpi.description = npi.description
-    oldNpi.status = npi.status
-
+    for (prop in oldNpi) {
+        if (npi[prop])
+            oldNpi[prop] = npi[prop]
+    }
 
     console.log(oldNpi)
 
