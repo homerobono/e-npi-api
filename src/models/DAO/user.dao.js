@@ -26,7 +26,15 @@ exports.createPendingUser = async function(data){
     console.log('saving register token in db');
     console.log(data)
     try{
-        let newUser = await User.create(data);
+        var newUser 
+        var actualUser = await User.findOne({email: data.email, status: 'disabled'})
+        if (actualUser){
+            console.log('overwriting disabled user')
+            newUser = await this.updateUser(null, {userId: actualUser._id, user:data})
+        } else {
+            console.log('creating new user')
+            newUser = await User.create(data);
+        }
         console.log('saved: '+newUser)
         return newUser;
     } catch(e) {
@@ -127,9 +135,9 @@ exports.deleteUser = async function(id){
     
     // Delete the User
     try{
-        var deleted = await User.remove({_id: id})
+        var deleted = await User.findByIdAndUpdate(id, {status:'disabled'})
         if(deleted.result.n === 0){
-            throw Error("User Could not be deleted")
+            throw Error("User could not be deleted")
         }
         return deleted
     }catch(e){

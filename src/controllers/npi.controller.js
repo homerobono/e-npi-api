@@ -71,12 +71,13 @@ exports.createNpi = async function(req, res, next){
 }
 
 exports.updateNpi = async function(req, res, next){
-    console.log('body')
-    console.log(req.body)
     try{
-        var updatedNpi = await npiDAO.updateNpi(req.user.data, req.body)
-        return res.status(200).send({data: updatedNpi, message: "Succesfully Updated Npi"})
-    }catch(e){
+        var result = await npiDAO.updateNpi(req.user.data, req.body)
+        var sentNotify = sendChangesNotify(req, result)
+        //console.log(sentNotify)
+        //result.sentNotify = sentNotify*/
+        return res.status(200).send({data: result, message: "Succesfully updated NPI"})
+    } catch(e){
         return res.status(400).send({message: e.message})
     }
 }
@@ -109,4 +110,43 @@ exports.uploadFiles = async function(req,res,next){
 
 exports.downloadFiles = async function(req,res,next){
   return res.status(404).send("Bleh"); 
+}
+
+async function sendChangesNotify(req, updateResult) {
+  var author = req.user.data
+  var npi = updateResult.npi
+
+  var users = await userDAO.getUsers({status: 'active', notify: true})
+  
+  var changedFields = npiLabelOf(updateResult.changedFields)
+  var npiUpdate = { npi, changedFields, authorOfChanges: author }
+  console.log('changedFields')
+  console.log(changedFields)
+  try {
+    if (changedFields == '' || changedFields == null || !changedFields ||
+        changedFields.length == 0 || changedFields == [] || 
+        Object.keys(changedFields).length == 0 || changedFields == undefined){
+          console.log("No changes made: emails not sent")
+      return "No changes made: emails not sent"
+    }
+    //let userId = thisUser._id;
+    let result = await mailerService.sendNpiChangesEmail(users, npiUpdate)
+    if (result && result.length > 0){
+      console.log(result)
+      return result;
+    } else {
+      console.log('Algo deu errado :(')
+      throw new Error('Erro ao enviar e-mail de notificação');
+    }
+  } catch (err) {
+    throw new Error(err)
+  }
+}
+
+function npiLabelOf(fields) {
+  labels = {}
+  for (var field in fields) {
+    labels[global.NPI_LABELS[field]] = fields[field]
+  };
+  return labels
 }

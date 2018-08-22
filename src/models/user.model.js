@@ -44,6 +44,10 @@ var UserSchema = new mongoose.Schema({
         type: Date,
         default: Date.now() + 3600000
     },
+    notify: {
+        type: Boolean,
+        default: true
+    },
     status: {
         type: String,
         enum: ['active', 'pending', 'disabled']

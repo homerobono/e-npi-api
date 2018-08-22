@@ -3,6 +3,7 @@ var PixelNpi = require('../npi.pixel.model')
 var OemNpi = require('../npi.oem.model')
 var InternalNpi = require('../npi.internal.model')
 var CustomNpi = require('../npi.custom.model')
+var _ = require('underscore');
 
 _this = this
 
@@ -71,34 +72,43 @@ exports.createNpi = async function(req){
 
 exports.updateNpi = async function(user, npi){
     var id = npi.id
-    console.log('npi')
-    console.log(npi)
-
     try {
         var oldNpi = await Npi.findById(id);
     } catch(e){
-        console.log('no npi '+id)
         throw Error("Error occured while Finding the Npi")
     }
 
     if(!oldNpi){
         throw Error("No NPI id "+id)
     }
-
+    console.log('npi')
+    console.log(npi)
+    console.log('oldNpi')
     console.log(oldNpi)
 
-    for (prop in oldNpi) {
-        if (npi[prop])
-            oldNpi[prop] = npi[prop]
+    var changedFields = {}
+    for (var prop in npi) {
+        if (!(_.isEqual(oldNpi[prop], npi[prop]))){
+            if(npi[prop]!=null){
+                console.log(prop+':')
+                console.log(oldNpi[prop])
+                console.log('!!==')
+                console.log(npi[prop])
+                oldNpi[prop] = npi[prop]
+                changedFields[prop] = npi[prop]
+            }
+        }
     }
 
-    console.log(oldNpi)
+    //console.log('changedFields')
+    //console.log(changedFields)
 
     try{
         var savedNpi = await oldNpi.save()
-        return savedNpi;
+        return { npi: savedNpi, changedFields : changedFields }
+        //return savedNpi;
     }catch(e){
-        throw Error("And Error occured while updating the Npi");
+        throw Error("An error occured while updating the Npi: "+e);
     }
 }
 
@@ -109,11 +119,11 @@ exports.deleteNpi = async function(id){
         var deleted = await Npi.remove({_id: id})
         console.log(deleted)
         if(deleted.n === 0){
-            throw Error("Npi Could not be deleted")
+            throw Error("Npi could not be deleted")
         }
         return deleted
     } catch(e){
-        throw Error("Error Occured while Deleting the Npi: "+e)
+        throw Error("Error occured while Deleting the Npi: "+e)
     }
 }
 

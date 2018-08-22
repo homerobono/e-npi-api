@@ -1,6 +1,6 @@
 var mailer = require('nodemailer');
 
-exports.createTransport = async => mailer.createTransport({
+exports.createTransport = async () => mailer.createTransport({
     host: 'smtp.pixelti.com.br',
     secure: 'true',
     secureConnection: 'true',
@@ -55,4 +55,45 @@ exports.sendRegisterEmail = async (email, token) => {
     };
     console.log('sending mail');  
     return await smtpTransport.sendMail(mailOptions)   
+}
+
+exports.sendNpiChangesEmail = async (users, updateData) => {
+    var npiLink = '<a href="' + global.URL_BASE + '/npi/' + 
+    updateData.npi.number + '">NPI #' + updateData.npi.number + 
+    ' - ' + updateData.npi.name + '</a>'
+    var changedFields = ''
+    for (var field in updateData.changedFields) {
+        changedFields += '<li>' + field + '</li>'
+    }
+
+    var authorOfChanges = updateData.authorOfChanges.firstName +
+    (updateData.authorOfChanges.lastName ? ' ' + updateData.authorOfChanges.lastName : '')
+
+    var smtpTransport = await this.createTransport();
+    var results = []
+    for(var i=0; i<users.length; i++) {
+        var user = users[i]
+        console.log('preparing email to '+ user.email);
+        var mailOptions = {
+        to: user.email,
+        from: 'homero@pixelti.com.br',
+        subject: 'e-NPI - Alteração NPI #' + updateData.npi.number,
+        html:
+            'Caro usuário, <br><br>'+
+            'A '+ npiLink +
+            ' foi editada recentemente por <b>' + authorOfChanges + '</b>.<br><br>' +
+            'Os campos alterados foram: <br>' +
+            '<ul>' + changedFields + '</ul><br>' +
+            'Acesse a ' + npiLink + ' para conferir as alterações realizadas.<br>'
+        };
+        console.log('sending mail');  
+        var result
+        try {
+            result = await smtpTransport.sendMail(mailOptions)
+        } catch(e) {
+            result = e
+        }
+        results.push(result)
+    };
+    return results
 }

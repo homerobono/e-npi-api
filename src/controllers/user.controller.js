@@ -57,7 +57,7 @@ exports.findUserById = async (req, res, next) => {
     var user = req.body;
 
     var existingUser = await userDAO.findUserByEmail(user.email)
-    if (existingUser)
+    if (existingUser && existingUser.status!='disabled')
       return res.status(403).send({data: existingUser, message: 'Já existe uma conta cadastrada com o email '+user.email})
     try{
         // Calling the Service function with the new object from the Request Body
