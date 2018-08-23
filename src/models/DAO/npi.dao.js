@@ -23,28 +23,24 @@ exports.getNpis = async function(query, page, limit){
 }
 
 exports.createNpi = async function(req){
-    console.log(req.user)
+    //console.log(req.user)
     
     let data = req.body
-
-    try { 
-        if (data.npiRef) 
-        await this.findNpiByNumber(data.npiRef) 
-    } catch(e) {
-        console.log(e)
-        throw Error('Npi de referência: '+e)
-    }
-
 
     data.created = Date.now();
     data.requester = req.user.data._id
     
     var kind = data.entry
     
-    console.log(data)
     try{
         // Saving the Npi
         let newNpi = new Npi();
+        if (data.stage < 2) {
+            data.number = null
+        } else {
+            var invalidFields = hasInvalidFields(data)
+            if (invalidFields) throw ({invalidFields})
+        }
         switch(kind) {
             case 'pixel' : 
                 newNpi = await PixelNpi.create(data);
@@ -66,7 +62,7 @@ exports.createNpi = async function(req){
         return newNpi;
     } catch(e) {
         console.log(e)
-        throw Error(e)
+        throw ({message: e})
     }
 }
 
@@ -134,4 +130,65 @@ exports.findNpiByNumber = async npiNumber => {
     var npi = await Npi.findOne({number : npiNumber}).populate('requester', 'firstName lastName');
     if (!npi || npi==null) throw Error('There is no NPI with this number: '+npiNumber)
     return npi
+}
+
+function hasInvalidFields(data) {
+    var invalidFields = {}
+
+    console.log(data)
+
+    if (!data.name) invalidFields.name = data.name
+    if (!data.client) invalidFields.client = data.client
+    if (!data.complexity) invalidFields.complexity = data.complexity
+    if (data.investment=='' && data.investment!==0) invalidFields.investment = data.investment
+    if (!data.projectCost && data.projectCost!==0) invalidFields.projectCost = data.projectCost
+
+    switch(data.entry) {
+        case 'pixel' : 
+            if (!data.price && data.price !==0) invalidFields.price = data.price
+            if (!data.cost && data.cost !==0) invalidFields.cost = data.cost
+            break;
+        case 'internal' : 
+            break;
+        case 'oem' :             
+            /*if (
+                data.inStockDate == null || 
+                (
+                    (
+                        data.inStockDate.fixed == null ||
+                        data.inStockDate.fixed == '' 
+                    )
+                    && 
+                    (
+                        data.inStockDate.offset == null ||
+                        data.inStockDate.offset == ''
+                    )
+                )
+            ) invalidFields.inStockDate = data.inStockDate*/
+            break;
+        case 'custom' :
+            if (!data.price && data.price !==0) invalidFields.price = data.price
+            if (!data.cost && data.cost !==0) invalidFields.cost = data.cost 
+            if (data.npiRef != null && data.npiRef != undefined){
+                var npiRef = this.findNpiByNumber(data.npiRef)
+                if (!npiRef) 
+                    invalidFields.npiRef = data.npiRef
+            } else {
+                invalidFields.npiRef = data.npiRef
+            }
+            break;
+        default :
+            console.log('NPI entry: '+data.entry)
+            throw Error('Tipo de NPI inválido: '+data.entry)
+    }
+
+    if (Object.keys(invalidFields).length==0)
+        return false
+    else {
+        for (prop in invalidFields) {
+            if (invalidFields[prop] == undefined)
+                invalidFields[prop] = String(invalidFields[prop])
+        }
+        return invalidFields
+    }
 }

@@ -11,12 +11,15 @@ var NpiSchema = new mongoose.Schema({
     },
     created: {
         type : Date,
-        default: Date.now()
+        default: Date.now(),
+        required: true
     },
-    status : {
-        type : String,
-        enum : ['Análise Crítica', 'Desenvolvimento', 'Concluído', 'Cancelado'],
-        default : 'Análise Crítica'
+    stage : {
+        type : Number,
+        min : 0,
+        max : 4,
+        default : 1,
+        required: true
     },
     npiRef : Number,
     complexity : {
@@ -24,7 +27,10 @@ var NpiSchema = new mongoose.Schema({
         //required : true
     },
     annex : String,
-    client : String,
+    client : {
+        type : String,
+        default : 'Pixel'
+    },
     requester : { 
         type : mongoose.Schema.Types.ObjectId,
         ref: 'User',

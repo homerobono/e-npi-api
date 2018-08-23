@@ -33,5 +33,10 @@ global.NPI_LABELS = {
   inStockDate: 'Data em Estoque',
   regulations: 'Regulamentações',
   demand: 'Demanda',
-  OemActivities: 'Atividades O&M'
+  OemActivities: 'Atividades O&M',
+  critical: 'Análise Crítica',
+  dev: 'Desenvolvimento',
+  finished: 'Concluído',
+  canceled: 'Cancelado',
+  draft: 'Rascunho'
 }

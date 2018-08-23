@@ -3,7 +3,7 @@ let Npi = require('./npi.model')
 
 var OemSchema = new mongoose.Schema({
     inStockDate : {
-        required : true,
+        //required : true,
         type : { Date, Number },
         fixed: Date,
         offset: Number
@@ -33,12 +33,14 @@ var OemSchema = new mongoose.Schema({
     }
 })
 
+/*
 OemSchema.pre('save', async function (next) { 
     if (!this.isModified('inStockDate')) return next();
     if (this.inStockDate.fixed == null && this.inStockDate.offset == null)
         next(new Error('Campo "Data em Estoque deve ser preenchido'))
     return next();
 });
+*/
 
 Npi.discriminator(
     'oem', 

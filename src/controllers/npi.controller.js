@@ -66,6 +66,7 @@ exports.createNpi = async function(req, res, next){
         var createdNpi = await npiDAO.createNpi(req)
         return res.status(201).send({data: createdNpi, message: "Succesfully Created Npi"})
     } catch(e) {
+        console.log({message: e.message})
         return res.status(401).send({message: e.message})
     }
 }

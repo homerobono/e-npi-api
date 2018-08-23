@@ -6,14 +6,14 @@ Npi.discriminator(
     new mongoose.Schema({
         cost : {
             type : Number,
-            required : true
+            //required : true
         },
         price : {
             type : Number,
-            required : true
+            //required : true
         },
         inStockDate : {
-            required : true,
+            //required : true,
             type : Date
         },
         regulations : {
