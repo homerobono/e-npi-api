@@ -47,7 +47,7 @@ var NpiSchema = new mongoose.Schema({
     investment : Number,
     fiscals : Number,
     projectCost : {
-        value : {
+        cost : {
             type : Number,
             //required : true
         },

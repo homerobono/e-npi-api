@@ -9,7 +9,7 @@ var OemSchema = new mongoose.Schema({
         offset: Number
     },
     regulations : {
-        type : [String],
+        type : [ String ],
         enum : ['ABNT', 'ANATEL', 'INMETRO', 'ANVISA', 'other'],
     },        
     demand : {
@@ -19,17 +19,12 @@ var OemSchema = new mongoose.Schema({
             enum : ['year','month','day','unique']
         }
     },
-    OemActivities : {
-        activityOne : {
-            deadline : Date,
-            comment : String,
+    oemActivities : {
+        type: [{
+            date : Date,
+            comment: String,
             annex: String
-        },
-        activityTwo : {
-            deadline : Date,
-            comment : String,
-            annex: String
-        }
+        }]
     }
 })
 

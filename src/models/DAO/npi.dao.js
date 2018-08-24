@@ -31,7 +31,7 @@ exports.createNpi = async function(req){
     data.requester = req.user.data._id
     
     var kind = data.entry
-    
+    console.log(data)
     try{
         // Saving the Npi
         let newNpi = new Npi();

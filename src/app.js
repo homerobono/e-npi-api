@@ -36,7 +36,8 @@ mongoose.connection.on('connected',
           password : 'admin',
           firstName : 'Administrador',
           level: 2,
-          status: 'active'
+          status: 'active',
+          notify: false
         })
         console.info('Users DB empty, created admin-admin user')
       }
