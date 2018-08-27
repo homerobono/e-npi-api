@@ -35,11 +35,8 @@ exports.createNpi = async function(req){
     try{
         // Saving the Npi
         let newNpi = new Npi();
-        if (data.stage < 2) {
-            data.number = null
-        } else {
-            var invalidFields = hasInvalidFields(data)
-            if (invalidFields) throw ({invalidFields})
+        if (data.stage == 2) {
+            data = submitToAnalisys(data)
         }
         switch(kind) {
             case 'pixel' : 
@@ -100,11 +97,15 @@ exports.updateNpi = async function(user, npi){
     //console.log(changedFields)
 
     try{
+        if (npi.stage == 2 && !oldNpi.critical) {
+            oldNpi = submitToAnalisys(oldNpi)
+        }
         var savedNpi = await oldNpi.save()
         return { npi: savedNpi, changedFields : changedFields }
         //return savedNpi;
-    }catch(e){
-        throw Error("An error occured while updating the Npi: "+e);
+    } catch(e) {
+        console.log(e)
+        throw ({message: e})
     }
 }
 
@@ -130,6 +131,41 @@ exports.findNpiByNumber = async npiNumber => {
     var npi = await Npi.findOne({number : npiNumber}).populate('requester', 'firstName lastName');
     if (!npi || npi==null) throw Error('There is no NPI with this number: '+npiNumber)
     return npi
+}
+
+function submitToAnalisys(data){
+    console.log('submitting to analisys')
+    var invalidFields = hasInvalidFields(data)
+    if (invalidFields) throw ({invalidFields})
+
+    var depts = Array()
+    switch(data.entry) {
+        case 'pixel' : 
+            depts = global.NPI_PIXEL_CRITICAL_DEPTS
+            break;
+        case 'internal' : 
+            depts = global.NPI_INTERNAL_CRITICAL_DEPTS
+            break;
+        case 'oem' : 
+            depts = global.NPI_OEM_CRITICAL_DEPTS
+            break;
+        case 'custom' : 
+            depts = global.NPI_CUSTOM_CRITICAL_DEPTS
+            break;
+        default :
+            console.log('NPI entry: '+data.entry)
+            throw Error('Tipo de NPI inválido: '+data.entry)
+    } 
+    data.critical = []
+    depts.forEach(dept => {
+        data.critical.push({
+            dept: dept,
+            status: null,
+            comment: '',
+            signature: null,
+        })
+    })
+    return data
 }
 
 function hasInvalidFields(data) {

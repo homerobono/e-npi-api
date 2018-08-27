@@ -15,6 +15,7 @@ module.exports = {
 global.NPI_LABELS = {
   number: 'Número',
   created: 'Data de Criação',
+  stage: 'Status',
   status: 'Status',
   npiRef: 'NPI de Referência',
   complexity: 'Complexidade',
@@ -40,3 +41,23 @@ global.NPI_LABELS = {
   canceled: 'Cancelado',
   draft: 'Rascunho'
 }
+
+global.DEPARTMENTS = [ 
+  { value: 'ADM', label: 'Administrativo' },
+  { value: 'COM', label: 'Comercial' },
+  { value: 'COMP', label: 'Compras' },
+  { value: 'EPROD', label: 'Engenharia de Produção' },
+  { value: 'EPROC', label: 'Engenharia de Processos' },
+  { value: 'FIN', label: 'Financeiro' },
+  { value: 'MKT', label: 'Marketing' },
+  { value: 'P&D', label: 'P&D' },
+  { value: 'PROD', label: 'Produção' },
+  { value: 'PRD', label: 'Produto' },
+  { value: 'RH', label: 'R.H.' },
+  { value: 'OPR', label: 'Operações' }
+]
+
+global.NPI_PIXEL_CRITICAL_DEPTS = ['EPROC','OPR','ADM','COM']
+global.NPI_INTERNAL_CRITICAL_DEPTS = ['EPROC','OPR','ADM','COM']
+global.NPI_CUSTOM_CRITICAL_DEPTS = ['EPROC','OPR','ADM','COM']
+global.NPI_OEM_CRITICAL_DEPTS = ['PRD', 'EPROC','OPR','ADM','COM']

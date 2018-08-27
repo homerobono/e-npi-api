@@ -118,11 +118,13 @@ async function sendChangesNotify(req, updateResult) {
   var npi = updateResult.npi
 
   var users = await userDAO.getUsers({status: 'active', notify: true})
-  
+  console.log(users)
+  if (!users || users.length == 0) return "No users to send notifications"
+
   var changedFields = npiLabelOf(updateResult.changedFields)
   var npiUpdate = { npi, changedFields, authorOfChanges: author }
-  console.log('changedFields')
-  console.log(changedFields)
+  //console.log('changedFields')
+  //console.log(changedFields)
   try {
     if (changedFields == '' || changedFields == null || !changedFields ||
         changedFields.length == 0 || changedFields == [] || 
@@ -133,14 +135,14 @@ async function sendChangesNotify(req, updateResult) {
     //let userId = thisUser._id;
     let result = await mailerService.sendNpiChangesEmail(users, npiUpdate)
     if (result && result.length > 0){
-      console.log(result)
+      //console.log(result)
       return result;
     } else {
       console.log('Algo deu errado :(')
       throw new Error('Erro ao enviar e-mail de notificação');
     }
   } catch (err) {
-    throw new Error(err)
+    throw Error(err)
   }
 }
 

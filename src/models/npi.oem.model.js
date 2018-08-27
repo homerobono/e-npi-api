@@ -25,6 +25,14 @@ var OemSchema = new mongoose.Schema({
             comment: String,
             annex: String
         }]
+    },
+    critical : {
+        type: [{
+            dept : String,
+            status : Boolean,
+            comment: String,
+            signature: String
+        }]
     }
 })
 
