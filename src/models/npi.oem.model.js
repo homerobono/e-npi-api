@@ -2,35 +2,70 @@ var mongoose = require('mongoose')
 let Npi = require('./npi.model')
 
 var OemSchema = new mongoose.Schema({
-    inStockDate : {
+    inStockDate: {
         //required : true,
-        type : { Date, Number },
-        fixed: {
-            type: Date,
-            default: null
-        },
-        offset: {
+        type: {
+            fixed: {
+                type: Date,
+                default: null
+            },
+            offset: {
+                type: Number,
+                default: null
+            }
+        }
+    },
+    regulations: {
+        type: [String],
+        enum: [null, 'ABNT', 'ANATEL', 'INMETRO', 'ANVISA', 'other'],
+        default: null
+    },
+    demand: {
+        amount: {
             type: Number,
             default: null
+        },
+        period: {
+            type: String,
+            enum: [null, 'year', 'month', 'day', 'unique'],
+            default: null
         }
     },
-    regulations : {
-        type : [ String ],
-        enum : ['ABNT', 'ANATEL', 'INMETRO', 'ANVISA', 'other'],
-    },        
-    demand : {
-        amount : Number,
-        period : {
-            type : String,
-            enum : ['year','month','day','unique']
-        }
-    },
-    oemActivities : {
+    oemActivities: {
         type: [{
-            date : Date,
-            comment: String,
-            annex: String
+            title: {
+                type: String,
+                default: null
+            },
+            dept: {
+                type: String,
+                default: null
+            },
+            date: {
+                type: Date,
+                default: null
+            },
+            comment: {
+                type: String,
+                default: null
+            },
+            annex: {
+                type: String,
+                default: null
+            }
         }]
+    },
+    clientApproval: {
+        type:{
+            approval: {
+                type: String,
+                default: null
+            },
+            comment : {
+                type: String,
+                default: null
+            }
+        }
     }
 })
 
@@ -44,7 +79,7 @@ OemSchema.pre('save', async function (next) {
 */
 
 Npi.discriminator(
-    'oem', 
+    'oem',
     OemSchema
 );
 

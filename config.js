@@ -42,7 +42,7 @@ global.NPI_LABELS = {
   draft: 'Rascunho'
 }
 
-global.DEPARTMENTS = [ 
+global.DEPARTMENTS = [
   { value: 'ADM', label: 'Administrativo' },
   { value: 'COM', label: 'Comercial' },
   { value: 'COMP', label: 'Compras' },
@@ -57,7 +57,23 @@ global.DEPARTMENTS = [
   { value: 'OPR', label: 'Operações' }
 ]
 
-global.NPI_PIXEL_CRITICAL_DEPTS = ['EPROC','OPR','ADM','COM']
-global.NPI_INTERNAL_CRITICAL_DEPTS = ['EPROC','OPR','ADM','COM']
-global.NPI_CUSTOM_CRITICAL_DEPTS = ['EPROC','OPR','ADM','COM']
-global.NPI_OEM_CRITICAL_DEPTS = ['PRD', 'EPROC','OPR','ADM','COM']
+global.NPI_PIXEL_CRITICAL_DEPTS = ['EPROC', 'OPR', 'ADM', 'COM']
+global.NPI_INTERNAL_CRITICAL_DEPTS = ['EPROC', 'OPR', 'ADM', 'COM']
+global.NPI_CUSTOM_CRITICAL_DEPTS = ['EPROC', 'OPR', 'ADM', 'COM']
+global.NPI_OEM_CRITICAL_DEPTS = ['PRD', 'EPROC', 'OPR', 'ADM', 'COM']
+
+global.MACRO_STAGES = [
+  { activity: 'Cronograma', dept: 'MEP' },
+  { activity: 'Esquemático, Layout e Gerber', dept: 'MEP' },
+  { activity: 'Firmware, Software e Aplicativo', dept: 'MEP' },
+  { activity: 'Mecânica', dept: 'MEP' },
+  { activity: 'Especificação Técnica', dept: 'MEP' },
+  { activity: 'Lista de Materiais - BOM', dept: 'MEP' },
+  { activity: 'Cotação', dept: 'CSC' },
+  { activity: 'Validação de Requisitos de Entrada', dept: 'MEP' },
+  { activity: 'Papelaria (Embalagem, Etiquetas, Manuais, Guias, etc)', dept: 'MEP' },
+  { activity: 'Jiga de Testes', dept: 'P&D' },
+  { activity: 'Processo Produtivo', dept: 'MEP' },
+  { activity: 'Lote Piloto', dept: 'MEP' },
+  { activity: 'Golden Sample', dept: 'MEP' },
+]
