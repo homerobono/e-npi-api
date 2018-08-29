@@ -5,8 +5,14 @@ var OemSchema = new mongoose.Schema({
     inStockDate : {
         //required : true,
         type : { Date, Number },
-        fixed: Date,
-        offset: Number
+        fixed: {
+            type: Date,
+            default: null
+        },
+        offset: {
+            type: Number,
+            default: null
+        }
     },
     regulations : {
         type : [ String ],

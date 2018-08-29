@@ -81,25 +81,16 @@ exports.updateNpi = async function (user, npi) {
     console.log('oldNpi')
     console.log(oldNpi)
 
-    var changedFields = {}
-    for (var prop in npi) {
-        if (!(_.isEqual(oldNpi[prop], npi[prop]))) {
-            if (prop == 'critical') {
-                npi.critical = sign(user, oldNpi.critical, npi.critical)
-            }
-            if (npi[prop] != null) {
-                console.log(prop + ':')
-                console.log(oldNpi[prop])
-                console.log('!!==')
-                console.log(npi[prop])
-                oldNpi[prop] = npi[prop]
-                changedFields[prop] = npi[prop]
-            }
-        }
-    }
+    var updateResult = updateObject(oldNpi, npi)
 
-    //console.log('changedFields')
-    //console.log(changedFields)
+    var changedFields = updateResult.changedFields
+    oldNpi = updateResult.updatedNpi
+    
+    console.log("updateResult")
+    console.log(updateResult)
+
+    console.log('changedFields')
+    console.log(changedFields)
 
     try {
         if (oldNpi.stage > 1) {
@@ -262,3 +253,63 @@ function sign(user, oldCriticalFields, newCriticalFields) {
     return newCriticalFields
 }
 
+function updateObject(oldNpi, npi) {
+    var result = { 'updatedNpi': oldNpi, 'changedFields': {} }
+    try {
+    for (var prop in npi) {
+        if (npi[prop] instanceof Number ||
+            npi[prop] instanceof String ||
+            npi[prop] instanceof Boolean ||
+            npi[prop] instanceof Date ||
+            typeof npi[prop] == 'number' ||
+            typeof npi[prop] == 'string' ||
+            typeof npi[prop] == 'boolean' ||
+            typeof npi[prop] == 'null' ||
+            npi[prop] == null
+        ){
+            console.log('normal type instance: '+prop)
+            if (oldNpi[prop] !== npi[prop]//){
+                && oldNpi.hasOwnProperty(prop)) {
+                console.log(prop + ':')
+                console.log(oldNpi[prop])
+                console.log('!!==')
+                console.log(npi[prop])
+                result.updatedNpi[prop] = npi[prop]
+                result.changedFields[prop] = npi[prop]
+            }
+        } else if (
+            Object.keys(npi[prop]>0)
+        ) {
+            //console.log('recursing '+prop)
+            //console.log(prop + ' is instance of ' + typeof npi[prop])
+            if(result.updatedNpi[prop] == null) result.updatedNpi[prop] = npi[prop]
+            result.changedFields[prop] = npi[prop]
+            var childResult = updateObject(oldNpi[prop], npi[prop])
+            Object.assign(result.updatedNpi[prop], childResult.updatedNpi)
+            Object.assign(result.changedFields[prop], childResult.changedFields)
+            //console.log(result)
+        } else {
+            //console.log(prop + ' is instance of ' + typeof npi[prop])
+        }
+    }
+} catch(e){
+    console.log(e)
+}
+    return result
+}
+
+        /*
+        if (!(_.isEqual(oldNpi[prop], npi[prop]))) {
+            if (prop == 'critical') {
+                npi.critical = sign(user, oldNpi.critical, npi.critical)
+            }
+            if (npi[prop] != null) {
+                console.log(prop + ':')
+                console.log(oldNpi[prop])
+                console.log('!!==')
+                console.log(npi[prop])
+                oldNpi[prop] = npi[prop]
+                changedFields[prop] = npi[prop]
+            }
+        }*/
+    

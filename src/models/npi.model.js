@@ -54,7 +54,7 @@ var NpiSchema = new mongoose.Schema({
             type: Number,
             //required : true
         },
-        annex: [String]
+        annex: String
     },
     activities: {
         activityOne: {
