@@ -39,6 +39,14 @@ exports.createNpi = async function (req) {
             data = submitToAnalisys(data)
             var invalidFields = hasInvalidFields(data)
             if (invalidFields) throw ({ invalidFields })
+
+            if (data.npiRef == '') {
+                data.npiRef = null
+            } else {
+                let npiRef = await Npi.findOne({ number: data.npiRef })
+                if (npiRef)
+                    data.npiRef = npiRef._id
+            }
         }
         switch (kind) {
             case 'pixel':
@@ -81,6 +89,14 @@ exports.updateNpi = async function (user, npi) {
     console.log('oldNpi')
     console.log(oldNpi)
 
+    if (npi.npiRef == '') {
+        npi.npiRef = null
+    } else {
+        let npiRef = await Npi.findOne({ number: npi.npiRef })
+        if (npiRef)
+            npi.npiRef = npiRef._id
+    }
+
     var updateResult = updateObject(oldNpi, npi)
 
     var changedFields = updateResult.changedFields
@@ -90,20 +106,31 @@ exports.updateNpi = async function (user, npi) {
     console.log(changedFields)
 
     oldNpi.critical = sign(user, oldNpi.critical, changedFields.critical)
-
+/*
     console.log("updated Object")
     console.log(oldNpi)
-
+*/
 
     try {
         if (oldNpi.stage > 1) {
             if (!oldNpi.critical || oldNpi.critical.length == 0)
                 oldNpi = submitToAnalisys(oldNpi)
-            npi.entry = oldNpi.__t
             var invalidFields = hasInvalidFields(oldNpi)
-            if (invalidFields) throw ({ invalidFields })
+            if (invalidFields) throw ({ errors: invalidFields })
+
+            if (oldNpi.critical.every((analisys) => analisys.status == 'accept')) {
+                if (oldNpi.__t != 'oem')
+                    oldNpi = advanceToDevelopment(oldNpi)
+                else if (oldNpi.clientApproval) {
+                    if (oldNpi.clientApproval.approval == 'accept')
+                        oldNpi = advanceToDevelopment(oldNpi)
+                } else
+                    oldNpi.clientApproval = { approval: null, comment: null }
+            }
         }
         var savedNpi = await oldNpi.save()
+        //var savedNpi = Npi.findByIdAndUpdate(oldNpi._id, npi)
+        //console.log(savedNpi)
         return { npi: savedNpi, changedFields: changedFields }
         //return savedNpi;
     } catch (e) {
@@ -113,7 +140,6 @@ exports.updateNpi = async function (user, npi) {
 }
 
 exports.deleteNpi = async function (id) {
-
     // Delete the Npi
     try {
         var deleted = await Npi.remove({ _id: id })
@@ -127,11 +153,27 @@ exports.deleteNpi = async function (id) {
     }
 }
 
+exports.deleteAllNpis = async function (user) {
+    // Delete the Npi
+    if (user.email != 'admin') throw Error("Apenas o administrador pode realizar essa operação")
+    try {
+        var deleted = await Npi.deleteMany({})
+        console.log(deleted)
+        if (deleted.n === 0) {
+            throw Error("Npis could not be deleted")
+        }
+        return deleted
+    } catch (e) {
+        throw Error("Error occured while Deleting the Npis: " + e)
+    }
+}
+
 exports.findNpiById = async npiId =>
     await Npi.findById(npiId).populate('requester', "firstName", 'lastName');
 
 exports.findNpiByNumber = async npiNumber => {
     var npi = await Npi.findOne({ number: npiNumber })
+        .populate('npiRef', '_id number name stage created')
         .populate('requester', 'firstName lastName')
         .populate({
             path: 'critical.signature.user',
@@ -140,7 +182,7 @@ exports.findNpiByNumber = async npiNumber => {
         },
     );
     if (!npi || npi == null) throw Error('There is no NPI with this number: ' + npiNumber)
-    console.log(npi.critical)
+    //console.log(npi)
     return npi
 }
 
@@ -180,6 +222,22 @@ function submitToAnalisys(data) {
     return data
 }
 
+function advanceToDevelopment(data) {
+    console.log('advancing to development')
+    data.stage = 3
+    data.activities = []
+    global.MACRO_STAGES.forEach(stage => {
+        data.activities.push({
+            activity: stage.activity,
+            dept: stage.dept,
+            date: null,
+            registry: null,
+            annex: null,
+        })
+    })
+    return data
+}
+
 function hasInvalidFields(data) {
     var invalidFields = {}
 
@@ -193,26 +251,30 @@ function hasInvalidFields(data) {
 
     switch (kind) {
         case 'pixel':
-            if (!data.price && data.price !== 0) invalidFields.price = data.price
-            if (!data.cost && data.cost !== 0) invalidFields.cost = data.cost
+            if (!data.price && data.price !== 0)
+                invalidFields.price = data.price
+            if (!data.cost && data.cost !== 0)
+                invalidFields.cost = data.cost
+            if (!data.inStockDate)
+                invalidFields.inStockDate = data.inStockDate
             break;
         case 'internal':
             break;
         case 'oem':
-            /*if (
-                data.inStockDate == null || 
+            if (
+                data.inStockDate == null ||
                 (
                     (
                         data.inStockDate.fixed == null ||
-                        data.inStockDate.fixed == '' 
+                        data.inStockDate.fixed == ''
                     )
-                    && 
+                    &&
                     (
                         data.inStockDate.offset == null ||
                         data.inStockDate.offset == ''
                     )
                 )
-            ) invalidFields.inStockDate = data.inStockDate*/
+            ) invalidFields.inStockDateType = data.inStockDate
             break;
         case 'custom':
             if (!data.price && data.price !== 0) invalidFields.price = data.price
@@ -254,9 +316,9 @@ function sign(user, npiCritical, criticalChangedFields) {
                 field.signature = { user: user._id, date: Date.now() }
                 signChanged = true
             }
-            if (signChanged){
-                npiCritical.forEach(row =>{
-                    if (row._id == field._id){
+            if (signChanged) {
+                npiCritical.forEach(row => {
+                    if (row._id == field._id) {
                         console.log('submited (un)signature ' + row.dept)
                         console.log(field.signature)
                         row.signature = field.signature
@@ -274,42 +336,54 @@ function updateObject(oldObject, newObject) {
     try {
         for (var prop in newObject) {
             if (
-                (
-                    newObject[prop] instanceof Number ||
-                    newObject[prop] instanceof String ||
-                    newObject[prop] instanceof Boolean ||
-                    newObject[prop] instanceof Date ||
-                    typeof newObject[prop] == 'number' ||
-                    typeof newObject[prop] == 'string' ||
-                    typeof newObject[prop] == 'boolean' ||
-                    typeof newObject[prop] == 'null' ||
-                    newObject[prop] == null || newObject[prop] === null
-                )
-                && typeof oldObject[prop] !== "undefined"
+                newObject[prop] instanceof Number ||
+                newObject[prop] instanceof String ||
+                newObject[prop] instanceof Boolean ||
+                newObject[prop] instanceof Date ||
+                typeof newObject[prop] == 'number' ||
+                typeof newObject[prop] == 'string' ||
+                typeof newObject[prop] == 'boolean' ||
+                typeof newObject[prop] == 'null' ||
+                newObject[prop] == null || newObject[prop] === null
             ) {
-                let objectsDiffer = false
-                if (oldObject[prop] == null || newObject[prop] == null) {
-                    if (oldObject[prop] != newObject[prop]) {
-                        objectsDiffer = true
-                    }
-                } else {
-                    if (oldObject[prop] instanceof Date ||
-                        typeof oldObject[prop] == 'date') {
-                        newObject[prop] = new Date(newObject[prop])
-                        if (oldObject[prop].toString() != newObject[prop].toString()) {
+                if (typeof oldObject[prop] !== "undefined") {
+                    let objectsDiffer = false
+                    if (oldObject[prop] == null) {
+                        if (oldObject[prop] != newObject[prop]) {
+                            objectsDiffer = true
+                        }
+                    } else {
+                        if (oldObject[prop] instanceof Date
+                            || typeof oldObject[prop] == 'date'
+                            || typeof newObject[prop] == 'date'
+                            || newObject[prop] instanceof Date
+                            || prop == 'fixed') {
+                            console.log('converting ' + prop + ' to Date')
+                            if (newObject[prop]) {
+                                newObject[prop] = new Date(newObject[prop])
+                                if (oldObject[prop].toString() != newObject[prop].toString()) {
+                                    objectsDiffer = true
+                                }
+                            }
+                        }
+                        else if (oldObject[prop] != newObject[prop]) {
                             objectsDiffer = true
                         }
                     }
-                    else if (oldObject[prop].toString() != newObject[prop].toString()) {
-                        objectsDiffer = true
+                    if (objectsDiffer) {
+                        if (prop == 'fixed') {
+                            console.log('converting ' + prop + ' to Date')
+                            if (newObject[prop]) {
+                                newObject[prop] = new Date(newObject[prop])
+                            }
+                        }
+                        console.log(prop + ' field has changed:')
+                        console.log(oldObject[prop])
+                        console.log('!!==')
+                        console.log(newObject[prop])
+                        oldObject[prop] = newObject[prop]
+                        changedFields[prop] = newObject[prop]
                     }
-                } if (objectsDiffer) {
-                    console.log(prop + ' field has changed:')
-                    console.log(oldObject[prop])
-                    console.log('!!==')
-                    console.log(newObject[prop])
-                    oldObject[prop] = newObject[prop]
-                    changedFields[prop] = newObject[prop]
                 }
             } else if (Array.isArray(newObject[prop])) {
                 console.log(prop + ' is array')
@@ -326,7 +400,7 @@ function updateObject(oldObject, newObject) {
                             if (newChild._id == oldChild._id) {
                                 let childResult = updateObject(oldChild, newChild)
                                 Object.assign(oldObject[prop][j], childResult.updatedObject)
-                                if(Object.keys(childResult.changedFields).length > 0){
+                                if (Object.keys(childResult.changedFields).length > 0) {
                                     console.log('child return with changes')
                                     childResult.changedFields._id = oldChild._id
                                     changedFieldsArr.push(childResult.changedFields)
@@ -340,11 +414,11 @@ function updateObject(oldObject, newObject) {
                             oldObject[prop].push(newChild)
                         }
                     }
-                    if (changedFieldsArr.length>0) 
+                    if (changedFieldsArr.length > 0)
                         changedFields[prop] = changedFieldsArr
                 }
             } else if (Object.keys(newObject[prop]).length > 0) {
-                console.log('recursing ' + prop)
+                console.log('recursing ' + prop + ' in ' + newObject[prop])
                 //console.log(prop + ' is instance of ' + typeof npi[prop])
                 if (oldObject[prop] == null) {
                     oldObject[prop] = newObject[prop]

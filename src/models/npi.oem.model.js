@@ -3,16 +3,13 @@ let Npi = require('./npi.model')
 
 var OemSchema = new mongoose.Schema({
     inStockDate: {
-        //required : true,
-        type: {
-            fixed: {
-                type: Date,
-                default: null
-            },
-            offset: {
-                type: Number,
-                default: null
-            }
+        fixed: {
+            type: Date,
+            default: null
+        },
+        offset: {
+            type: Number,
+            default: null
         }
     },
     regulations: {
@@ -56,15 +53,14 @@ var OemSchema = new mongoose.Schema({
         }]
     },
     clientApproval: {
-        type:{
-            approval: {
-                type: String,
-                default: null
-            },
-            comment : {
-                type: String,
-                default: null
-            }
+        approval: {
+            type: String,
+            enum: [null, 'accept', 'deny'],
+            default: null
+        },
+        comment: {
+            type: String,
+            default: null
         }
     }
 })

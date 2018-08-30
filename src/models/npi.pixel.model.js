@@ -6,25 +6,30 @@ Npi.discriminator(
     new mongoose.Schema({
         cost : {
             type : Number,
-            //required : true
+            default: null
         },
         price : {
             type : Number,
-            //required : true
+            default: null
         },
         inStockDate : {
-            //required : true,
-            type : Date
+            type : Date,
+            default: null
         },
         regulations : {
             type : [String],
-            enum : ['ABNT', 'ANATEL', 'INMETRO', 'ANVISA', 'other'],
+            enum : [null, 'ABNT', 'ANATEL', 'INMETRO', 'ANVISA', 'other'],
+            default: null
         },        
         demand : {
-            amount : Number,
+            amount : {
+                type: Number,
+                default: null,
+            },
             period : {
                 type : String,
-                enum : ['year','month','day','unique']
+                enum : [null, 'year','month','day','unique'],
+                default: null,
             }
         }
     })

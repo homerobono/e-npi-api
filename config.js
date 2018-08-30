@@ -43,6 +43,23 @@ global.NPI_LABELS = {
 }
 
 global.DEPARTMENTS = [
+  'ADM',
+  'COM',
+  'COMP',
+  'EPROD',
+  'EPROC',
+  'FIN',
+  'MKT',
+  'P&D',
+  'PROD',
+  'PRD',
+  'RH',
+  'OPR',
+  'MEP',
+  'CSC'
+]
+
+global.DEPARTMENTS_LABELS = [
   { value: 'ADM', label: 'Administrativo' },
   { value: 'COM', label: 'Comercial' },
   { value: 'COMP', label: 'Compras' },
@@ -54,7 +71,9 @@ global.DEPARTMENTS = [
   { value: 'PROD', label: 'Produção' },
   { value: 'PRD', label: 'Produto' },
   { value: 'RH', label: 'R.H.' },
-  { value: 'OPR', label: 'Operações' }
+  { value: 'OPR', label: 'Operações' },
+  { value: 'MEP', label: 'Ministério de Engenharia Privada' },
+  { value: 'CSC', label: 'Controle Seccionado de Capacidade' }
 ]
 
 global.NPI_PIXEL_CRITICAL_DEPTS = ['EPROC', 'OPR', 'ADM', 'COM']

@@ -34,7 +34,7 @@ var NpiSchema = new mongoose.Schema({
     annex: String,
     client: {
         type: String,
-        default: 'Pixel'
+        default: null
     },
     requester: {
         type: mongoose.Schema.Types.ObjectId,
@@ -80,7 +80,29 @@ var NpiSchema = new mongoose.Schema({
         }
     },
     activities: {
-        type: [],
+        type: [{
+            activity: {
+                type: String,
+                default: null
+            },
+            dept: {
+                type: String,
+                enum: global.DEPARTMENTS,
+                default: null
+            },
+            date: {
+                type: Date,
+                default: null
+            },
+            registry: {
+                type: String,
+                default: null
+            },
+            annex: {
+                type: String,
+                default: null
+            },
+        }],
         default: null
     },
     critical: {
@@ -96,18 +118,14 @@ var NpiSchema = new mongoose.Schema({
                 default: null
             },
             signature: {
-                type: {
-                    date: {
-                        type: Date,
-                        default: null
-                    },
-                    user: {
-                        type: {
-                            type: mongoose.Schema.Types.ObjectId,
-                            ref: 'User',
-                        },
-                        default: null
-                    }
+                date: {
+                    type: Date,
+                    default: null
+                },
+                user: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
+                    default: null
                 }
             }
         }]
@@ -115,26 +133,16 @@ var NpiSchema = new mongoose.Schema({
     options
 });
 
-/*NpiSchema.pre('save', async function (next) { 
-    if (!this.isModified('critical.status')) return next();
-    sign()
+/*NpiSchema.pre('create', async function (next) { 
+    if (!this.npiRef || this.npiRef == ''){
+        this.npiRef = null
+    } else {
+        let npiRef = this.findOne({number: npiRef})
+        if (npiRef) this.npiRef = npiRef._id
+    }
     return next();
 });
-
-function sign(user, oldCriticalFields, newCriticalFields) {
-    console.log(user)
-    if (newCriticalFields) {
-        for (var i = 0; i < newCriticalFields.length; i++) {
-            if (newCriticalFields[i].status &&
-                newCriticalFields[i].status !== oldCriticalFields[i].status) {
-                console.log('singning ' + oldCriticalFields[i].dept)
-                newCriticalFields[i].signature = { user: user._id, date: Date.now() }
-            }
-        }
-    }
-    return newCriticalFields
-}*/
-
+*/
 NpiSchema.plugin(sequence, { inc_field: 'number' })
 NpiSchema.plugin(mongoosePaginate)
 const Npi = mongoose.model('Npi', NpiSchema)
