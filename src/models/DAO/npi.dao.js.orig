@@ -109,6 +109,10 @@ exports.updateNpi = async function (user, npi) {
 /*
     console.log("updated Object")
     console.log(oldNpi)
+<<<<<<< HEAD
+*/
+=======
+>>>>>>> Validação de campos em atualização
 
     try {
         if (oldNpi.stage > 1) {
@@ -128,8 +132,14 @@ exports.updateNpi = async function (user, npi) {
             }
         }
         var savedNpi = await oldNpi.save()
+<<<<<<< HEAD
         //var savedNpi = Npi.findByIdAndUpdate(oldNpi._id, npi)
         //console.log(savedNpi)
+=======
+
+        console.log("saved Npi")
+        console.log(savedNpi)
+>>>>>>> Validação de campos em atualização
         return { npi: savedNpi, changedFields: changedFields }
         //return savedNpi;
     } catch (e) {
@@ -181,7 +191,11 @@ exports.findNpiByNumber = async npiNumber => {
         },
     );
     if (!npi || npi == null) throw Error('There is no NPI with this number: ' + npiNumber)
+<<<<<<< HEAD
     //console.log(npi)
+=======
+    console.log(npi)
+>>>>>>> Validação de campos em atualização
     return npi
 }
 
@@ -273,7 +287,9 @@ function hasInvalidFields(data) {
                         data.inStockDate.offset == ''
                     )
                 )
+<<<<<<< HEAD
             ) invalidFields.inStockDateType = data.inStockDate
+=======
             ) {
                 invalidFields.inStockDateType = data.inStockDate
                 invalidFields.inStockFixedDate = data.inStockDate
