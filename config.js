@@ -91,8 +91,15 @@ global.MACRO_STAGES = [
   { activity: 'Cotação', dept: 'CSC' },
   { activity: 'Validação de Requisitos de Entrada', dept: 'MEP' },
   { activity: 'Papelaria (Embalagem, Etiquetas, Manuais, Guias, etc)', dept: 'MEP' },
+  { activity: 'Cadastro da BOM', dept: 'MEP' },
+  { activity: 'IT de Teste', dept: 'MEP' },
   { activity: 'Jiga de Testes', dept: 'P&D' },
   { activity: 'Processo Produtivo', dept: 'MEP' },
   { activity: 'Lote Piloto', dept: 'MEP' },
+  { activity: 'IT de Montagem', dept: 'MEP' },
   { activity: 'Golden Sample', dept: 'MEP' },
+]
+
+global.REGULATIONS = [
+  ['ABNT', 'ANATEL', 'INMETRO', 'ANVISA']
 ]

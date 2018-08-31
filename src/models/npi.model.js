@@ -28,7 +28,6 @@ var NpiSchema = new mongoose.Schema({
     },
     complexity: {
         type: String,
-        //required : true,
         default: null
     },
     annex: String,
@@ -45,6 +44,10 @@ var NpiSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    description: {
+        type: String,
+        default: null
+    },
     resources: {
         description: {
             type: String,
@@ -56,16 +59,23 @@ var NpiSchema = new mongoose.Schema({
         }
     },
     norms: {
-        type: String,
-        default: null
+        description: {
+            type: String,
+            default: null
+        },
+        annex: {
+            type: [String],
+            default: null
+        }
     },
     investment: {
         type: Number,
+        min: 1,
         default: null
     },
     fiscals:
     {
-        type: Number,
+        type: String,
         default: null
     },
     projectCost: {
@@ -107,7 +117,11 @@ var NpiSchema = new mongoose.Schema({
     },
     critical: {
         type: [{
-            dept: String,
+            dept: {
+                type: String,
+                enum: global.DEPARTMENTS,
+                default: null
+            },
             status: {
                 type: String,
                 enum: [null, 'deny', 'accept', 'condition'],
