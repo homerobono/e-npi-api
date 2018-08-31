@@ -12,9 +12,8 @@ var OemSchema = new mongoose.Schema({
             default: null
         }
     },
-    regulations: {
-        type: [String],
-        enum: [null, 'ABNT', 'ANATEL', 'INMETRO', 'ANVISA', 'other'],
+    regulations : {
+        type : [String],
         default: null
     },
     demand: {

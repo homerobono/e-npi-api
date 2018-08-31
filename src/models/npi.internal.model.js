@@ -3,7 +3,12 @@ let Npi = require('./npi.model')
 
 Npi.discriminator(
     'internal', 
-    new mongoose.Schema()
+    new mongoose.Schema({
+        inStockDate: {
+            type: Date,
+            default: null
+        },
+    })
 );
 
 const InternalNpi = mongoose.model('internal')

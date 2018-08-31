@@ -18,9 +18,8 @@ Npi.discriminator(
         },
         regulations : {
             type : [String],
-            enum : [null, 'ABNT', 'ANATEL', 'INMETRO', 'ANVISA', 'other'],
             default: null
-        },        
+        },
         demand : {
             amount : {
                 type: Number,

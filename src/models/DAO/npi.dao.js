@@ -35,18 +35,19 @@ exports.createNpi = async function (req) {
     try {
         // Saving the Npi
         let newNpi = new Npi();
+
+        if (data.npiRef == '') {
+            data.npiRef = null
+        } else {
+            let npiRef = await Npi.findOne({ number: data.npiRef })
+            if (npiRef)
+                data.npiRef = npiRef._id
+        }
+
         if (data.stage == 2) {
             data = submitToAnalisys(data)
             var invalidFields = hasInvalidFields(data)
-            if (invalidFields) throw ({ invalidFields })
-
-            if (data.npiRef == '') {
-                data.npiRef = null
-            } else {
-                let npiRef = await Npi.findOne({ number: data.npiRef })
-                if (npiRef)
-                    data.npiRef = npiRef._id
-            }
+            if (invalidFields) throw ({ errors: invalidFields })
         }
         switch (kind) {
             case 'pixel':
@@ -242,6 +243,10 @@ function hasInvalidFields(data) {
 
     if (!data.name) invalidFields.name = data.name
     if (!data.client) invalidFields.client = data.client
+    if (!data.description) invalidFields.description = data.description
+    if (!data.norms || !data.norms.description) invalidFields.norms = data.norms
+    if (!data.resources || !data.resources.description) invalidFields.resources = data.resources
+    if (!data.fiscals) invalidFields.fiscals = data.fiscals
     if (!data.complexity) invalidFields.complexity = data.complexity
     if (!data.investment && data.investment !== 0) invalidFields.investment = data.investment
     if (data.projectCost && !data.projectCost.cost && data.projectCost.cost !== 0) invalidFields.projectCost = data.projectCost
@@ -256,6 +261,7 @@ function hasInvalidFields(data) {
                 invalidFields.cost = data.cost
             if (!data.inStockDate)
                 invalidFields.inStockDate = data.inStockDate
+
             break;
         case 'internal':
             break;
@@ -291,6 +297,7 @@ function hasInvalidFields(data) {
             } else {
                 invalidFields.npiRef = data.npiRef
             }
+            if (!data.inStockDate) invalidFields.inStockDate = data.inStockDate
             break;
         default:
             console.log('NPI entry: ' + kind)

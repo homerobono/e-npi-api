@@ -35,18 +35,19 @@ exports.createNpi = async function (req) {
     try {
         // Saving the Npi
         let newNpi = new Npi();
+
+        if (data.npiRef == '') {
+            data.npiRef = null
+        } else {
+            let npiRef = await Npi.findOne({ number: data.npiRef })
+            if (npiRef)
+                data.npiRef = npiRef._id
+        }
+
         if (data.stage == 2) {
             data = submitToAnalisys(data)
             var invalidFields = hasInvalidFields(data)
-            if (invalidFields) throw ({ invalidFields })
-
-            if (data.npiRef == '') {
-                data.npiRef = null
-            } else {
-                let npiRef = await Npi.findOne({ number: data.npiRef })
-                if (npiRef)
-                    data.npiRef = npiRef._id
-            }
+            if (invalidFields) throw ({ errors: invalidFields })
         }
         switch (kind) {
             case 'pixel':
@@ -106,13 +107,16 @@ exports.updateNpi = async function (user, npi) {
     console.log(changedFields)
 
     oldNpi.critical = sign(user, oldNpi.critical, changedFields.critical)
+<<<<<<< HEAD
 /*
     console.log("updated Object")
     console.log(oldNpi)
-<<<<<<< HEAD
-*/
 =======
->>>>>>> Validação de campos em atualização
+    /*
+        console.log("updated Object")
+        console.log(oldNpi)
+    */
+>>>>>>> 7b2175aeb9ba937d4b18fb435d52d5fdcae40dbf
 
     try {
         if (oldNpi.stage > 1) {
@@ -132,14 +136,8 @@ exports.updateNpi = async function (user, npi) {
             }
         }
         var savedNpi = await oldNpi.save()
-<<<<<<< HEAD
         //var savedNpi = Npi.findByIdAndUpdate(oldNpi._id, npi)
         //console.log(savedNpi)
-=======
-
-        console.log("saved Npi")
-        console.log(savedNpi)
->>>>>>> Validação de campos em atualização
         return { npi: savedNpi, changedFields: changedFields }
         //return savedNpi;
     } catch (e) {
@@ -191,11 +189,7 @@ exports.findNpiByNumber = async npiNumber => {
         },
     );
     if (!npi || npi == null) throw Error('There is no NPI with this number: ' + npiNumber)
-<<<<<<< HEAD
     //console.log(npi)
-=======
-    console.log(npi)
->>>>>>> Validação de campos em atualização
     return npi
 }
 
@@ -256,6 +250,10 @@ function hasInvalidFields(data) {
 
     if (!data.name) invalidFields.name = data.name
     if (!data.client) invalidFields.client = data.client
+    if (!data.description) invalidFields.description = data.description
+    if (!data.norms || !data.norms.description) invalidFields.norms = data.norms
+    if (!data.resources || !data.resources.description) invalidFields.resources = data.resources
+    if (!data.fiscals) invalidFields.fiscals = data.fiscals
     if (!data.complexity) invalidFields.complexity = data.complexity
     if (!data.investment && data.investment !== 0) invalidFields.investment = data.investment
     if (data.projectCost && !data.projectCost.cost && data.projectCost.cost !== 0) invalidFields.projectCost = data.projectCost
@@ -270,6 +268,7 @@ function hasInvalidFields(data) {
                 invalidFields.cost = data.cost
             if (!data.inStockDate)
                 invalidFields.inStockDate = data.inStockDate
+
             break;
         case 'internal':
             break;
@@ -287,9 +286,7 @@ function hasInvalidFields(data) {
                         data.inStockDate.offset == ''
                     )
                 )
-<<<<<<< HEAD
             ) invalidFields.inStockDateType = data.inStockDate
-=======
             ) {
                 invalidFields.inStockDateType = data.inStockDate
                 invalidFields.inStockFixedDate = data.inStockDate
@@ -307,6 +304,7 @@ function hasInvalidFields(data) {
             } else {
                 invalidFields.npiRef = data.npiRef
             }
+            if (!data.inStockDate) invalidFields.inStockDate = data.inStockDate
             break;
         default:
             console.log('NPI entry: ' + kind)
