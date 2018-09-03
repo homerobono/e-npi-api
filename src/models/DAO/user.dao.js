@@ -47,7 +47,6 @@ exports.createAdmin = async function(data){
     try{
         let newUser = await User.create(data);
         console.log('saved: '+newUser)
-        newUser.password=null
         return newUser;
     } catch(e) {
         console.log(e)
@@ -80,7 +79,6 @@ exports.createUser = async function(data){
         // Saving the User
         let newUser = await pendingUser.save();
         console.log('saved: '+newUser)
-        newUser.password = null
         return newUser;
     } catch(e) {
         console.log(e)
@@ -90,7 +88,7 @@ exports.createUser = async function(data){
 
 exports.updateUser = async function(thisUser, data){
     try{
-        var oldUser = await User.findById(data.userId);
+        var oldUser = await User.findById(data.userId).select('+password');
     } catch(e) {
         throw Error("Error occured while finding the user")
     }
@@ -123,8 +121,7 @@ exports.updateUser = async function(thisUser, data){
 
     try{
         var savedUser = await oldUser.save();
-        console.log(savedUser);
-        savedUser.password = null
+        //console.log(savedUser);
         return savedUser;
     }catch(e){
         throw Error("An error occured while updating the User");
@@ -149,7 +146,6 @@ exports.findUserById = async userId =>
     { 
         let user = await User.findById(userId);
         if (user) {
-            user.password = null
             user.resetToken = null
         }
         return user
@@ -159,7 +155,6 @@ exports.findUserByEmail = async userEmail =>
     { 
         let user = await User.findOne({email : userEmail})
         if (user) {
-            user.password = null
             user.resetToken = null
         }
         return user

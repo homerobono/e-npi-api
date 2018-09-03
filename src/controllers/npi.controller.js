@@ -11,9 +11,9 @@ var npiDAO = require('../models/DAO/npi.dao');
 
 exports.getNpi = async (req, res, next) => {
   try {
-    let npi = await npiDAO.findNpiById(req.params.npiId);
-    console.log(npi);
-    res.status(200).send(npi);
+    let npis = await npiDAO.findNpiById(req.params.npiId);
+    console.log(npis);
+    res.status(200).send({data: npis});
   } catch (err) {
     res.status(400).send({
       message: err.message
@@ -23,12 +23,8 @@ exports.getNpi = async (req, res, next) => {
 
 // Async Controller function to get the To do List
 exports.getNpis = async function (req, res, next) {
-  // Check the existence of the query parameters, If the exists doesn't exists assign a default value
-  var page = req.query.page ? req.query.page : 1
-  var limit = req.query.limit ? req.query.limit : 1000;
-
   try {
-    var npis = await npiDAO.getNpis({}, page, limit)
+    var npis = await npiDAO.getNpis({})
     // Return the users list with the appropriate HTTP Status Code and Message.
     return res.status(200).send({ data: npis, message: "Succesfully npi's received" });
   } catch (e) {
@@ -50,8 +46,8 @@ exports.findNpiById = async (req, res, next) => {
 
 exports.findNpiByNumber = async (req, res, next) => {
   try {
-    let npi = await npiDAO.findNpiByNumber(req.params.npiNumber);
-    res.status(200).send(npi);
+    let npis = await npiDAO.findNpiByNumber(req.params.npiNumber);
+    res.status(200).send({data: npis});
   } catch (err) {
     res.status(404).send({
       message: err.message
@@ -67,6 +63,20 @@ exports.createNpi = async function (req, res, next) {
   } catch (e) {
     console.log({ message: e.message })
     return res.status(401).send({ message: e.message })
+  }
+}
+
+exports.newNpiVersion = async function (req, res, next) {
+  try {
+    console.log(req.body)
+    var result = await npiDAO.cloneNpi(req.body)
+    var sentNotify = sendChangesNotify(req, result)
+    console.log(result)
+    //result.sentNotify = sentNotify*/
+    return res.status(200).send({ data: result, message: "Succesfully created new NPI version" })
+  } catch (e) {
+    console.log(e)
+    return res.status(400).send({ message: e.message })
   }
 }
 

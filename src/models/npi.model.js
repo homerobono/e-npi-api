@@ -1,6 +1,6 @@
 var mongoose = require('mongoose')
 var mongoosePaginate = require('mongoose-paginate')
-var sequence = require('mongoose-sequence')(mongoose);
+//var sequence = require('mongoose-sequence')(mongoose);
 
 var options = { discriminatorKey: 'String' };
 
@@ -147,17 +147,20 @@ var NpiSchema = new mongoose.Schema({
     options
 });
 
-/*NpiSchema.pre('create', async function (next) { 
-    if (!this.npiRef || this.npiRef == ''){
-        this.npiRef = null
-    } else {
-        let npiRef = this.findOne({number: npiRef})
-        if (npiRef) this.npiRef = npiRef._id
+NpiSchema.pre('save', async function () {
+    if (this.isNew && this.number == undefined) {
+        let users = await Npi.find({ 'number': { $exists: true } }, 'number').sort('number')
+        let numVec = users.map(n => n.number)
+        for (var number = 0, i = 0; i < numVec.length; i++) {
+            if (number < numVec[i]) break;
+            else if (number == numVec[i]) number++
+        }
+        if (number == undefined) throw Error('undefined number')
+        this.number = number
     }
-    return next();
 });
-*/
-NpiSchema.plugin(sequence, { inc_field: 'number' })
+
+//NpiSchema.plugin(sequence, { inc_field: 'number' })
 NpiSchema.plugin(mongoosePaginate)
 const Npi = mongoose.model('Npi', NpiSchema)
 

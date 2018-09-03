@@ -7,18 +7,16 @@ var _ = require('underscore');
 
 _this = this
 
-exports.getNpis = async function (query, page, limit) {
+exports.getNpis = async function (query) {
 
-    // Options setup for the mongoose paginate
-    var options = {
-        page,
-        limit
-    }
+    query.number = { $exists: true }
+
     try {
-        var npis = await Npi.paginate(query, options)
+        var npis = await Npi.find(query)
+        //console.log(npis)
         return npis;
     } catch (e) {
-        throw Error('Error while paginating npi\'s')
+        throw Error(e)
     }
 }
 
@@ -27,21 +25,32 @@ exports.createNpi = async function (req) {
 
     let data = req.body
 
-    data.created = Date.now();
-    data.requester = req.user.data._id
+    if (!data.created) data.created = Date.now();
+    if (!data.requester) data.requester = req.user.data._id
+
+    if (data.oemActivities){
+        data.oemActivities.forEach(activity => {
+            delete(activity._id)
+        })
+    }
+    if (data.critical) delete(data.critical)
 
     var kind = data.entry
-    console.log(data)
+    //console.log(data)
     try {
         // Saving the Npi
         let newNpi = new Npi();
 
         if (data.npiRef == '') {
             data.npiRef = null
-        } else {
-            let npiRef = await Npi.findOne({ number: data.npiRef })
-            if (npiRef)
-                data.npiRef = npiRef._id
+        } else if (data.npiRef != null) {
+            if (data.npiRef._id)
+                data.npiRef = data.npiRef._id
+            else if (data.npiRef instanceof Number) {
+                var npiRef = await Npi.findOne({ number: data.npiRef })
+                if (npiRef)
+                    data.npiRef = npiRef._id
+            }
         }
 
         if (data.stage == 2) {
@@ -66,7 +75,22 @@ exports.createNpi = async function (req) {
                 console.log('NPI entry: ' + kind)
                 throw Error('Tipo de NPI inválido: ' + kind)
         }
-        console.log('saved: ' + newNpi)
+        console.log('created: ' + newNpi)
+        return newNpi;
+    } catch (e) {
+        console.log(e)
+        throw ({ message: e })
+    }
+}
+
+exports.cloneNpi = async function (data) {
+    console.log(data)
+    var npi = await Npi.findById(data.id).select('-_id')
+    npi.critical = []
+    npi.clone
+    try {
+        var newNpi = await Npi.create(npi)
+        console.log('cloned: ' + newNpi)
         return newNpi;
     } catch (e) {
         console.log(e)
@@ -107,10 +131,10 @@ exports.updateNpi = async function (user, npi) {
     console.log(changedFields)
 
     oldNpi.critical = sign(user, oldNpi.critical, changedFields.critical)
-/*
-    console.log("updated Object")
-    console.log(oldNpi)
-
+    /*
+        console.log("updated Object")
+        console.log(oldNpi)
+    */
     try {
         if (oldNpi.stage > 1) {
             if (!oldNpi.critical || oldNpi.critical.length == 0)
@@ -168,11 +192,23 @@ exports.deleteAllNpis = async function (user) {
     }
 }
 
-exports.findNpiById = async npiId =>
-    await Npi.findById(npiId).populate('requester', "firstName", 'lastName');
+exports.findNpiById = async npiId => {
+    var npi = await Npi.findById(npiId)
+        .populate('npiRef', '_id number name stage created')
+        .populate('requester', 'firstName lastName')
+        .populate({
+            path: 'critical.signature.user',
+            model: 'User',
+            select: 'firstName lastName'
+        },
+    );
+    if (!npi || npi == null) throw Error('There is no NPI with this number: ' + npiNumber)
+    //console.log(npi)
+    return npi
+}
 
 exports.findNpiByNumber = async npiNumber => {
-    var npi = await Npi.findOne({ number: npiNumber })
+    var npi = await Npi.find({ number: npiNumber })
         .populate('npiRef', '_id number name stage created')
         .populate('requester', 'firstName lastName')
         .populate({
@@ -279,13 +315,9 @@ function hasInvalidFields(data) {
                         data.inStockDate.offset == ''
                     )
                 )
-            ) invalidFields.inStockDateType = data.inStockDate
             ) {
                 invalidFields.inStockDateType = data.inStockDate
-                invalidFields.inStockFixedDate = data.inStockDate
-                invalidFields.inStockOffsetDate = data.inStockDate
             }
->>>>>>> Validação de campos em atualização
             break;
         case 'custom':
             if (!data.price && data.price !== 0) invalidFields.price = data.price
