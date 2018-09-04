@@ -4,7 +4,7 @@ let Npi = require('./npi.model')
 var OemSchema = new mongoose.Schema({
     version: {
         type: Number,
-        default: 0
+        default: 1
     },
     inStockDate: {
         fixed: {
@@ -75,17 +75,17 @@ var OemSchema = new mongoose.Schema({
 
 
 OemSchema.pre('save', async function () {
-    let versions = await Npi.find({ 'number': this.number }, 'versions').sort('versions')
-    if (this.isNew && versions.length > 0) {
-        console.log('creating new version')
-        let versionsVec = versions.map(n => n.version)
-        for (var version = 0, i = 0; i < versionsVec.length; i++) {
-            if (version < versionsVec[i]) break;
-            else if (version == versionsVec[i]) version++
-        }
-        if (version == undefined) throw Error('undefined version')
-        this.version = version
+    var version = 1
+    if (this.isNew){
+        try {
+            let latestVersion = await Npi.findOne({ 'number': this.number }, 'version').sort('-version')
+            console.log(latestVersion)
+            if (latestVersion != null)
+                version = latestVersion.version + 1
+        } catch (e) { throw (e) }
+        console.log('NEW VERSION '+version)
     }
+    this.version = version
 });
 
 Npi.discriminator(

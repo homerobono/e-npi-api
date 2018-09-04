@@ -7,7 +7,7 @@ var options = { discriminatorKey: 'String' };
 var NpiSchema = new mongoose.Schema({
     number: {
         type: Number,
-        unique: true,
+        //unique: true,
     },
     created: {
         type: Date,

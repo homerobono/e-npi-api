@@ -9,8 +9,13 @@ _this = this
 
 exports.getNpis = async function (query) {
 
-    query.number = { $exists: true }
-
+    query = Object.assign({}, {
+        $or: [
+            { version: { $exists: false } },
+            { version: { $eq: 1 } }
+        ]
+    })
+    
     try {
         var npis = await Npi.find(query)
         //console.log(npis)
@@ -28,12 +33,12 @@ exports.createNpi = async function (req) {
     if (!data.created) data.created = Date.now();
     if (!data.requester) data.requester = req.user.data._id
 
-    if (data.oemActivities){
+    if (data.oemActivities) {
         data.oemActivities.forEach(activity => {
-            delete(activity._id)
+            delete (activity._id)
         })
     }
-    if (data.critical) delete(data.critical)
+    if (data.critical) delete (data.critical)
 
     var kind = data.entry
     //console.log(data)
