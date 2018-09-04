@@ -15,11 +15,31 @@ exports.getNpis = async function (query) {
             { version: { $eq: 1 } }
         ]
     })
-    
+
+    var aggregations = [
+        {
+            $sort: {
+                number: 1,
+                version: -1
+            }
+        }, {
+            $group: {
+                _id: '$number',
+                npi: {
+                    $first:
+                        '$$ROOT'
+                }
+            }
+        }
+    ]
     try {
-        var npis = await Npi.find(query)
+        //var npis = await Npi.find(query)
+        var npisQuery = await Npi.aggregate([aggregations]).sort('_id')
+
+        let npisVec = npisQuery.map(npi => npi.npi)
+
         //console.log(npis)
-        return npis;
+        return npisVec;
     } catch (e) {
         throw Error(e)
     }
@@ -88,19 +108,46 @@ exports.createNpi = async function (req) {
     }
 }
 
-exports.cloneNpi = async function (data) {
-    console.log(data)
-    var npi = await Npi.findById(data.id).select('-_id')
-    npi.critical = []
-    npi.clone
+exports.newNpiVersion = async function (req) {
+    console.log('CREATING NEW NPI VERSION')
+    var npi = req.body
+
+    delete npi.critical
+    delete npi.id
+
+    console.log(npi)
     try {
-        var newNpi = await Npi.create(npi)
-        console.log('cloned: ' + newNpi)
-        return newNpi;
+        var npis = await Npi.find({ number: npi.number }).sort('-version');
+        //console.log(npis)
+        var oldNpi = npis[0]
+        console.log(oldNpi)
     } catch (e) {
-        console.log(e)
-        throw ({ message: e })
+        throw Error("Error occured while finding the Npi")
     }
+
+    if (!oldNpi) {
+        throw Error("No NPI number " + npi.number)
+    }
+    console.log('npi')
+    console.log(npi)
+    console.log('oldNpi')
+    console.log(oldNpi)
+
+    var changedFields = updateObject(oldNpi, npi).changedFields
+
+    console.log('changedFields')
+    console.log(changedFields)
+
+    if (changedFields == '' || changedFields == null || !changedFields ||
+        changedFields == [] || changedFields.length == 0 ||
+        changedFields == undefined || Object.keys(changedFields).length == 0) {
+
+        console.log("No changes made: new version not created")
+        return "No changes made: new version not created"
+    }
+
+    var newNpiVersion = await this.createNpi(req)
+    return { npi: newNpiVersion, changedFields: changedFields }
 }
 
 exports.updateNpi = async function (user, npi) {
@@ -147,7 +194,8 @@ exports.updateNpi = async function (user, npi) {
             var invalidFields = hasInvalidFields(oldNpi)
             if (invalidFields) throw ({ errors: invalidFields })
 
-            if (oldNpi.critical.every((analisys) => analisys.status == 'accept')) {
+            if (oldNpi.critical.every((analisys) => analisys.status == 'accept') &&
+                oldNpi.stage == 2) {
                 if (oldNpi.__t != 'oem')
                     oldNpi = advanceToDevelopment(oldNpi)
                 else if (oldNpi.clientApproval) {
@@ -168,11 +216,17 @@ exports.updateNpi = async function (user, npi) {
     }
 }
 
-exports.deleteNpi = async function (id) {
-    // Delete the Npi
+exports.cancelNpi = async function (id) {
+    // Conditionally Delete the Npi
     try {
-        var deleted = await Npi.remove({ _id: id })
-        console.log(deleted)
+        var toDelete = await Npi.findById(id)
+        if (toDelete.stage < 2)
+            var deleted = await Npi.remove({ _id: id })
+        else {
+            toDelete.stage = 0
+            var deleted = await toDelete.save()
+        }
+        //console.log(deleted)
         if (deleted.n === 0) {
             throw Error("Npi could not be deleted")
         }
@@ -213,7 +267,7 @@ exports.findNpiById = async npiId => {
 }
 
 exports.findNpiByNumber = async npiNumber => {
-    var npi = await Npi.find({ number: npiNumber })
+    var npi = await Npi.find({ number: npiNumber }).sort('-version')
         .populate('npiRef', '_id number name stage created')
         .populate('requester', 'firstName lastName')
         .populate({
@@ -397,7 +451,7 @@ function updateObject(oldObject, newObject) {
             ) {
                 if (typeof oldObject[prop] !== "undefined") {
                     let objectsDiffer = false
-                    if (oldObject[prop] == null) {
+                    if (oldObject[prop] == null || newObject[prop] == null) {
                         if (oldObject[prop] != newObject[prop]) {
                             objectsDiffer = true
                         }
@@ -407,7 +461,7 @@ function updateObject(oldObject, newObject) {
                             || typeof newObject[prop] == 'date'
                             || newObject[prop] instanceof Date
                             || prop == 'fixed') {
-                            console.log('converting ' + prop + ' to Date')
+                            //console.log('converting ' + prop + ' to Date')
                             if (newObject[prop]) {
                                 newObject[prop] = new Date(newObject[prop])
                                 if (oldObject[prop].toString() != newObject[prop].toString()) {
@@ -421,21 +475,22 @@ function updateObject(oldObject, newObject) {
                     }
                     if (objectsDiffer) {
                         if (prop == 'fixed') {
-                            console.log('converting ' + prop + ' to Date')
+                            //console.log('converting ' + prop + ' to Date')
                             if (newObject[prop]) {
                                 newObject[prop] = new Date(newObject[prop])
                             }
-                        }
+                        }/*
                         console.log(prop + ' field has changed:')
                         console.log(oldObject[prop])
                         console.log('!!==')
                         console.log(newObject[prop])
+                        */
                         oldObject[prop] = newObject[prop]
                         changedFields[prop] = newObject[prop]
                     }
                 }
             } else if (Array.isArray(newObject[prop])) {
-                console.log(prop + ' is array')
+                //console.log(prop + ' is array')
                 if (!oldObject[prop]) {
                     oldObject[prop] = newObject[prop]
                     changedFields = newObject[prop]
@@ -450,7 +505,7 @@ function updateObject(oldObject, newObject) {
                                 let childResult = updateObject(oldChild, newChild)
                                 Object.assign(oldObject[prop][j], childResult.updatedObject)
                                 if (Object.keys(childResult.changedFields).length > 0) {
-                                    console.log('child return with changes')
+                                    //console.log('child return with changes')
                                     childResult.changedFields._id = oldChild._id
                                     changedFieldsArr.push(childResult.changedFields)
                                 }

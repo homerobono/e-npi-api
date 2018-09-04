@@ -75,17 +75,16 @@ var OemSchema = new mongoose.Schema({
 
 
 OemSchema.pre('save', async function () {
-    var version = 1
     if (this.isNew){
+        var version = 1
         try {
             let latestVersion = await Npi.findOne({ 'number': this.number }, 'version').sort('-version')
-            console.log(latestVersion)
             if (latestVersion != null)
                 version = latestVersion.version + 1
         } catch (e) { throw (e) }
-        console.log('NEW VERSION '+version)
+        console.log('NEW VERSION V'+version)
+        this.version = version
     }
-    this.version = version
 });
 
 Npi.discriminator(
