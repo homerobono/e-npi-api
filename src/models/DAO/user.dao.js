@@ -7,9 +7,9 @@ var crypto = require('crypto');
 _this = this
 
 // Async function to get the To do List
-exports.getUsers = async function(query) {
+exports.getUsers = async function(query, select) {
     try {
-        var users = await User.find(query, {})
+        var users = await User.find(query, select)
         return users;
     } catch (e) {
         throw Error('Error while Paginating Users')

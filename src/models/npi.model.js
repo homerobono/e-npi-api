@@ -144,6 +144,20 @@ var NpiSchema = new mongoose.Schema({
             }
         }]
     },
+    validation: {
+        pilot: {
+            type: String,
+            default: null
+        },
+        product: {
+            type: String,
+            default: null
+        },
+        final: {
+            type: String,
+            default: null
+        },
+    },
     options
 });
 

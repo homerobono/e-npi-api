@@ -22,7 +22,7 @@ exports.getUser = async (req, res, next) => {
 
 exports.getUsers = async function(req, res, next){
     try{
-        var users = await userDAO.getUsers({})//, page, limit)
+        var users = await userDAO.getUsers({}, null)//, page, limit)
         return res.status(200).send({data: users, message: "Succesfully users received"});
     } catch(e) {
         //Return an Error Response Message with Code and the Error Message.

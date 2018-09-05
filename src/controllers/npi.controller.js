@@ -13,7 +13,7 @@ exports.getNpi = async (req, res, next) => {
   try {
     let npis = await npiDAO.findNpiById(req.params.npiId);
     console.log(npis);
-    res.status(200).send({data: npis});
+    res.status(200).send({ data: npis });
   } catch (err) {
     res.status(400).send({
       message: err.message
@@ -47,7 +47,7 @@ exports.findNpiById = async (req, res, next) => {
 exports.findNpiByNumber = async (req, res, next) => {
   try {
     let npis = await npiDAO.findNpiByNumber(req.params.npiNumber);
-    res.status(200).send({data: npis});
+    res.status(200).send({ data: npis });
   } catch (err) {
     res.status(404).send({
       message: err.message
@@ -59,6 +59,7 @@ exports.createNpi = async function (req, res, next) {
   var npi = req.body;
   try {
     var createdNpi = await npiDAO.createNpi(req)
+    var sentNotify = sendStatusNotify(req, createdNpi)
     return res.status(201).send({ data: createdNpi, message: "Succesfully Created Npi" })
   } catch (e) {
     console.log({ message: e.message })
@@ -94,11 +95,12 @@ exports.updateNpi = async function (req, res, next) {
 }
 
 exports.removeNpi = async function (req, res, next) {
-  console.log(req.params)
   try {
     let npi = await npiDAO.cancelNpi(req.params.npiId);
+    var sentNotify = sendStatusNotify(req, npi)
     res.status(200).send(npi);
   } catch (err) {
+    console.log(err)
     res.status(400).send({
       message: err.message
     });
@@ -167,11 +169,49 @@ async function sendNewVersionNotify(req, updateResult) {
   }
 }
 
+async function sendStatusNotify(req, npi) {
+  var author = req.user.data
+
+  var users = await userDAO.getUsers({ status: 'active', notify: true }, 'email firstName lastName level department')
+  console.log(users)
+  if (!users || users.length == 0) 
+    return "No users to send notifications"
+
+  var npiUpdate = { 
+    npi, 
+    changedFields: { stage: npi.stage }, 
+    authorOfChanges: author 
+  }
+
+  try {
+    if (!npi) {
+      console.log("No changes made: emails not sent")
+      return "No changes made: emails not sent"
+    }
+    
+    var result = await mailerService.sendNpiStatusEmail(users, npiUpdate)
+
+    if (result && result.length > 0) {
+      console.log(result)
+      return result;
+    } else {
+      console.log('Algo deu errado :(')
+      throw new Error('Erro ao enviar e-mail de notificação');
+    }
+  } catch (err) {
+    throw Error(err)
+  }
+}
+
 async function sendChangesNotify(req, updateResult) {
   var author = req.user.data
   var npi = updateResult.npi
 
-  var users = await userDAO.getUsers({ status: 'active', notify: true })
+  var users = await userDAO.getUsers(
+    { status: 'active', notify: true },
+   'email firstName lastName level department'
+  )
+
   console.log(users)
   if (!users || users.length == 0) return "No users to send notifications"
 
@@ -186,13 +226,13 @@ async function sendChangesNotify(req, updateResult) {
       return "No changes made: emails not sent"
     }
 
-    if (updateResult.changedFields.stage || updateResult.changedFields.status)
+    if (updateResult.changedFields.stage)
       var result = await mailerService.sendNpiStatusEmail(users, npiUpdate)
     else
       var result = await mailerService.sendNpiChangesEmail(users, npiUpdate)
 
     if (result && result.length > 0) {
-      //console.log(result)
+      console.log(result)
       return result;
     } else {
       console.log('Algo deu errado :(')

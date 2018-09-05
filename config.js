@@ -82,22 +82,22 @@ global.NPI_CUSTOM_CRITICAL_DEPTS = ['EPROC', 'OPR', 'ADM', 'COM']
 global.NPI_OEM_CRITICAL_DEPTS = ['PRD', 'EPROC', 'OPR', 'ADM', 'COM']
 
 global.MACRO_STAGES = [
-  { activity: 'Cronograma', dept: 'MEP' },
-  { activity: 'Esquemático, Layout e Gerber', dept: 'MEP' },
-  { activity: 'Firmware, Software e Aplicativo', dept: 'MEP' },
-  { activity: 'Mecânica', dept: 'MEP' },
-  { activity: 'Especificação Técnica', dept: 'MEP' },
-  { activity: 'Lista de Materiais - BOM', dept: 'MEP' },
-  { activity: 'Cotação', dept: 'CSC' },
-  { activity: 'Validação de Requisitos de Entrada', dept: 'MEP' },
-  { activity: 'Papelaria (Embalagem, Etiquetas, Manuais, Guias, etc)', dept: 'MEP' },
-  { activity: 'Cadastro da BOM', dept: 'MEP' },
-  { activity: 'IT de Teste', dept: 'MEP' },
-  { activity: 'Jiga de Testes', dept: 'P&D' },
-  { activity: 'Processo Produtivo', dept: 'MEP' },
-  { activity: 'Lote Piloto', dept: 'MEP' },
-  { activity: 'IT de Montagem', dept: 'MEP' },
-  { activity: 'Golden Sample', dept: 'MEP' },
+  { value: 'SCHED', label: 'Cronograma', dept: 'MEP' },
+  { value: 'LAYOUT', label: 'Esquemático, Layout e Gerber', dept: 'MEP' },
+  { value: 'FIRMWARE', label: 'Firmware, Software e Aplicativo', dept: 'MEP' },
+  { value: 'MECHANICS', label: 'Mecânica', dept: 'MEP' },
+  { value: 'SPECS', label: 'Especificação Técnica', dept: 'MEP' },
+  { value: 'BOM', label: 'Lista de Materiais - BOM', dept: 'MEP' },
+  { value: 'QUOTATION', label: 'Cotação', dept: 'CSC' },
+  { value: 'REQUIRE', label: 'Validação de Requisitos de Entrada', dept: 'MEP' },
+  { value: 'STATIONERY', label: 'Papelaria (Embalagem, Etiquetas, Manuais, Guias, etc)', dept: 'MEP' },
+  { value: 'BOM_REG', label: 'Cadastro da BOM', dept: 'MEP' },
+  { value: 'TEST', label: 'IT de Teste', dept: 'MEP' },
+  { value: 'JIG', label: 'Jiga de Testes', dept: 'P&D' },
+  { value: 'PROD', label: 'Processo Produtivo', dept: 'MEP' },
+  { value: 'PILOT', label: 'Lote Piloto', dept: 'MEP' },
+  { value: 'ASSEMBLY', label: 'IT de Montagem', dept: 'MEP' },
+  { value: 'GOLD', label: 'Golden Sample', dept: 'MEP' },
 ]
 
 global.REGULATIONS = [

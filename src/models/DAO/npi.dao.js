@@ -179,9 +179,6 @@ exports.updateNpi = async function (user, npi) {
     var changedFields = updateResult.changedFields
     oldNpi = updateResult.updatedObject
 
-    console.log('changedFields')
-    console.log(changedFields)
-
     oldNpi.critical = sign(user, oldNpi.critical, changedFields.critical)
     /*
         console.log("updated Object")
@@ -196,15 +193,22 @@ exports.updateNpi = async function (user, npi) {
 
             if (oldNpi.critical.every((analisys) => analisys.status == 'accept') &&
                 oldNpi.stage == 2) {
-                if (oldNpi.__t != 'oem')
+                if (oldNpi.__t != 'oem') {
                     oldNpi = advanceToDevelopment(oldNpi)
+                    changedFields.stage = 3
+                }
                 else if (oldNpi.clientApproval) {
-                    if (oldNpi.clientApproval.approval == 'accept')
+                    if (oldNpi.clientApproval.approval == 'accept'){
                         oldNpi = advanceToDevelopment(oldNpi)
+                        changedFields.stage = 3
+                    }
                 } else
                     oldNpi.clientApproval = { approval: null, comment: null }
             }
         }
+        console.log('changedFields')
+        console.log(changedFields)
+    
         var savedNpi = await oldNpi.save()
         //var savedNpi = Npi.findByIdAndUpdate(oldNpi._id, npi)
         //console.log(savedNpi)
@@ -323,7 +327,7 @@ function advanceToDevelopment(data) {
     data.activities = []
     global.MACRO_STAGES.forEach(stage => {
         data.activities.push({
-            activity: stage.activity,
+            activity: stage.value,
             dept: stage.dept,
             date: null,
             registry: null,
