@@ -102,6 +102,7 @@ var NpiSchema = new mongoose.Schema({
             },
             date: {
                 type: Date,
+                min: Date.now(),
                 default: null
             },
             registry: {

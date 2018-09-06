@@ -198,7 +198,7 @@ exports.updateNpi = async function (user, npi) {
                     changedFields.stage = 3
                 }
                 else if (oldNpi.clientApproval) {
-                    if (oldNpi.clientApproval.approval == 'accept'){
+                    if (oldNpi.clientApproval.approval == 'accept') {
                         oldNpi = advanceToDevelopment(oldNpi)
                         changedFields.stage = 3
                     }
@@ -208,7 +208,7 @@ exports.updateNpi = async function (user, npi) {
         }
         console.log('changedFields')
         console.log(changedFields)
-    
+
         var savedNpi = await oldNpi.save()
         //var savedNpi = Npi.findByIdAndUpdate(oldNpi._id, npi)
         //console.log(savedNpi)
@@ -329,7 +329,7 @@ function advanceToDevelopment(data) {
         data.activities.push({
             activity: stage.value,
             dept: stage.dept,
-            date: null,
+            date: Date.now() + stage.dateOffset * 24 * 3600 * 1000,
             registry: null,
             annex: null,
         })

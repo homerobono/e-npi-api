@@ -82,22 +82,22 @@ global.NPI_CUSTOM_CRITICAL_DEPTS = ['EPROC', 'OPR', 'ADM', 'COM']
 global.NPI_OEM_CRITICAL_DEPTS = ['PRD', 'EPROC', 'OPR', 'ADM', 'COM']
 
 global.MACRO_STAGES = [
-  { value: 'SCHED', label: 'Cronograma', dept: 'MEP' },
-  { value: 'LAYOUT', label: 'Esquemático, Layout e Gerber', dept: 'MEP' },
-  { value: 'FIRMWARE', label: 'Firmware, Software e Aplicativo', dept: 'MEP' },
-  { value: 'MECHANICS', label: 'Mecânica', dept: 'MEP' },
-  { value: 'SPECS', label: 'Especificação Técnica', dept: 'MEP' },
-  { value: 'BOM', label: 'Lista de Materiais - BOM', dept: 'MEP' },
-  { value: 'QUOTATION', label: 'Cotação', dept: 'CSC' },
-  { value: 'REQUIRE', label: 'Validação de Requisitos de Entrada', dept: 'MEP' },
-  { value: 'STATIONERY', label: 'Papelaria (Embalagem, Etiquetas, Manuais, Guias, etc)', dept: 'MEP' },
-  { value: 'BOM_REG', label: 'Cadastro da BOM', dept: 'MEP' },
-  { value: 'TEST', label: 'IT de Teste', dept: 'MEP' },
-  { value: 'JIG', label: 'Jiga de Testes', dept: 'P&D' },
-  { value: 'PROD', label: 'Processo Produtivo', dept: 'MEP' },
-  { value: 'PILOT', label: 'Lote Piloto', dept: 'MEP' },
-  { value: 'ASSEMBLY', label: 'IT de Montagem', dept: 'MEP' },
-  { value: 'GOLD', label: 'Golden Sample', dept: 'MEP' },
+  { value: 'SCHED', label: 'Cronograma', dept: 'MEP', dateOffset: 7 },
+  { value: 'LAYOUT', label: 'Esquemático, Layout e Gerber', dept: 'MEP', dateOffset: 30 },
+  { value: 'FIRMWARE', label: 'Firmware, Software e Aplicativo', dept: 'MEP', dateOffset: 60 },
+  { value: 'MECHANICS', label: 'Mecânica', dept: 'MEP', dateOffset: 45 },
+  { value: 'SPECS', label: 'Especificação Técnica', dept: 'MEP', dateOffset: 30 },
+  { value: 'BOM', label: 'Lista de Materiais - BOM', dept: 'MEP', dateOffset: 15 },
+  { value: 'QUOTATION', label: 'Cotação', dept: 'CSC', dateOffset: 30 },
+  { value: 'REQUIRE', label: 'Validação de Requisitos de Entrada', dept: 'MEP', dateOffset: 12 },
+  { value: 'STATIONERY', label: 'Papelaria (Embalagem, Etiquetas, Manuais, Guias, etc)', dept: 'MEP', dateOffset: 30 },
+  { value: 'BOM_REG', label: 'Cadastro da BOM', dept: 'MEP', dateOffset: 20 },
+  { value: 'TEST', label: 'IT de Teste', dept: 'MEP', dateOffset: 70 },
+  { value: 'JIG', label: 'Jiga de Testes', dept: 'P&D', dateOffset: 90 },
+  { value: 'PROD', label: 'Processo Produtivo', dept: 'MEP', dateOffset: 120 },
+  { value: 'PILOT', label: 'Lote Piloto', dept: 'MEP', dateOffset: 130 },
+  { value: 'ASSEMBLY', label: 'IT de Montagem', dept: 'MEP', dateOffset: 150 },
+  { value: 'GOLD', label: 'Golden Sample', dept: 'MEP', dateOffset: 180 },
 ]
 
 global.REGULATIONS = [
