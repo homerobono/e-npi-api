@@ -350,6 +350,13 @@ function hasInvalidFields(data) {
     if (!data.investment && data.investment !== 0) invalidFields.investment = data.investment
     if (data.projectCost && !data.projectCost.cost && data.projectCost.cost !== 0) invalidFields.projectCost = data.projectCost
 
+    if (data.critical && data.critical.length > 0) {
+        for (let i = 0; i < data.critical.length; i++) {
+            if (data.critical[i].status == 'deny' && !data.critical[i].comment)
+                invalidFields['critical.'+i+'.comment'] = data.critical[i].comment
+        }
+    }
+
     var kind = data.entry ? data.entry : data.__t
 
     switch (kind) {
@@ -380,6 +387,17 @@ function hasInvalidFields(data) {
                 )
             ) {
                 invalidFields.inStockDateType = data.inStockDate
+            }
+            if (data.oemActivities) {
+                for (let i = 0; i < data.oemActivities.length; i++) {
+                    let activity = data.oemActivities[i]
+                    if (!activity.date)
+                        invalidFields['oemActivities.' + i + '.date'] = activity.date
+                    //if (!activity.comment)
+                    //    invalidFields['oemActivities.' + i + '.comment'] = activity.comment
+                    //if (!activity.annex)
+                    //    invalidFields['oemActivities.' + i + '.annex'] = activity.annex
+                }
             }
             break;
         case 'custom':
