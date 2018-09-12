@@ -209,6 +209,7 @@ exports.updateNpi = async function (user, npi) {
         console.log('changedFields')
         console.log(changedFields)
 
+        if (!Object.keys(changedFields).length) return { npi: oldNpi, changedFields }
         var savedNpi = await oldNpi.save()
         //var savedNpi = Npi.findByIdAndUpdate(oldNpi._id, npi)
         //console.log(savedNpi)

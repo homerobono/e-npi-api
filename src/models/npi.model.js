@@ -159,6 +159,10 @@ var NpiSchema = new mongoose.Schema({
             default: null
         },
     },
+    updated: {
+        type: Date,
+        default: Date.now()
+    },
     options
 });
 
@@ -173,6 +177,7 @@ NpiSchema.pre('save', async function () {
         if (number == undefined) throw Error('undefined number')
         this.number = number
     }
+    this.updated = Date.now()
 });
 
 //NpiSchema.plugin(sequence, { inc_field: 'number' })
