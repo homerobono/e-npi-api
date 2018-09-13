@@ -17,7 +17,7 @@ var NpiSchema = new mongoose.Schema({
     stage: {
         type: Number,
         min: 0,
-        max: 4,
+        max: 5,
         default: 1,
         required: true
     },
@@ -102,7 +102,6 @@ var NpiSchema = new mongoose.Schema({
             },
             date: {
                 type: Date,
-                min: Date.now(),
                 default: null
             },
             registry: {

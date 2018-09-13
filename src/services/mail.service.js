@@ -1,26 +1,31 @@
 var mailer = require('nodemailer');
 
 var footNote = '<div style="color: #888; background-color: #f2f2f2; ' +
-'padding: 10px 16px 10px 16px; margin: 25px 40px 10px 40px"><small>'+
-'Essa é uma mensagem automática gerada pelo sistema e-NPI. Se você não '+
-'deseja receber as notificações de atualização desabilite sua inscrição '+
-'no menu de perfil de usuário através da opção "Receber notificações": '+
-'<a href="'+ global.URL_BASE +'/profile">Editar Perfil</a><br>'+
-'Para outros assuntos ou eventuais problemas contate o administrador do sistema.'+
-'</small></div>'
+    'padding: 10px 16px 10px 16px; margin: 25px 40px 10px 40px"><small>' +
+    'Essa é uma mensagem automática gerada pelo sistema e-NPI. Se você não ' +
+    'deseja receber as notificações de atualização desabilite sua inscrição ' +
+    'no menu de perfil de usuário através da opção "Receber notificações": ' +
+    '<a href="' + global.URL_BASE + '/profile">Editar Perfil</a><br>' +
+    'Para outros assuntos ou eventuais problemas contate o administrador do sistema.' +
+    '</small></div>'
 
-exports.createTransport = async () => mailer.createTransport({
-    host: 'smtp.pixelti.com.br',
-    secure: 'true',
-    secureConnection: 'true',
-    requireAuth: 'true',
-    port: '465',
-    tls: { rejectUnauthorized: false },
-    auth: {
-        user: 'homero@pixelti.com.br',
-        pass: '1346@pixel13'
-    }
-});
+exports.mailScheduler = async (users, notification, start, period, end) => {
+
+}
+
+exports.createTransport = async () =>
+    mailer.createTransport({
+        host: 'smtp.pixelti.com.br',
+        secure: 'true',
+        secureConnection: 'true',
+        requireAuth: 'true',
+        port: '465',
+        tls: { rejectUnauthorized: false },
+        auth: {
+            user: 'homero@pixelti.com.br',
+            pass: '1346@pixel13'
+        }
+    });
 
 exports.sendResetEmail = async (email, token) => {
     console.log('preparing email to ' + email);
@@ -31,10 +36,10 @@ exports.sendResetEmail = async (email, token) => {
         from: 'homero@pixelti.com.br',
         subject: 'e-NPI | Alteração de Senha',
         html: 'Você está recebendo esse e-mail porque você (ou outra pessoa) solicitou a alteração da sua senha ' +
-            'no sistema <a href="'+ global.URL_BASE+'">e-NPI</a>.<br><br>' +
+            'no sistema <a href="' + global.URL_BASE + '">e-NPI</a>.<br><br>' +
             'Clique no link a seguir ou copie e cole no navegador para completar o processo:<br><br>' +
             '<div style=\'text-align:center\'><big>' +
-            '<a href="'+ global.URL_BASE+'/reset/' + token + '"> Redefinir Senha</a></big></div><br><br>' +
+            '<a href="' + global.URL_BASE + '/reset/' + token + '"> Redefinir Senha</a></big></div><br><br>' +
             'Se você não fez essa solicitação, ou não sabe do que essa mensagem se trata, ignore esse e-mail.<br><br>' +
             ''
     };
@@ -54,7 +59,7 @@ exports.sendRegisterEmail = async (email, token) => {
             '<h2>Confirmação de Cadastro</h2>' +
             'Você está recebendo essa mensagem porque um administrador do <a href="http://pixelti.com.br">e-NPI</a> ' +
             'cadastrou uma conta com o seu e-mail no sistema. <br><br>' +
-            'Para ter acesso ao <a href="'+ global.URL_BASE+'">e-NPI</a> é necessário confirmar o seu ' +
+            'Para ter acesso ao <a href="' + global.URL_BASE + '">e-NPI</a> é necessário confirmar o seu ' +
             'cadastro informando seus dados pessoais através do link: <br><br>' +
             '<div style=\'text-align:center\'><big>' +
             '<a href="' + global.URL_BASE + '/complete-registration/' + token + '"> ' +
@@ -94,8 +99,8 @@ exports.sendNpiStatusEmail = async (users, updateData) => {
                 body:
                     'Caro usuário, <br><br>' +
                     'Uma nova NPI foi submetida para <b>análise crítica</b> recentemente: <br>' +
-                    '<div style="color: #666; background-color: #f8f8f8; padding: 10px 20px 10px 20px;'+
-                    'margin: 10px auto 10px 20px; display: inline-block;">'+
+                    '<div style="color: #666; background-color: #f8f8f8; padding: 10px 20px 10px 20px;' +
+                    'margin: 10px auto 10px 20px; display: inline-block;">' +
                     '<b>' + npiLink + '</b><br>' +
                     '<b>Autor:</b> ' + authorOfChanges + '</div><div>' +
                     'Acesse a ' + npiLink + ' para conferir os detalhes da proposta.<br></div>'
@@ -117,15 +122,15 @@ exports.sendNpiStatusEmail = async (users, updateData) => {
                 subject: 'e-NPI | NPI #' + updateData.npi.number + ' CONCLUÍDA',
                 body:
                     'Caro usuário, <br><br>' +
-                    'A ' + npiLink + ' foi <b>concluída</b> e está disponível no sistema '+
-                    'para leitura e download dos arquivos. Possíveis alterações podem ser realizadas '+
-                    'restritas a campos específicos, mediante solicitação na página da NPI, e serão '+
-                    'enviadas para análise crítica parcial do Comercial e do administrador.<br>'+
+                    'A ' + npiLink + ' foi <b>concluída</b> e está disponível no sistema ' +
+                    'para leitura e download dos arquivos. Possíveis alterações podem ser realizadas ' +
+                    'restritas a campos específicos, mediante solicitação na página da NPI, e serão ' +
+                    'enviadas para análise crítica parcial do Comercial e do administrador.<br>' +
                     'Acesse a ' + npiLink + ' para conferir os detalhes do projeto.<br>'
             }
             break;
         default:
-            return "Unrecognized stage \""+ updateData.changedFields.stage+"\""
+            return "Unrecognized stage \"" + updateData.changedFields.stage + "\""
     }
 
     email.body += footNote

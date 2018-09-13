@@ -6,14 +6,17 @@
     "start": "nodemon ./bin/www"
   },
   "dependencies": {
+    "@opuscapita/filemanager-server": "^1.1.0-beta.4",
     "ajv": "^6.5.2",
     "bcrypt": "^3.0.0",
     "bluebird": "^3.5.1",
+    "compression": "^1.7.3",
     "cookie-parser": "~1.4.3",
     "crypto-js": "^3.1.9-1",
     "debug": "~2.6.9",
     "ejs": "~2.5.7",
     "express": "~4.16.0",
+    "fs": "0.0.1-security",
     "git-auto-pull": "^1.0.9",
     "http-errors": "~1.6.2",
     "jsonwebtoken": "^8.3.0",

@@ -86,6 +86,7 @@ exports.updateNpi = async function (req, res, next) {
     var result = await npiDAO.updateNpi(req.user.data, req.body)
     var sentNotify = sendChangesNotify(req, result)
     console.log(result)
+    //scheduleNotifications(req, result)
     //result.sentNotify = sentNotify*/
     return res.status(200).send({ data: result, message: "Succesfully updated NPI" })
   } catch (e) {
@@ -241,6 +242,22 @@ async function sendChangesNotify(req, updateResult) {
   } catch (err) {
     throw Error(err)
   }
+}
+
+async function scheduleNotifications(req, updateResult) {
+  var author = req.user.data
+  var npi = updateResult.npi
+
+  var users = await userDAO.getUsers(
+    { status: 'active', notify: true },
+   'email firstName lastName level department'
+  )
+
+  console.log(users)
+  if (!users || users.length == 0) return "No users to schedule notifications"
+
+  mailerService.mailScheduler(users, notification, start, period, end)
+
 }
 
 function npiLabelOf(fields) {

@@ -4,6 +4,7 @@ var OemNpi = require('../npi.oem.model')
 var InternalNpi = require('../npi.internal.model')
 var CustomNpi = require('../npi.custom.model')
 var _ = require('underscore');
+var mongoose = require('mongoose')
 
 _this = this
 
@@ -59,6 +60,7 @@ exports.createNpi = async function (req) {
         })
     }
     if (data.critical) delete (data.critical)
+    if (data.stage) delete (data.stage)
 
     var kind = data.entry
     //console.log(data)
@@ -68,15 +70,15 @@ exports.createNpi = async function (req) {
 
         if (data.npiRef == '') {
             data.npiRef = null
-        } else if (data.npiRef != null) {
-            if (data.npiRef._id)
-                data.npiRef = data.npiRef._id
-            else if (data.npiRef instanceof Number) {
-                var npiRef = await Npi.findOne({ number: data.npiRef })
-                if (npiRef)
-                    data.npiRef = npiRef._id
-            }
+        } else {
+            if (data.npiRef instanceof mongoose.Types.ObjectId)
+                var npiRef = await Npi.findOne({ _id: data.npiRef, stage: { $ne: 1 } })
+            else
+                var npiRef = await Npi.findOne({ number: data.npiRef, stage: { $ne: 1 } })
+            if (npiRef)
+                data.npiRef = npiRef._id
         }
+
 
         if (data.stage == 2) {
             data = submitToAnalisys(data)
@@ -133,9 +135,17 @@ exports.newNpiVersion = async function (req) {
     console.log('oldNpi')
     console.log(oldNpi)
 
+    if (npi.npiRef == '') {
+        npi.npiRef = null
+    } else {
+        let npiRef = await Npi.findOne({ number: npi.npiRef, stage: { $ne: 1 } })
+        if (npiRef)
+            npi.npiRef = npiRef._id
+    }
+
     var changedFields = updateObject(oldNpi, npi).changedFields
 
-    console.log('changedFields')
+    console.log('New Version Changed Fields:')
     console.log(changedFields)
 
     if (changedFields == '' || changedFields == null || !changedFields ||
@@ -169,9 +179,19 @@ exports.updateNpi = async function (user, npi) {
     if (npi.npiRef == '') {
         npi.npiRef = null
     } else {
-        let npiRef = await Npi.findOne({ number: npi.npiRef })
+        let npiRef = await Npi.findOne({ number: npi.npiRef, stage: { $ne: 1 } })
         if (npiRef)
             npi.npiRef = npiRef._id
+    }
+
+    if (npi.stage < 4) {
+        delete npi.activities
+        if (npi.stage < 3) {
+            delete npi.clientApproval
+            if (npi.stage < 2) {
+                delete npi.critical
+            }
+        }
     }
 
     var updateResult = updateObject(oldNpi, npi)
@@ -191,16 +211,22 @@ exports.updateNpi = async function (user, npi) {
             var invalidFields = hasInvalidFields(oldNpi)
             if (invalidFields) throw ({ errors: invalidFields })
 
-            if (oldNpi.critical.every((analisys) => analisys.status == 'accept') &&
-                oldNpi.stage == 2) {
-                if (oldNpi.__t != 'oem') {
-                    oldNpi = advanceToDevelopment(oldNpi)
-                    changedFields.stage = 3
+            if (oldNpi.stage == 2) {
+                if (oldNpi.critical.every((analisys) => analisys.status == 'accept')) {
+                    if (oldNpi.__t != 'oem') {
+                        oldNpi = advanceToDevelopment(oldNpi)
+                        changedFields.stage = 4
+                    } else {
+                        oldNpi = advanceToClientApproval(oldNpi)
+                        changedFields.stage = 3
+                    }
                 }
-                else if (oldNpi.clientApproval) {
+            }
+            if (oldNpi.stage == 3) {
+                if (oldNpi.clientApproval) {
                     if (oldNpi.clientApproval.approval == 'accept') {
                         oldNpi = advanceToDevelopment(oldNpi)
-                        changedFields.stage = 3
+                        changedFields.stage = 4
                     }
                 } else
                     oldNpi.clientApproval = { approval: null, comment: null }
@@ -324,7 +350,7 @@ function submitToAnalisys(data) {
 
 function advanceToDevelopment(data) {
     console.log('advancing to development')
-    data.stage = 3
+    data.stage = 4
     data.activities = []
     global.MACRO_STAGES.forEach(stage => {
         data.activities.push({
@@ -335,6 +361,13 @@ function advanceToDevelopment(data) {
             annex: null,
         })
     })
+    return data
+}
+
+function advanceToClientApproval(data) {
+    console.log('advancing to client approval')
+    data.stage = 3
+    data.clientApproval = { approval: null, comment: null }
     return data
 }
 
@@ -354,7 +387,7 @@ function hasInvalidFields(data) {
     if (data.critical && data.critical.length > 0) {
         for (let i = 0; i < data.critical.length; i++) {
             if (data.critical[i].status == 'deny' && !data.critical[i].comment)
-                invalidFields['critical.'+i+'.comment'] = data.critical[i].comment
+                invalidFields['critical.' + i + '.comment'] = data.critical[i].comment
         }
     }
 
@@ -470,6 +503,7 @@ function updateObject(oldObject, newObject) {
                 typeof newObject[prop] == 'string' ||
                 typeof newObject[prop] == 'boolean' ||
                 typeof newObject[prop] == 'null' ||
+                newObject[prop] instanceof mongoose.Types.ObjectId ||
                 newObject[prop] == null || newObject[prop] === null
             ) {
                 if (typeof oldObject[prop] !== "undefined") {
@@ -491,6 +525,10 @@ function updateObject(oldObject, newObject) {
                                     objectsDiffer = true
                                 }
                             }
+                        } else if (newObject[prop] instanceof mongoose.Types.ObjectId) {
+                            if (oldObject[prop].toString() != newObject[prop].toString()) {
+                                objectsDiffer = true
+                            }
                         }
                         else if (oldObject[prop] != newObject[prop]) {
                             objectsDiffer = true
@@ -502,12 +540,12 @@ function updateObject(oldObject, newObject) {
                             if (newObject[prop]) {
                                 newObject[prop] = new Date(newObject[prop])
                             }
-                        }/*
+                        }
                         console.log(prop + ' field has changed:')
                         console.log(oldObject[prop])
                         console.log('!!==')
                         console.log(newObject[prop])
-                        */
+
                         oldObject[prop] = newObject[prop]
                         changedFields[prop] = newObject[prop]
                     }

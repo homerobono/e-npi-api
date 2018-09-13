@@ -13,7 +13,16 @@ var usersRouter = require('./routes/user.route');
 var authRouter = require('./routes/auth.route');
 var npiRouter = require('./routes/npi.route');
 var mongoose = require('mongoose');
-var multer = require('multer')
+//var multer = require('multer')
+
+const fs = require('fs');
+const compression = require('compression');
+const filemanagerMiddleware = require('@opuscapita/filemanager-server').middleware;
+const filemanagerLogger = require('@opuscapita/filemanager-server').logger;
+const filemanagerConfig = {
+  fsRoot: path.resolve(__dirname, '../npi-files'),
+  rootName: 'Customization area'
+};
 
 var userDAO = require('./models/DAO/user.dao')
 var app = express();
@@ -24,26 +33,26 @@ var dbUrl = 'mongodb://127.0.0.1/enpi'
 mongoose.Promise = bluebird;
 mongoose.connect(dbUrl)
 
-mongoose.connection.on('connected', 
-()=> { 
-  console.log('Succesfully Connected to the Mongodb Database at ' + dbUrl) 
-  mongoose.connection.db.collection('users').countDocuments(
-    (error, count) => {
-      if (error) return error
-      if(count == 0){
-        userDAO.createAdmin({
-          email : 'admin',
-          password : 'admin',
-          firstName : 'Administrador',
-          level: 2,
-          status: 'active',
-          notify: false
-        })
-        console.info('Users DB empty, created admin-admin user')
+mongoose.connection.on('connected',
+  () => {
+    console.log('Succesfully Connected to the Mongodb Database at ' + dbUrl)
+    mongoose.connection.db.collection('users').countDocuments(
+      (error, count) => {
+        if (error) return error
+        if (count == 0) {
+          userDAO.createAdmin({
+            email: 'admin',
+            password: 'admin',
+            firstName: 'Administrador',
+            level: 2,
+            status: 'active',
+            notify: false
+          })
+          console.info('Users DB empty, created admin-admin user')
+        }
       }
-    }
-  )
-})
+    )
+  })
 
 // view engine setup
 app.set('views', path.join(__dirname, '../views'));
@@ -55,7 +64,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(function(req, res, next) {
+app.use(compression());
+
+app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -63,30 +74,18 @@ app.use(function(req, res, next) {
   next();
 });
 
-/*app.use(multer({
-  dest: npiDIR,
-  rename: function (fieldname, filename) {
-    return filename + Date.now();
-  },
-  onFileUploadStart: function (file) {
-    console.log(file.originalname + ' is starting ...');
-  },
-  onFileUploadComplete: function (file) {
-    console.log(file.fieldname + ' uploaded to  ' + file.path);
-  }
-}));
-*/
-app.use(config.pathVersion, authRouter); 
+app.use(config.pathVersion, authRouter);
 app.use(config.pathVersion, usersRouter);
 app.use(config.pathVersion, npiRouter);
+app.use(config.pathVersion, filemanagerMiddleware(filemanagerConfig));
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
