@@ -60,7 +60,7 @@ exports.createNpi = async function (req) {
         })
     }
     if (data.critical) delete (data.critical)
-    if (data.stage) delete (data.stage)
+    if (data.stage > 2) delete (data.stage)
 
     var kind = data.entry
     //console.log(data)
@@ -114,6 +114,8 @@ exports.newNpiVersion = async function (req) {
     console.log('CREATING NEW NPI VERSION')
     var npi = req.body
 
+    delete npi.activities
+    delete npi.clientApproval
     delete npi.critical
     delete npi.id
 
@@ -171,10 +173,6 @@ exports.updateNpi = async function (user, npi) {
     if (!oldNpi) {
         throw Error("No NPI id " + id)
     }
-    console.log('npi')
-    console.log(npi)
-    console.log('oldNpi')
-    console.log(oldNpi)
 
     if (npi.npiRef == '') {
         npi.npiRef = null
@@ -184,15 +182,19 @@ exports.updateNpi = async function (user, npi) {
             npi.npiRef = npiRef._id
     }
 
-    if (npi.stage < 4) {
+    if (npi.stage < 4) { //client approval and below
         delete npi.activities
-        if (npi.stage < 3) {
+        if (npi.stage < 3) { //critical analysis and below
             delete npi.clientApproval
-            if (npi.stage < 2) {
+            if (npi.stage < 2) { //draft or canceled
                 delete npi.critical
             }
         }
     }
+    console.log('npi')
+    console.log(npi)
+    console.log('oldNpi')
+    console.log(oldNpi)
 
     var updateResult = updateObject(oldNpi, npi)
 
@@ -437,8 +439,12 @@ function hasInvalidFields(data) {
         case 'custom':
             if (!data.price && data.price !== 0) invalidFields.price = data.price
             if (!data.cost && data.cost !== 0) invalidFields.cost = data.cost
-            if (data.npiRef != null && data.npiRef != undefined) {
-                var npiRef = this.findNpiByNumber(data.npiRef)
+            if (data.npiRef != null && data.npiRef != undefined && data.npiRef != '') {
+                if (data.npiRef instanceof mongoose.Types.ObjectId)
+                    var npiRef = Npi.findOne({ _id: data.npiRef, stage: { $ne: 1 } })
+                else
+                    var npiRef = Npi.findOne({ number: data.npiRef, stage: { $ne: 1 } })
+
                 if (!npiRef)
                     invalidFields.npiRef = data.npiRef
             } else {

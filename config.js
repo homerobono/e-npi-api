@@ -1,6 +1,7 @@
 "use strict";
 
 global.URL_BASE = "http://localhost:4200";
+//global.URL_BASE = "http://10.0.0.175:4200";
 //global.URL_BASE = "http://201.77.131.165:80";
 
 global.ENCRYPT_KEY =

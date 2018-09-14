@@ -64,7 +64,7 @@ exports.sendRegisterEmail = async (email, token) => {
             '<div style=\'text-align:center\'><big>' +
             '<a href="' + global.URL_BASE + '/complete-registration/' + token + '"> ' +
             'Clique aqui para finalizar o seu cadastro</a></big></div><br><br>' +
-            'Você tem até 30 dias para para completar o seu cadastro. Apóes esse período, contate o administrador ' +
+            'Você tem até 30 dias para para completar o seu cadastro. Após esse período, contate o administrador ' +
             'para gerar um novo token e enviá-lo nesse e-mail novamente.<br><br>'
     };
     console.log('sending mail');
