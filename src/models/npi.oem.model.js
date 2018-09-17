@@ -16,9 +16,15 @@ var OemSchema = new mongoose.Schema({
             default: null
         }
     },
-    regulations: {
-        type: [String],
-        default: null
+    regulations : {
+        standard: {
+            type : Object,
+            default: null
+        },
+        additional :{
+            type : String,
+            default: null
+        }
     },
     demand: {
         amount: {

@@ -5,20 +5,40 @@ Npi.discriminator(
     'custom',
     new mongoose.Schema({
         cost: {
-            type: Number,
-            default: null
+            value: {
+                type: Number,
+                default: null
+            },
+            currency: {
+                type: String,
+                enum: global.CURRENCIES,
+                default: null
+            },
         },
         price: {
-            type: Number,
-            default: null
+            value: {
+                type: Number,
+                default: null
+            },
+            currency: {
+                type: String,
+                enum: global.CURRENCIES,
+                default: null
+            },
         },
         inStockDate: {
             type: Date,
             default: null
         },
-        regulations : {
-            type : [String],
-            default: null
+        regulations: {
+            standard: {
+                type: Object,
+                default: null
+            },
+            additional: {
+                type: String,
+                default: null
+            }
         },
         demand: {
             amount: {

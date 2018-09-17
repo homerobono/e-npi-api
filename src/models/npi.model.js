@@ -69,9 +69,16 @@ var NpiSchema = new mongoose.Schema({
         }
     },
     investment: {
-        type: Number,
-        min: 1,
-        default: null
+        value: {
+            type: Number,
+            min: 1,
+            default: null
+        },
+        currency: {
+            type: String,
+            enum: global.CURRENCIES,
+            default: null
+        },
     },
     fiscals:
     {
@@ -79,10 +86,14 @@ var NpiSchema = new mongoose.Schema({
         default: null
     },
     projectCost: {
-        cost: {
+        value: {
             type: Number,
             default: null
-            //required : true
+        },
+        currency: {
+            type: String,
+            enum: global.CURRENCIES,
+            default: null
         },
         annex: {
             type: String,

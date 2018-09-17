@@ -383,8 +383,10 @@ function hasInvalidFields(data) {
     if (!data.resources || !data.resources.description) invalidFields.resources = data.resources
     if (!data.fiscals) invalidFields.fiscals = data.fiscals
     if (!data.complexity) invalidFields.complexity = data.complexity
-    if (!data.investment && data.investment !== 0) invalidFields.investment = data.investment
-    if (data.projectCost && !data.projectCost.cost && data.projectCost.cost !== 0) invalidFields.projectCost = data.projectCost
+    if (data.investment && !data.investment.value && data.investment.value !== 0)
+        invalidFields.investment = data.investment
+    if (data.projectCost && !data.projectCost.value && data.projectCost.value !== 0)
+        invalidFields.projectCost = data.projectCost
 
     if (data.critical && data.critical.length > 0) {
         for (let i = 0; i < data.critical.length; i++) {
@@ -397,12 +399,15 @@ function hasInvalidFields(data) {
 
     switch (kind) {
         case 'pixel':
-            if (!data.price && data.price !== 0)
+            if (data.price && !data.price.value && data.price.value !== 0)
                 invalidFields.price = data.price
-            if (!data.cost && data.cost !== 0)
+            if (data.cost && !data.cost.value && data.cost.value !== 0)
                 invalidFields.cost = data.cost
             if (!data.inStockDate)
                 invalidFields.inStockDate = data.inStockDate
+            if (data.regulations)
+                if (data.regulations.standard.other && (!data.regulations.additional || data.regulations.additional == ''))
+                    invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
 
             break;
         case 'internal':
@@ -435,10 +440,16 @@ function hasInvalidFields(data) {
                     //    invalidFields['oemActivities.' + i + '.annex'] = activity.annex
                 }
             }
+            if (data.regulations)
+                if (data.regulations.standard.other &&
+                    (!data.regulations.additional || data.regulations.additional == ''))
+                    invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
             break;
         case 'custom':
-            if (!data.price && data.price !== 0) invalidFields.price = data.price
-            if (!data.cost && data.cost !== 0) invalidFields.cost = data.cost
+            if (data.price && !data.price.value && data.price.value !== 0)
+                invalidFields.price = data.price
+            if (data.cost && !data.cost.value && data.cost.value !== 0)
+                invalidFields.cost = data.cost
             if (data.npiRef != null && data.npiRef != undefined && data.npiRef != '') {
                 if (data.npiRef instanceof mongoose.Types.ObjectId)
                     var npiRef = Npi.findOne({ _id: data.npiRef, stage: { $ne: 1 } })
@@ -451,6 +462,9 @@ function hasInvalidFields(data) {
                 invalidFields.npiRef = data.npiRef
             }
             if (!data.inStockDate) invalidFields.inStockDate = data.inStockDate
+            if (data.regulations)
+                if (data.regulations.standard.other && (!data.regulations.additional || data.regulations.additional == ''))
+                    invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
             break;
         default:
             console.log('NPI entry: ' + kind)
