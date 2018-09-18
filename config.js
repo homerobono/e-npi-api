@@ -1,8 +1,8 @@
 "use strict";
 
-//global.URL_BASE = "http://localhost:4200";
+global.URL_BASE = "http://localhost:4200";
 //global.URL_BASE = "http://10.0.0.175:4200";
-global.URL_BASE = "http://201.77.131.165:80";
+//global.URL_BASE = "http://201.77.131.165:80";
 
 global.ENCRYPT_KEY =
   "addc92733c4b0545ca7d036027d197e3aafe8fdc33e1b3bb34b7bea76d" +
@@ -77,10 +77,10 @@ global.DEPARTMENTS_LABELS = [
   { value: 'CSC', label: 'Controle Seccionado de Capacidade' }
 ]
 
-global.NPI_PIXEL_CRITICAL_DEPTS = ['EPROC', 'OPR', 'ADM', 'COM']
+global.NPI_PIXEL_CRITICAL_DEPTS = ['PRD', 'EPROC', 'OPR', 'ADM', 'COM']
 global.NPI_INTERNAL_CRITICAL_DEPTS = ['EPROC', 'OPR', 'ADM', 'COM']
 global.NPI_CUSTOM_CRITICAL_DEPTS = ['EPROC', 'OPR', 'ADM', 'COM']
-global.NPI_OEM_CRITICAL_DEPTS = ['PRD', 'EPROC', 'OPR', 'ADM', 'COM']
+global.NPI_OEM_CRITICAL_DEPTS = ['EPROC', 'OPR', 'ADM', 'COM']
 
 global.MACRO_STAGES = [
   { value: 'SCHED', label: 'Cronograma', dept: 'MEP', dateOffset: 7 },

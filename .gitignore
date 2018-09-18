@@ -41,5 +41,8 @@ Thumbs.db
 # config file
 config.js
 
+# uploaded files
+/npi-files
+
 # swap files
 *.swp

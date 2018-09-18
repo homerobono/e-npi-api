@@ -15,6 +15,7 @@ var npiRouter = require('./routes/npi.route');
 var mongoose = require('mongoose');
 //var multer = require('multer')
 
+//opuscapita filemanager
 const fs = require('fs');
 const compression = require('compression');
 const filemanagerMiddleware = require('@opuscapita/filemanager-server').middleware;
@@ -26,6 +27,13 @@ const filemanagerConfig = {
 
 var userDAO = require('./models/DAO/user.dao')
 var app = express();
+
+//angularjs-bridge
+const filesRouter = require('angular-filemanager-nodejs-bridge').router;
+const pathresolver = require('angular-filemanager-nodejs-bridge').pathresolver;
+pathresolver.baseDir = function(req) {
+  return './npi-files';
+};
 
 var npiDIR = './npi-files/'
 
@@ -77,6 +85,7 @@ app.use(function (req, res, next) {
 app.use(config.pathVersion, authRouter);
 app.use(config.pathVersion, usersRouter);
 app.use(config.pathVersion, npiRouter);
+app.use(config.pathVersion+'/files', filesRouter);
 app.use(config.pathVersion, filemanagerMiddleware(filemanagerConfig));
 
 // catch 404 and forward to error handler
