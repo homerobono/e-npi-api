@@ -106,7 +106,7 @@ exports.createNpi = async function (req) {
         console.log('created: ' + newNpi)
         let npiFilesFolder = path.join(global.FILES_DIR, newNpi.number.toString())
         console.log(npiFilesFolder)
-        await fs.mkdir(npiFilesFolder, 0o777);
+        await fs.mkdir(npiFilesFolder, 0o777, err => console.log('folder already exists'))
         return newNpi;
     } catch (e) {
         console.log(e)

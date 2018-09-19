@@ -13,6 +13,7 @@ var usersRouter = require('./routes/user.route');
 var authRouter = require('./routes/auth.route');
 var npiRouter = require('./routes/npi.route');
 var mongoose = require('mongoose');
+var filesRouter = require('./routes/file.route');
 //var multer = require('multer')
 
 //opuscapita filemanager
@@ -29,11 +30,7 @@ var userDAO = require('./models/DAO/user.dao')
 var app = express();
 
 //angularjs-bridge
-const filesRouter = require('angular-filemanager-nodejs-bridge').router;
-const pathresolver = require('angular-filemanager-nodejs-bridge').pathresolver;
-pathresolver.baseDir = function(req) {
-  return global.FILES_DIR;
-};
+//const filesRouter = require('angular-filemanager-nodejs-bridge').router;
 
 var dbUrl = 'mongodb://127.0.0.1/enpi'
 mongoose.Promise = bluebird;
@@ -73,7 +70,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(compression());
 
 app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Origin", global.URL_BASE);
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header('Access-Control-Allow-Credentials', true);
@@ -83,8 +80,8 @@ app.use(function (req, res, next) {
 app.use(config.pathVersion, authRouter);
 app.use(config.pathVersion, usersRouter);
 app.use(config.pathVersion, npiRouter);
-app.use(config.pathVersion+'/files', filesRouter);
-app.use(config.pathVersion, filemanagerMiddleware(filemanagerConfig));
+app.use(config.pathVersion, filesRouter);
+//app.use(config.pathVersion, filemanagerMiddleware(filemanagerConfig));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
