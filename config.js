@@ -13,6 +13,8 @@ module.exports = {
   pathVersion: "/e-npi/v2"
 };
 
+global.FILES_DIR = './npi-files/'
+
 global.NPI_LABELS = {
   number: 'Número',
   created: 'Data de Criação',

@@ -5,6 +5,8 @@ var InternalNpi = require('../npi.internal.model')
 var CustomNpi = require('../npi.custom.model')
 var _ = require('underscore');
 var mongoose = require('mongoose')
+var path = require('path');
+var fs = require('fs');
 
 _this = this
 
@@ -79,7 +81,6 @@ exports.createNpi = async function (req) {
                 data.npiRef = npiRef._id
         }
 
-
         if (data.stage == 2) {
             data = submitToAnalisys(data)
             var invalidFields = hasInvalidFields(data)
@@ -103,6 +104,9 @@ exports.createNpi = async function (req) {
                 throw Error('Tipo de NPI inválido: ' + kind)
         }
         console.log('created: ' + newNpi)
+        let npiFilesFolder = path.join(global.FILES_DIR, newNpi.number.toString())
+        console.log(npiFilesFolder)
+        await fs.mkdir(npiFilesFolder, 0o777);
         return newNpi;
     } catch (e) {
         console.log(e)

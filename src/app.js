@@ -32,10 +32,8 @@ var app = express();
 const filesRouter = require('angular-filemanager-nodejs-bridge').router;
 const pathresolver = require('angular-filemanager-nodejs-bridge').pathresolver;
 pathresolver.baseDir = function(req) {
-  return './npi-files';
+  return global.FILES_DIR;
 };
-
-var npiDIR = './npi-files/'
 
 var dbUrl = 'mongodb://127.0.0.1/enpi'
 mongoose.Promise = bluebird;
