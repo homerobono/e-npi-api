@@ -13,6 +13,9 @@ const pathresolver = pathResolver.baseDir = function (req) {
 
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    console.log('Path: ')
+    console.log(req.body)
+    fs.mkdirp(path.join(pathResolver.baseDir(req), req.body.destination))
     cb(null, path.join(pathResolver.baseDir(req), req.body.destination));
   },
   filename: function (req, file, cb) {
@@ -25,7 +28,7 @@ var upload = multer({ storage: storage })
 exports.upload = function (req, res, next) {
   upload.any()(req, res, err => {
     if (err) {
-      err.status(500).send({
+      res.status(500).send({
         "result": {
           "success": false,
           "error": true
