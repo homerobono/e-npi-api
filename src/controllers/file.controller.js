@@ -6,6 +6,7 @@ var multer = require('multer');
 var dateformat = require('./utils/dateformat');
 var pathResolver = require('./utils/pathresolver');
 var archiver = require('archiver')
+var npiController = require('./npi.controller')
 
 const pathresolver = pathResolver.baseDir = function (req) {
   return global.FILES_DIR;
@@ -15,7 +16,7 @@ var storage = multer.diskStorage({
   destination: function (req, file, cb) {
     console.log('Path: ')
     console.log(req.body)
-    fs.mkdirsSync(path.join(pathResolver.baseDir(req), req.body.destination))
+    fs.mkdirsSync(path.join(pathResolver.baseDir(req), req.body.destination), 0o744)
     cb(null, path.join(pathResolver.baseDir(req), req.body.destination));
   },
   filename: function (req, file, cb) {
@@ -26,6 +27,7 @@ var storage = multer.diskStorage({
 exports.uploadFiles = multer({ storage: storage }).any()
 
 exports.uploadResponse = function (req, res, next) {
+  //if (req.body.evolve) npiController.evolve(req.body.npiNumber)
   res.status(200).send({
     "result": {
       "success": true,

@@ -6,7 +6,10 @@ var CustomNpi = require('../npi.custom.model')
 var _ = require('underscore');
 var mongoose = require('mongoose')
 var path = require('path');
-var fs = require('fs');
+var fs = require('fs-extra');
+var FileDescriptor = require('../file.model')
+var path = require('path');
+
 
 _this = this
 
@@ -82,7 +85,7 @@ exports.createNpi = async function (req) {
         }
 
         if (data.stage == 2) {
-            data = submitToAnalisys(data)
+            data = advanceToAnalisys(data)
             var invalidFields = hasInvalidFields(data)
             if (invalidFields) throw ({ errors: invalidFields })
         }
@@ -106,7 +109,7 @@ exports.createNpi = async function (req) {
         console.log('created: ' + newNpi)
         let npiFilesFolder = path.join(global.FILES_DIR, newNpi.number.toString())
         console.log(npiFilesFolder)
-        await fs.mkdir(npiFilesFolder, 0o777, err => console.log('folder already exists'))
+        //await fs.mkdir(npiFilesFolder, 0o744, err => console.log('folder already exists'))
         return newNpi;
     } catch (e) {
         console.log(e)
@@ -213,7 +216,7 @@ exports.updateNpi = async function (user, npi) {
     try {
         if (oldNpi.stage > 1) {
             if (!oldNpi.critical || oldNpi.critical.length == 0)
-                oldNpi = submitToAnalisys(oldNpi)
+                oldNpi = advanceToAnalisys(oldNpi)
             var invalidFields = hasInvalidFields(oldNpi)
             if (invalidFields) throw ({ errors: invalidFields })
 
@@ -318,7 +321,21 @@ exports.findNpiByNumber = async npiNumber => {
     return npi
 }
 
-function submitToAnalisys(data) {
+async function evolve(npiNumber) {
+    console.log('Evolving NPI #' + npiNumber)
+    var npi = await Npi.find({ number: npiNumber })
+    switch (npi.stage) {
+        case 1:
+            advanceToAnalisys(npi)
+        case 2:
+            advanceToClientApproval(npi)
+        case 3:
+            advanceToDevelopment(npi)
+
+    }
+}
+
+function advanceToAnalisys(data) {
     console.log('submitting to analisys')
 
     var depts = Array()
@@ -388,15 +405,20 @@ function hasInvalidFields(data) {
     if (!data.fiscals) invalidFields.fiscals = data.fiscals
     if (!data.complexity) invalidFields.complexity = data.complexity
     if (data.investment && !data.investment.value && data.investment.value !== 0)
-        invalidFields.investment = data.investment
+        invalidFields['investment.value'] = data.investment.value
     if (data.projectCost && !data.projectCost.value && data.projectCost.value !== 0)
-        invalidFields.projectCost = data.projectCost
+        invalidFields['projectCost.value'] = data.projectCost.value
 
     if (data.critical && data.critical.length > 0) {
         for (let i = 0; i < data.critical.length; i++) {
             if (data.critical[i].status == 'deny' && !data.critical[i].comment)
                 invalidFields['critical.' + i + '.comment'] = data.critical[i].comment
         }
+    }
+    let result = validateFiles(data)
+    if (result) {
+        invalidFields.assign(result)
+        console.log('Invalid Fields: ', invalidFields)
     }
 
     var kind = data.entry ? data.entry : data.__t
@@ -484,6 +506,21 @@ function hasInvalidFields(data) {
         }
         return invalidFields
     }
+}
+
+function validateFiles(npi) {
+    let result = {}
+    console.log(npi)
+    Array.from(['resources', 'norms', 'investment', 'projectCost']).forEach(field => {
+        console.log(field, npi[field])
+        if (!npi[field].annex.every(
+            file => fs.existsSync(path.join(npi.number, file.fullName))
+        ))
+            result[field + '.annex'] = file.name
+    })
+
+    if (Object.keys(result).length == 0)
+        return null
 }
 
 function sign(user, npiCritical, criticalChangedFields) {

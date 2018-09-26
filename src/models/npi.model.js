@@ -1,5 +1,6 @@
 var mongoose = require('mongoose')
 var mongoosePaginate = require('mongoose-paginate')
+var FileClass = require('./file.model')
 //var sequence = require('mongoose-sequence')(mongoose);
 
 var options = { discriminatorKey: 'String' };
@@ -54,7 +55,7 @@ var NpiSchema = new mongoose.Schema({
             default: null
         },
         annex: {
-            type: [String],
+            type: [typeof FileClass],
             default: null
         }
     },
@@ -64,7 +65,7 @@ var NpiSchema = new mongoose.Schema({
             default: null
         },
         annex: {
-            type: [String],
+            type: [typeof FileClass],
             default: null
         }
     },
@@ -79,6 +80,10 @@ var NpiSchema = new mongoose.Schema({
             enum: global.CURRENCIES,
             default: null
         },
+        annex: {
+            type: [typeof FileClass],
+            default: null
+        }
     },
     fiscals:
     {
@@ -96,7 +101,7 @@ var NpiSchema = new mongoose.Schema({
             default: null
         },
         annex: {
-            type: String,
+            type: [typeof FileClass],
             default: null
         }
     },
