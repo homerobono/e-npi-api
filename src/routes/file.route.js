@@ -12,7 +12,7 @@ router.get('/files/', authService.authorize, npiController.downloadFiles);
 */
 router.post('/files/list', authService.authorize, fileController.list)
 router.get('/files/download', authService.authorize, fileController.download)
-router.post('/files/upload', authService.authorize, fileController.upload)
+router.post('/files/upload', authService.authorize, fileController.uploadFiles, fileController.uploadResponse)
 router.post('/files/remove', authService.authorize, fileController.remove)
 router.post('/files/createFolder', authService.authorize, fileController.createFolder)
 router.post('/files/rename', authService.authorize, fileController.rename)

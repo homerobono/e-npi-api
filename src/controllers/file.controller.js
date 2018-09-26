@@ -15,7 +15,7 @@ var storage = multer.diskStorage({
   destination: function (req, file, cb) {
     console.log('Path: ')
     console.log(req.body)
-    fs.mkdirp(path.join(pathResolver.baseDir(req), req.body.destination))
+    fs.mkdirsSync(path.join(pathResolver.baseDir(req), req.body.destination))
     cb(null, path.join(pathResolver.baseDir(req), req.body.destination));
   },
   filename: function (req, file, cb) {
@@ -23,25 +23,16 @@ var storage = multer.diskStorage({
   }
 });
 
-var upload = multer({ storage: storage })
+exports.uploadFiles = multer({ storage: storage }).any()
 
-exports.upload = function (req, res, next) {
-  upload.any()(req, res, err => {
-    if (err) {
-      res.status(500).send({
-        "result": {
-          "success": false,
-          "error": true
-        }
-      });
+exports.uploadResponse = function (req, res, next) {
+  res.status(200).send({
+    "result": {
+      "success": true,
+      "error": null
     }
-    res.status(200).send({
-      "result": {
-        "success": true,
-        "error": null
-      }
-    });
-  })
+  });
+
 }
 
 exports.list = function (req, res, next) {
