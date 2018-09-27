@@ -27,10 +27,10 @@ var storage = multer.diskStorage({
 exports.uploadFiles = multer({ storage: storage }).any()
 
 exports.uploadResponse = function (req, res, next) {
-  if (req.body.evolve) {
+  /*if (req.body.evolve) {
     console.log('LEVEL UP NPI')
     npiDao.evolve(req.body.npiNumber)
-  }
+  }*/
   res.status(200).send({
     "result": {
       "success": true,

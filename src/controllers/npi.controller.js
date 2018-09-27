@@ -67,6 +67,20 @@ exports.createNpi = async function (req, res, next) {
   }
 }
 
+exports.promoteNpi = async function (req, res, next) {
+  try {
+    console.log(req.params)
+    var result = await npiDAO.promoteNpi(req)
+    var sentNotify = sendChangesNotify(req, result)
+    console.log(result)
+    //result.sentNotify = sentNotify*/
+    return res.status(200).send({ data: result, message: "Succesfully promoted NPI" })
+  } catch (e) {
+    console.log(e)
+    return res.status(401).send({ message: e.message })
+  }
+}
+
 exports.newNpiVersion = async function (req, res, next) {
   try {
     //console.log(req.body)

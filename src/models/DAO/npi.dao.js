@@ -84,11 +84,15 @@ exports.createNpi = async function (req) {
                 data.npiRef = npiRef._id
         }
 
-        /* if (data.stage == 2) {
-            data = advanceToAnalisys(data)
+        if (data.stage == 2) {
+            data.stage = 1
+            //data = advanceToAnalisys(data)
             var invalidFields = hasInvalidFields(data)
-            if (invalidFields) throw ({ errors: invalidFields })
-        }*/
+            if (invalidFields) {
+                console.log('Npi not created: Invalid fields found')
+                throw ({ errors: invalidFields })
+            }
+        }
         switch (kind) {
             case 'pixel':
                 newNpi = await PixelNpi.create(data);
@@ -276,6 +280,32 @@ exports.cancelNpi = async function (id) {
     }
 }
 
+exports.promoteNpi = async req => {
+    try {
+        var npi = await Npi.find({ number: req.params.npiNumber }).sort('-version')
+    } catch (e) {
+        throw Error("Error occured while Finding the Npi")
+    }
+
+    if (!npi) {
+        throw Error("No NPI number " + npiNumber)
+    }
+    npi = npi[0]
+
+    try {
+        var invalidFields = hasInvalidFields(npi)
+        console.log(invalidFields)
+        if (invalidFields) throw ({ errors: invalidFields })
+        npi = await evolve(req, npi)
+        var savedNpi = await npi.save()
+        return { npi: savedNpi, changedFields: { stage: npi.stage } }
+    } catch (e) {
+        throw ({ message: e })
+    }
+
+    return npi
+}
+
 exports.deleteAllNpis = async function (user) {
     // Delete the Npi
     if (user.email != 'admin') throw Error("Apenas o administrador pode realizar essa operação")
@@ -321,9 +351,8 @@ exports.findNpiByNumber = async npiNumber => {
     return npi
 }
 
-async function evolve(npiNumber) {
-    console.log('Evolving NPI #' + npiNumber)
-    var npi = await Npi.find({ number: npiNumber })
+async function evolve(req, npi) {
+    console.log('Evolving NPI #' + npi.number)
     switch (npi.stage) {
         case 1:
             npi = advanceToAnalisys(npi)
@@ -335,9 +364,9 @@ async function evolve(npiNumber) {
             npi = advanceToDevelopment(npi)
             break
         default:
-            return
+            return npi
     }
-    updateNpi(npi)
+    return npi
 }
 
 function advanceToAnalisys(data) {
@@ -401,19 +430,43 @@ function advanceToClientApproval(data) {
 }
 
 function hasInvalidFields(data) {
+    console.log('Analysing invalid fields')
     var invalidFields = {}
 
     if (!data.name) invalidFields.name = data.name
     if (!data.client) invalidFields.client = data.client
     if (!data.description) invalidFields.description = data.description
-    if (!data.norms || !data.norms.description) invalidFields.norms = data.norms
-    if (!data.resources || !data.resources.description) invalidFields.resources = data.resources
+    
+    if (!data.resources) invalidFields.resources = data.resources
+    else {
+        if (!data.resources.description) invalidFields.resources.description = data.resources.description
+        if (!data.resources.annex) invalidFields['resources.annex'] = data.resources.annex
+    }
+
+    if (!data.norms) invalidFields.norms = data.norms
+    else {
+        if (!data.norms.description) invalidFields.norms.description = data.norms.description
+        if (!data.norms.annex) invalidFields['norms.annex'] = data.norms.annex
+    }
+
     if (!data.fiscals) invalidFields.fiscals = data.fiscals
     if (!data.complexity) invalidFields.complexity = data.complexity
-    if (data.investment && !data.investment.value && data.investment.value !== 0)
-        invalidFields['investment.value'] = data.investment.value
-    if (data.projectCost && !data.projectCost.value && data.projectCost.value !== 0)
-        invalidFields['projectCost.value'] = data.projectCost.value
+
+    if (!data.investment) invalidFields['investment'] = data.investment
+    else {
+        if (!data.investment.value && data.investment.value !== 0)
+            invalidFields['investment.value'] = data.investment.value
+        if (!data.investment.annex)
+            invalidFields['investment.annex'] = data.investment.annex
+    }
+
+    if (!data.projectCost) invalidFields['projectCost'] = data.projectCost
+    else {
+        if (!data.projectCost.value && data.projectCost.value !== 0)
+            invalidFields['projectCost.value'] = data.projectCost.value
+        if (!data.projectCost.annex)
+            invalidFields['projectCost.annex'] = data.projectCost.annex
+    }
 
     if (data.critical && data.critical.length > 0) {
         for (let i = 0; i < data.critical.length; i++) {
@@ -421,11 +474,11 @@ function hasInvalidFields(data) {
                 invalidFields['critical.' + i + '.comment'] = data.critical[i].comment
         }
     }
-    let result = validateFiles(data)
+    /*let result = validateFiles(data)
     if (result) {
-        invalidFields.assign(result)
-        console.log('Invalid Fields: ', invalidFields)
-    }
+        Object.assign(invalidFields, result)
+        console.log('Invalid Fields From Files: ', invalidFields)
+    }*/
 
     var kind = data.entry ? data.entry : data.__t
 
@@ -516,17 +569,20 @@ function hasInvalidFields(data) {
 
 function validateFiles(npi) {
     let result = {}
-    console.log(npi)
     Array.from(['resources', 'norms', 'investment', 'projectCost']).forEach(field => {
         console.log(field, npi[field])
-        if (!npi[field].annex.every(
-            file => fs.existsSync(path.join(npi.number, file.fullName))
-        ))
-            result[field + '.annex'] = file.name
+        if (!npi[field]) result[field] = npi[field]
+        else if (!npi[field].annex) result[field + '.annex'] = npi[field].annex
+        else
+            npi[field].annex.forEach(
+                file => {
+                    if (!fs.existsSync(path.join(npi.number, file.fullName)))
+                        result[field + '.annex'] = file.fullName
+                }
+            )
     })
-
-    if (Object.keys(result).length == 0)
-        return null
+    if (Object.keys(result).length) return result
+    return null
 }
 
 function sign(user, npiCritical, criticalChangedFields) {

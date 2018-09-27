@@ -9,6 +9,7 @@ router.get('/npi', authService.authorize, npiController.getNpis)
 router.get('/npis', authService.authorize, npiController.getNpis)
 //router.get('/npi/:npiId', authService.authorize, npiController.findNpiById);
 router.get('/npi/:npiNumber', authService.authorize, npiController.findNpiByNumber);
+router.get('/npi/:npiNumber/promote', authService.authorize, npiController.promoteNpi);
 router.post('/npi', authService.authorize, npiController.newNpiVersion)
 router.post('/npis', authService.authorize, npiController.createNpi)
 router.put('/npi/', authService.authorize, npiController.updateNpi)
