@@ -84,11 +84,11 @@ exports.createNpi = async function (req) {
                 data.npiRef = npiRef._id
         }
 
-        if (data.stage == 2) {
+        /* if (data.stage == 2) {
             data = advanceToAnalisys(data)
             var invalidFields = hasInvalidFields(data)
             if (invalidFields) throw ({ errors: invalidFields })
-        }
+        }*/
         switch (kind) {
             case 'pixel':
                 newNpi = await PixelNpi.create(data);
@@ -326,18 +326,24 @@ async function evolve(npiNumber) {
     var npi = await Npi.find({ number: npiNumber })
     switch (npi.stage) {
         case 1:
-            advanceToAnalisys(npi)
+            npi = advanceToAnalisys(npi)
+            break
         case 2:
-            advanceToClientApproval(npi)
+            npi = advanceToClientApproval(npi)
+            break
         case 3:
-            advanceToDevelopment(npi)
-
+            npi = advanceToDevelopment(npi)
+            break
+        default:
+            return
     }
+    updateNpi(npi)
 }
 
 function advanceToAnalisys(data) {
     console.log('submitting to analisys')
 
+    data.stage = 2
     var depts = Array()
 
     var kind = (data.__t ? data.__t : data.entry)

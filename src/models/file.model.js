@@ -7,7 +7,9 @@ class FileDescriptor {
     }
 
     get fullName(){
-        return path.join(path,name)
+        let p = path.join(this.path, this.name)
+        console.log(p)
+        return p
     }
 }
 

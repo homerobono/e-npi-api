@@ -56,7 +56,7 @@ var NpiSchema = new mongoose.Schema({
         },
         annex: {
             type: [typeof FileClass],
-            default: null
+            default: []
         }
     },
     norms: {
@@ -66,7 +66,7 @@ var NpiSchema = new mongoose.Schema({
         },
         annex: {
             type: [typeof FileClass],
-            default: null
+            default: []
         }
     },
     investment: {
@@ -82,7 +82,7 @@ var NpiSchema = new mongoose.Schema({
         },
         annex: {
             type: [typeof FileClass],
-            default: null
+            default: []
         }
     },
     fiscals:
@@ -102,7 +102,7 @@ var NpiSchema = new mongoose.Schema({
         },
         annex: {
             type: [typeof FileClass],
-            default: null
+            default: []
         }
     },
     activities: {

@@ -6,7 +6,7 @@ var multer = require('multer');
 var dateformat = require('./utils/dateformat');
 var pathResolver = require('./utils/pathresolver');
 var archiver = require('archiver')
-var npiController = require('./npi.controller')
+var npiDao = require('../models/DAO/npi.dao')
 
 const pathresolver = pathResolver.baseDir = function (req) {
   return global.FILES_DIR;
@@ -27,7 +27,10 @@ var storage = multer.diskStorage({
 exports.uploadFiles = multer({ storage: storage }).any()
 
 exports.uploadResponse = function (req, res, next) {
-  //if (req.body.evolve) npiController.evolve(req.body.npiNumber)
+  if (req.body.evolve) {
+    console.log('LEVEL UP NPI')
+    npiDao.evolve(req.body.npiNumber)
+  }
   res.status(200).send({
     "result": {
       "success": true,
