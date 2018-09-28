@@ -10,8 +10,15 @@ var fs = require('fs-extra');
 var FileDescriptor = require('../file.model')
 var path = require('path');
 
-
 _this = this
+
+const read = (dir) =>
+  fs.readdirSync(dir)
+    .reduce((files, file) =>
+      fs.statSync(path.join(dir, file)).isDirectory() ?
+        files.concat(read(path.join(dir, file))) :
+        files.concat(path.join(dir, file)),
+      []);
 
 exports.getNpis = async function (query) {
 
@@ -280,6 +287,34 @@ exports.cancelNpi = async function (id) {
     }
 }
 
+exports.updateAnnexList = async npiNumber => {
+    try {
+        var npi = await Npi.find({ number: npiNumber }).sort('-version')
+    } catch (e) {
+        throw Error("Error occured while Finding the Npi")
+    }
+
+    if (!npi) {
+        throw Error("No NPI number " + npiNumber)
+    }
+    npi = npi[0]
+
+    try {
+        console.log('dir structure')
+        console.log(read(npiNumber))
+        /*var invalidFields = hasInvalidFields(npi)
+        console.log(invalidFields)
+        if (invalidFields) throw ({ errors: invalidFields })
+        npi = await evolve(req, npi)
+        var savedNpi = await npi.save()
+        return { npi: savedNpi, changedFields }*/
+    } catch (e) {
+        throw ({ message: e })
+    }
+
+    return npi 
+}
+
 exports.promoteNpi = async req => {
     try {
         var npi = await Npi.find({ number: req.params.npiNumber }).sort('-version')
@@ -337,6 +372,8 @@ exports.findNpiById = async npiId => {
 }
 
 exports.findNpiByNumber = async npiNumber => {
+    console.log('dir structure')
+    console.log(read('./npi-files/'+npiNumber))
     var npi = await Npi.find({ number: npiNumber }).sort('-version')
         .populate('npiRef', '_id number name stage created')
         .populate('requester', 'firstName lastName')
@@ -493,7 +530,11 @@ function hasInvalidFields(data) {
             if (data.regulations)
                 if (data.regulations.standard.other && (!data.regulations.additional || data.regulations.additional == ''))
                     invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
-
+            if(!data.demand) invalidFields.demand = data.demand
+            else { 
+                if (!data.demand.amount && data.demand.amount!=0) invalidFields['demand.amount'] = data.demand.amount
+                if (!data.demand.period) invalidFields['demand.period'] = data.demand.period
+            }
             break;
         case 'internal':
             break;
