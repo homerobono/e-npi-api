@@ -13,12 +13,12 @@ var path = require('path');
 _this = this
 
 const read = (dir) =>
-  fs.readdirSync(dir)
-    .reduce((files, file) =>
-      fs.statSync(path.join(dir, file)).isDirectory() ?
-        files.concat(read(path.join(dir, file))) :
-        files.concat(path.join(dir, file)),
-      []);
+    fs.readdirSync(dir)
+        .reduce((files, file) =>
+            fs.statSync(path.join(dir, file)).isDirectory() ?
+                files.concat(read(path.join(dir, file))) :
+                files.concat(path.join(dir, file)),
+            []);
 
 exports.getNpis = async function (query) {
 
@@ -224,37 +224,14 @@ exports.updateNpi = async function (user, npi) {
         console.log("updated Object")
         console.log(oldNpi)
     */
+    console.log('changedFields')
+    console.log(changedFields)
+
     try {
-        if (oldNpi.stage > 1) {
-            if (!oldNpi.critical || oldNpi.critical.length == 0)
-                oldNpi = advanceToAnalisys(oldNpi)
-            var invalidFields = hasInvalidFields(oldNpi)
+        if (oldNpi.stage != 1) {
+            var invalidFields = hasInvalidFields(npi)
             if (invalidFields) throw ({ errors: invalidFields })
-
-            if (oldNpi.stage == 2) {
-                if (oldNpi.critical.every((analisys) => analisys.status == 'accept')) {
-                    if (oldNpi.__t != 'oem') {
-                        oldNpi = advanceToDevelopment(oldNpi)
-                        changedFields.stage = 4
-                    } else {
-                        oldNpi = advanceToClientApproval(oldNpi)
-                        changedFields.stage = 3
-                    }
-                }
-            }
-            if (oldNpi.stage == 3) {
-                if (oldNpi.clientApproval) {
-                    if (oldNpi.clientApproval.approval == 'accept') {
-                        oldNpi = advanceToDevelopment(oldNpi)
-                        changedFields.stage = 4
-                    }
-                } else
-                    oldNpi.clientApproval = { approval: null, comment: null }
-            }
         }
-        console.log('changedFields')
-        console.log(changedFields)
-
         if (!Object.keys(changedFields).length) return { npi: oldNpi, changedFields }
         var savedNpi = await oldNpi.save()
         //var savedNpi = Npi.findByIdAndUpdate(oldNpi._id, npi)
@@ -312,32 +289,6 @@ exports.updateAnnexList = async npiNumber => {
         throw ({ message: e })
     }
 
-    return npi 
-}
-
-exports.promoteNpi = async req => {
-    try {
-        var npi = await Npi.find({ number: req.params.npiNumber }).sort('-version')
-    } catch (e) {
-        throw Error("Error occured while Finding the Npi")
-    }
-
-    if (!npi) {
-        throw Error("No NPI number " + npiNumber)
-    }
-    npi = npi[0]
-
-    try {
-        var invalidFields = hasInvalidFields(npi)
-        console.log(invalidFields)
-        if (invalidFields) throw ({ errors: invalidFields })
-        npi = await evolve(req, npi)
-        var savedNpi = await npi.save()
-        return { npi: savedNpi, changedFields: { stage: npi.stage } }
-    } catch (e) {
-        throw ({ message: e })
-    }
-
     return npi
 }
 
@@ -373,7 +324,7 @@ exports.findNpiById = async npiId => {
 
 exports.findNpiByNumber = async npiNumber => {
     console.log('dir structure')
-    console.log(read('./npi-files/'+npiNumber))
+    //console.log(read('./npi-files/'+npiNumber))
     var npi = await Npi.find({ number: npiNumber }).sort('-version')
         .populate('npiRef', '_id number name stage created')
         .populate('requester', 'firstName lastName')
@@ -381,10 +332,40 @@ exports.findNpiByNumber = async npiNumber => {
             path: 'critical.signature.user',
             model: 'User',
             select: 'firstName lastName'
-        },
-    );
+        })
+        .populate({
+            path: 'finalApproval.signature.user',
+            model: 'User',
+            select: 'firstName lastName'
+        });
     if (!npi || npi == null) throw Error('There is no NPI with this number: ' + npiNumber)
     //console.log(npi)
+    return npi
+}
+
+exports.promoteNpi = async req => {
+    try {
+        var npi = await Npi.find({ number: req.params.npiNumber }).sort('-version')
+    } catch (e) {
+        throw Error("Error occured while Finding the Npi")
+    }
+
+    if (!npi) {
+        throw Error("No NPI number " + npiNumber)
+    }
+    npi = npi[0]
+
+    try {
+        var invalidFields = hasInvalidFields(npi)
+        console.log(invalidFields)
+        if (invalidFields) throw ({ errors: invalidFields })
+        npi = await evolve(req, npi)
+        var savedNpi = await npi.save()
+        return { npi: savedNpi, changedFields: { stage: npi.stage } }
+    } catch (e) {
+        throw ({ message: e })
+    }
+
     return npi
 }
 
@@ -392,13 +373,33 @@ async function evolve(req, npi) {
     console.log('Evolving NPI #' + npi.number)
     switch (npi.stage) {
         case 1:
-            npi = advanceToAnalisys(npi)
+            if (!npi.critical || npi.critical.length == 0)
+                npi = advanceToAnalisys(npi)
+            else throw ('NPI já contém os campos de análise crítica (NPI corrompida)')
             break
         case 2:
-            npi = advanceToClientApproval(npi)
+            if (npi.critical.every((analisys) => analisys.status == 'accept')
+                || (npi.critical.every((analisys) => analisys.status != null)
+                    && npi.finalApproval.status == 'accept')) {
+                console.log('req.user')
+                console.log(req.user)
+                npi.finalApproval = finalSign(req.user.data, npi.finalApproval)
+                if (npi.__t != 'oem') {
+                    npi = advanceToDevelopment(npi)
+                } else {
+                    npi = advanceToClientApproval(npi)
+                }
+            } else throw ('NPI não passou na análise crítica')
             break
         case 3:
-            npi = advanceToDevelopment(npi)
+            if (npi.stage == 3) {
+                if (npi.clientApproval) {
+                    if (npi.clientApproval.approval == 'accept') {
+                        npi = advanceToDevelopment(npi)
+                    }
+                } else
+                    npi.clientApproval = { approval: null, comment: null }
+            } else throw ('NPI não passou na aprovação do cliente')
             break
         default:
             return npi
@@ -451,7 +452,7 @@ function advanceToDevelopment(data) {
         data.activities.push({
             activity: stage.value,
             dept: stage.dept,
-            date: Date.now() + stage.dateOffset * 24 * 3600 * 1000,
+            deadline: stage.dateOffset,
             registry: null,
             annex: null,
         })
@@ -473,17 +474,17 @@ function hasInvalidFields(data) {
     if (!data.name) invalidFields.name = data.name
     if (!data.client) invalidFields.client = data.client
     if (!data.description) invalidFields.description = data.description
-    
+
     if (!data.resources) invalidFields.resources = data.resources
     else {
         if (!data.resources.description) invalidFields.resources.description = data.resources.description
-        if (!data.resources.annex) invalidFields['resources.annex'] = data.resources.annex
+        if (!data.resources.annex || !data.resources.annex.length) invalidFields['resources.annex'] = data.resources.annex
     }
 
     if (!data.norms) invalidFields.norms = data.norms
     else {
         if (!data.norms.description) invalidFields.norms.description = data.norms.description
-        if (!data.norms.annex) invalidFields['norms.annex'] = data.norms.annex
+        if (!data.norms.annex || !data.norms.annex.length) invalidFields['norms.annex'] = data.norms.annex
     }
 
     if (!data.fiscals) invalidFields.fiscals = data.fiscals
@@ -493,7 +494,7 @@ function hasInvalidFields(data) {
     else {
         if (!data.investment.value && data.investment.value !== 0)
             invalidFields['investment.value'] = data.investment.value
-        if (!data.investment.annex)
+        if (!data.investment.annex || !data.investment.annex.length)
             invalidFields['investment.annex'] = data.investment.annex
     }
 
@@ -501,7 +502,7 @@ function hasInvalidFields(data) {
     else {
         if (!data.projectCost.value && data.projectCost.value !== 0)
             invalidFields['projectCost.value'] = data.projectCost.value
-        if (!data.projectCost.annex)
+        if (!data.projectCost.annex || !data.projectCost.annex.length)
             invalidFields['projectCost.annex'] = data.projectCost.annex
     }
 
@@ -511,6 +512,10 @@ function hasInvalidFields(data) {
                 invalidFields['critical.' + i + '.comment'] = data.critical[i].comment
         }
     }
+
+    if (data.finalApproval && data.finalApproval.status == 'accept' && !data.finalApproval.comment)
+        invalidFields['finalApproval.comment'] = data.finalApproval.comment
+
     /*let result = validateFiles(data)
     if (result) {
         Object.assign(invalidFields, result)
@@ -530,9 +535,9 @@ function hasInvalidFields(data) {
             if (data.regulations)
                 if (data.regulations.standard.other && (!data.regulations.additional || data.regulations.additional == ''))
                     invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
-            if(!data.demand) invalidFields.demand = data.demand
-            else { 
-                if (!data.demand.amount && data.demand.amount!=0) invalidFields['demand.amount'] = data.demand.amount
+            if (!data.demand) invalidFields.demand = data.demand
+            else {
+                if (!data.demand.amount && data.demand.amount != 0) invalidFields['demand.amount'] = data.demand.amount
                 if (!data.demand.period) invalidFields['demand.period'] = data.demand.period
             }
             break;
@@ -651,6 +656,12 @@ function sign(user, npiCritical, criticalChangedFields) {
         });
     }
     return npiCritical
+}
+
+function finalSign(user, npiFinal) {
+    npiFinal.signature = { user: user._id, date: Date.now() }
+    console.log(npiFinal.signature)
+    return npiFinal
 }
 
 function updateObject(oldObject, newObject) {

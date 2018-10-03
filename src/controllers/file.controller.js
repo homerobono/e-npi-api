@@ -27,8 +27,8 @@ var storage = multer.diskStorage({
 exports.uploadFiles = multer({ storage: storage }).any()
 
 exports.uploadResponse = function (req, res, next) {
-    console.log('LEVEL UP NPI')
-    npiDao.updateAnnexList(req.body.npiNumber)
+    //console.log('LEVEL UP NPI')
+    //npiDao.updateAnnexList(req.body.npiNumber)
   res.status(200).send({
     "result": {
       "success": true,
@@ -195,7 +195,7 @@ exports.createFolder = function (req, res, next) {
 
   var folderPath = path.join(pathResolver.baseDir(req), req.body.params.path, req.body.params.name);
   console.log(folderPath);
-  var promise = fs.mkdirAsync(folderPath, 0o777);
+  var promise = fs.mkdirs(folderPath, 0o777);
 
   promise = promise.then(function () {
     res.status(200);

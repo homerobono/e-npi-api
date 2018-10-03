@@ -1,8 +1,8 @@
 "use strict";
 
-//global.URL_BASE = "http://localhost";
 global.URL_BASE = "http://localhost:4200";
-//global.URL_BASE = "http://10.0.0.175:4200";
+//global.URL_BASE = "http://localhost:6002";
+//global.URL_BASE = "http://10.0.0.174:4200";
 //global.URL_BASE = "http://iraflor.com.br";
 
 global.ENCRYPT_KEY =

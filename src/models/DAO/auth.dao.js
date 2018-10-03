@@ -17,9 +17,9 @@ exports.authUser = async data => {
   if (userFinds) {
     userFinds.password = null
     let token = await authService.generateToken(userFinds);
-    console.log('User '+ userFinds.email +' logged');
+    console.log('User ' + userFinds.email + ' logged');
     return (data = {
-      token: token,
+      token,
     });
   } else
     throw new Error(
@@ -38,26 +38,26 @@ exports.resetPassword = async data => {
 };
 
 exports.verifyResetToken = async resetToken => {
-    console.log('token: ')
-    console.log(resetToken)
-    if (!resetToken || resetToken == '') throw new Error ('Nenhum token fornecido');
-    user = await User.findOne(
+  console.log('token: ')
+  console.log(resetToken)
+  if (!resetToken || resetToken == '') throw new Error('Nenhum token fornecido');
+  user = await User.findOne(
     {
-      resetToken: resetToken, resetExpires: { $gt: Date.now() } 
+      resetToken: resetToken, resetExpires: { $gt: Date.now() }
     });
-    if (!user) throw new Error ('Token inválido ou expirado');
-    return user;
-  };
+  if (!user) throw new Error('Token inválido ou expirado');
+  return user;
+};
 
 exports.verifyRegisterToken = async registerToken => {
   console.log('token: ')
   console.log(registerToken)
-  if (!registerToken || registerToken == '') throw new Error ('Nenhum token de cadastro fornecido');
+  if (!registerToken || registerToken == '') throw new Error('Nenhum token de cadastro fornecido');
   user = await User.findOne(
-  {
-    registerToken: registerToken, registerExpires: { $gt: Date.now() } 
-  });
-  if (!user) throw new Error ('Token de cadastro inválido ou expirado');
+    {
+      registerToken: registerToken, registerExpires: { $gt: Date.now() }
+    });
+  if (!user) throw new Error('Token de cadastro inválido ou expirado');
   return user;
 };
 

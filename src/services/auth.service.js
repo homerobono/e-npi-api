@@ -10,6 +10,9 @@ exports.authorize = (req, res, next) => {
   ) {
     try {
         req.user = jwt.verify(req.headers["authorization"], global.ENCRYPT_KEY);
+        //let expires_in = req.user.exp - Date.now()
+        //if (expires_in < 3600) req.user.newToken = generateToken(req.user.data);
+        //console.log(req.user)
     } catch (err) {
       return res.status(401).json({
         error: {

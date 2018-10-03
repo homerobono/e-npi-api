@@ -116,8 +116,8 @@ var NpiSchema = new mongoose.Schema({
                 enum: global.DEPARTMENTS,
                 default: null
             },
-            date: {
-                type: Date,
+            deadline: {
+                type: Number,
                 default: null
             },
             registry: {
@@ -159,6 +159,28 @@ var NpiSchema = new mongoose.Schema({
                 }
             }
         }]
+    },
+    finalApproval: {
+        status: {
+            type: String,
+            enum: [null, 'deny', 'accept'],
+            default: null
+        },
+        comment: {
+            type: String,
+            default: null
+        },
+        signature: {
+            date: {
+                type: Date,
+                default: null
+            },
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+                default: null
+            }
+        }
     },
     validation: {
         pilot: {
