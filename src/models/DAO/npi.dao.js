@@ -452,9 +452,10 @@ function advanceToDevelopment(data) {
         data.activities.push({
             activity: stage.value,
             dept: stage.dept,
-            deadline: stage.dateOffset,
+            term: stage.term,
             registry: null,
             annex: null,
+            apply: true
         })
     })
     return data

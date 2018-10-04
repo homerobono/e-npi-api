@@ -49,59 +49,73 @@ global.NPI_LABELS = {
 global.DEPARTMENTS = [
   'ADM',
   'COM',
-  'COMP',
-  'EPROD',
-  'EPROC',
+  'OSC',
   'FIN',
   'MKT',
-  'P&D',
+  'MPD',
   'PROD',
-  'PRD',
+  'MPR',
   'RH',
   'OPR',
   'MEP',
-  'CSC'
 ]
 
 global.DEPARTMENTS_LABELS = [
   { value: 'ADM', label: 'Administrativo' },
   { value: 'COM', label: 'Comercial' },
-  { value: 'COMP', label: 'Compras' },
-  { value: 'EPROD', label: 'Engenharia de Produção' },
-  { value: 'EPROC', label: 'Engenharia de Processos' },
+  { value: 'OSC', label: 'Compras' },
   { value: 'FIN', label: 'Financeiro' },
   { value: 'MKT', label: 'Marketing' },
-  { value: 'P&D', label: 'P&D' },
+  { value: 'MPD', label: 'P&D' },
   { value: 'PROD', label: 'Produção' },
-  { value: 'PRD', label: 'Produto' },
+  { value: 'MPR', label: 'Produto' },
   { value: 'RH', label: 'R.H.' },
   { value: 'OPR', label: 'Operações' },
-  { value: 'MEP', label: 'Ministério de Engenharia Privada' },
-  { value: 'CSC', label: 'Controle Seccionado de Capacidade' }
+  { value: 'MEP', label: 'Processo' },
 ]
 
-global.NPI_PIXEL_CRITICAL_DEPTS = ['PRD', 'EPROC', 'OPR', 'ADM', 'COM']
-global.NPI_INTERNAL_CRITICAL_DEPTS = ['EPROC', 'OPR', 'ADM', 'COM']
-global.NPI_CUSTOM_CRITICAL_DEPTS = ['EPROC', 'OPR', 'ADM', 'COM']
-global.NPI_OEM_CRITICAL_DEPTS = ['EPROC', 'OPR', 'ADM', 'COM']
+global.NPI_PIXEL_CRITICAL_DEPTS = ['MPR', 'MEP', 'OPR', 'ADM', 'COM']
+global.NPI_INTERNAL_CRITICAL_DEPTS = ['MEP', 'OPR', 'ADM', 'COM']
+global.NPI_CUSTOM_CRITICAL_DEPTS = ['MEP', 'OPR', 'ADM', 'COM']
+global.NPI_OEM_CRITICAL_DEPTS = ['MEP', 'OPR', 'ADM', 'COM']
 
 global.MACRO_STAGES = [
-  { value: 'SCHED', label: 'Cronograma', dept: 'MEP', dateOffset: 7 },
-  { value: 'LAYOUT', label: 'Esquemático, Layout e Gerber', dept: 'MEP', dateOffset: 30 },
-  { value: 'FIRMWARE', label: 'Firmware, Software e Aplicativo', dept: 'MEP', dateOffset: 60 },
-  { value: 'MECHANICS', label: 'Mecânica', dept: 'MEP', dateOffset: 45 },
-  { value: 'SPECS', label: 'Especificação Técnica', dept: 'MEP', dateOffset: 30 },
-  { value: 'BOM', label: 'Lista de Materiais - BOM', dept: 'MEP', dateOffset: 15 },
-  { value: 'QUOTATION', label: 'Cotação', dept: 'CSC', dateOffset: 30 },
-  { value: 'REQUIRE', label: 'Validação de Requisitos de Entrada', dept: 'MEP', dateOffset: 12 },
-  { value: 'STATIONERY', label: 'Papelaria (Embalagem, Etiquetas, Manuais, Guias, etc)', dept: 'MEP', dateOffset: 30 },
-  { value: 'BOM_REG', label: 'Cadastro da BOM', dept: 'MEP', dateOffset: 20 },
-  { value: 'TEST', label: 'IT de Teste', dept: 'MEP', dateOffset: 70 },
-  { value: 'JIG', label: 'Jiga de Testes', dept: 'P&D', dateOffset: 90 },
-  { value: 'PROD', label: 'Processo Produtivo', dept: 'MEP', dateOffset: 120 },
-  { value: 'PILOT', label: 'Lote Piloto', dept: 'MEP', dateOffset: 130 },
-  { value: 'ASSEMBLY', label: 'IT de Montagem', dept: 'MEP', dateOffset: 150 },
-  { value: 'GOLD', label: 'Golden Sample', dept: 'MEP', dateOffset: 180 },
+  { value: 'SPECS_HW', label: 'Especificação Técnica - Funcionalidade HW', dept: 'MPR', term: 1 },
+  { value: 'SPECS_SW', label: 'Especificação Técnica - Funcionalidade de SW', dept: 'MPR', term: 1 },
+  { value: 'MECH_SPEC', label: 'Especificação Mecânica/Dimensional', dept: 'MPR', term: 1 },
+  { value: 'ELETRIC_LAYOUT', label: 'Esquema Elétrico/Layout', dept: 'MPD', term: 60 },
+  { value: 'BOM_DESC', label: 'BOM com P/N, Descrição', dept: 'MPD', term: 5 },
+  { value: 'GERBER', label: 'Arquivo Gerber', dept: 'MPD', term: 5 },
+  { value: 'MECH_LAYOUT', label: 'Desenho de Partes Mecânicas', dept: 'MPR', term: 60 },
+  { value: 'FIRMWARE', label: 'Firmware', dept: 'MPD', term: 10 },
+  { value: 'BOM_PRICE', label: 'Cotação/Compra da BOM', dept: 'OSC', term: 5 },
+  { value: 'PROTO_ASSEMB', label: 'Montagem de Protótipo', dept: 'MPD', term: 30 },
+  { value: 'PROTO_SW', label: 'Protótipo de Software', dept: 'MPD', term: 100 },
+  { value: 'PROTO_TEST', label: 'Testes de Verficação/Validação de Protótipo', dept: 'MPR', term: 15 },
+  { value: 'DEVICE', label: 'Dispositivos/Moldes', dept: 'MPR', term: 90 },
+  { value: 'TEMPLATE', label: 'Estêncil/Templates', dept: 'MEP', term: 5 },
+  { value: 'DATASHEET', label: 'Datasheet', dept: 'MPR', term: 5 },
+  { value: 'TAG_SPEC', label: 'Desenho/Especificação de Etiquetas', dept: 'MPR', term: 5 },
+  { value: 'PACKING_SPEC', label: 'Desenho/Especificação de Embalagem Individual', dept: 'MPR', term: 10 },
+  { value: 'MANUAL', label: 'Manual para o Produto', dept: 'MPR', term: 10 },
+  { value: 'HOMOLOG', label: 'Entrada Homologação', dept: 'MPR', term: 150 },
+  { value: 'JIG', label: 'Equipamento e Jiga de Testes', dept: 'MPD', term: 10 },
+  { value: 'TEST_INSTR', label: 'Instrução de Teste', dept: 'MPD', term: 5 },
+  { value: 'ASSEMB_TOOLS', label: 'Definição de Ferramentas para Montagem', dept: 'MEP', term: 10 },
+  { value: 'ASSEMB_INSTR', label: 'Instrução de Montagem', dept: 'MEP', term: 5 },
+  { value: 'SMT', label: 'Programa para Máquina SMT', dept: 'MEP', term: 5 },
+  { value: 'INJECT', label: 'Ajuste/Programação Injetora', dept: 'MEP', term: 5 },
+  { value: 'QUALITY', label: 'Critérios de Qualidade', dept: 'MPR', term: 5 },
+  { value: 'PILOT', label: 'Lote Piloto', dept: 'MEP', term: 5 },
+  { value: 'TEST', label: 'Testes de Verificação/Validação', dept: 'MPR', term: 5 },
+  { value: 'GOLD', label: 'Golden Sample', dept: 'MPR', term: 5 },
+  { value: 'PRODUCT_DOC', label: 'Documento de Produto', dept: 'MPR', term: 5 },
+  { value: 'PRODUCT_SW', label: 'Documento de Software', dept: 'MPD', term: 5 },
+  { value: 'PRODUCT_FW', label: 'Documento de Firmware', dept: 'MPD', term: 5 },
+  { value: 'ASSEMB_DOC', label: 'Documento de Montagem/Teste', dept: 'MEP', term: 2 },
+  { value: 'PRICE_TABLE', label: 'Tabela de Preço', dept: 'COM', term: 5 },
+  { value: 'RELEASE', label: 'Plano de Lançamento', dept: 'MPR', term: 5 },
+  { value: 'PRODUCTION', label: 'Produção', dept: 'OPR', term: 90 },
 ]
 
 global.REGULATIONS = [

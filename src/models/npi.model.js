@@ -111,12 +111,16 @@ var NpiSchema = new mongoose.Schema({
                 type: String,
                 default: null
             },
+            apply: {
+                type: Boolean,
+                default: true
+            },
             dept: {
                 type: String,
                 enum: global.DEPARTMENTS,
                 default: null
             },
-            deadline: {
+            term: {
                 type: Number,
                 default: null
             },
