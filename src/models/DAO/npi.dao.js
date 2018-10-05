@@ -220,6 +220,7 @@ exports.updateNpi = async function (user, npi) {
     oldNpi = updateResult.updatedObject
 
     oldNpi.critical = sign(user, oldNpi.critical, changedFields.critical)
+    oldNpi.activities = activitySign(user, oldNpi.activities, changedFields.activities)
     /*
         console.log("updated Object")
         console.log(oldNpi)
@@ -315,11 +316,21 @@ exports.findNpiById = async npiId => {
             path: 'critical.signature.user',
             model: 'User',
             select: 'firstName lastName'
-        },
-    );
-    if (!npi || npi == null) throw Error('There is no NPI with this number: ' + npiNumber)
-    //console.log(npi)
-    return npi
+        })
+        .populate({
+            path: 'finalApproval.signature.user',
+            model: 'User',
+            select: 'firstName lastName'
+        })
+        .populate({
+            path: 'activities.signature.user',
+            model: 'User',
+            select: 'firstName lastName'
+        });
+        
+if (!npi || npi == null) throw Error('There is no NPI with this number: ' + npiNumber)
+//console.log(npi)
+return npi
 }
 
 exports.findNpiByNumber = async npiNumber => {
@@ -335,6 +346,11 @@ exports.findNpiByNumber = async npiNumber => {
         })
         .populate({
             path: 'finalApproval.signature.user',
+            model: 'User',
+            select: 'firstName lastName'
+        })
+        .populate({
+            path: 'activities.signature.user',
             model: 'User',
             select: 'firstName lastName'
         });
@@ -632,9 +648,9 @@ function validateFiles(npi) {
     return null
 }
 
-function sign(user, npiCritical, criticalChangedFields) {
-    if (criticalChangedFields) {
-        criticalChangedFields.forEach(field => {
+function sign(user, npiTask, changedFields) {
+    if (changedFields) {
+        changedFields.forEach(field => {
             let signChanged = false
             if (typeof field.status != 'undefined' && field.status == null) {
                 console.log('unsingning')
@@ -646,7 +662,7 @@ function sign(user, npiCritical, criticalChangedFields) {
                 signChanged = true
             }
             if (signChanged) {
-                npiCritical.forEach(row => {
+                npiTask.forEach(row => {
                     if (row._id == field._id) {
                         console.log('submited (un)signature ' + row.dept)
                         console.log(field.signature)
@@ -656,7 +672,34 @@ function sign(user, npiCritical, criticalChangedFields) {
             }
         });
     }
-    return npiCritical
+    return npiTask
+}
+
+function activitySign(user, npiTask, changedFields) {
+    if (changedFields) {
+        changedFields.forEach(activity => {
+            let signChanged = false
+            if (typeof activity.closed != 'undefined' && activity.closed == null) {
+                console.log('unsingning')
+                activity.signature = null
+                signChanged = true
+            } else if (activity.closed) {
+                console.log('singning')
+                activity.signature = { user: user._id, date: Date.now() }
+                signChanged = true
+            }
+            if (signChanged) {
+                npiTask.forEach(taskRow => {
+                    if (taskRow._id == activity._id) {
+                        console.log('submited (un)signature ' + taskRow.dept)
+                        console.log(activity.signature)
+                        taskRow.signature = activity.signature
+                    }
+                })
+            }
+        });
+    }
+    return npiTask
 }
 
 function finalSign(user, npiFinal) {

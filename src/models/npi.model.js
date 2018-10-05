@@ -132,6 +132,21 @@ var NpiSchema = new mongoose.Schema({
                 type: String,
                 default: null
             },
+            closed:{
+                type : Boolean,
+                default: false,
+            },
+            signature: {
+                date: {
+                    type: Date,
+                    default: null
+                },
+                user: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
+                    default: null
+                }
+            }
         }],
         default: null
     },
