@@ -47,7 +47,7 @@ mongoose.connection.on('connected',
             email: 'admin',
             password: 'admin',
             firstName: 'Administrador',
-            level: 2,
+            level: 3,
             status: 'active',
             notify: false
           })

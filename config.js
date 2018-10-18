@@ -108,7 +108,7 @@ global.MACRO_STAGES = [
   { value: 'PRICE_TABLE', label: 'Tabela de Preço', dept: 'COM', term: 5, dep: ["TEST", "BOM_PRICE"], required: true },
   { value: 'RELEASE_PLAN', label: 'Plano de Lançamento', dept: 'MPR', term: 5, dep: ["PRICE_TABLE"], required: true },
   { value: 'PRODUCTION', label: 'Produção', dept: 'OPR', term: 90, dep: ["PILOT", "TEST", "GOLD", "PRODUCT_DOC", "PRODUCT_SW", "PRODUCT_FW", "ASSEMB_DOC"], required: true },
-  //{ value: 'RELEASE', label: 'Lançamento', dep: ["PRODUCTION", "RELEASE_PLAN", "HOMOLOG"], required: true }
+  { value: 'RELEASE', label: 'Lançamento', dept: null, term: 0, dep: ["PRODUCTION", "RELEASE_PLAN", "HOMOLOG"], required: true }
 ],
 
   global.REGULATIONS = [

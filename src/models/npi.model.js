@@ -117,7 +117,12 @@ var NpiSchema = new mongoose.Schema({
             },
             dept: {
                 type: String,
-                enum: global.DEPARTMENTS,
+                enum: (Array.from(global.DEPARTMENTS).concat([null])),
+                default: null
+            },
+            responsible: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
                 default: null
             },
             term: {

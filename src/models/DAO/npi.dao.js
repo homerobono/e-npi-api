@@ -315,22 +315,22 @@ exports.findNpiById = async npiId => {
         .populate({
             path: 'critical.signature.user',
             model: 'User',
-            select: 'firstName lastName'
+            select: '_id firstName lastName'
         })
         .populate({
             path: 'finalApproval.signature.user',
             model: 'User',
-            select: 'firstName lastName'
+            select: '_id firstName lastName'
         })
         .populate({
             path: 'activities.signature.user',
             model: 'User',
-            select: 'firstName lastName'
+            select: '_id firstName lastName'
         });
-        
-if (!npi || npi == null) throw Error('There is no NPI with this number: ' + npiNumber)
-//console.log(npi)
-return npi
+
+    if (!npi || npi == null) throw Error('There is no NPI with this number: ' + npiNumber)
+    //console.log(npi)
+    return npi
 }
 
 exports.findNpiByNumber = async npiNumber => {
@@ -342,17 +342,17 @@ exports.findNpiByNumber = async npiNumber => {
         .populate({
             path: 'critical.signature.user',
             model: 'User',
-            select: 'firstName lastName'
+            select: '_id firstName lastName'
         })
         .populate({
             path: 'finalApproval.signature.user',
             model: 'User',
-            select: 'firstName lastName'
+            select: '_id firstName lastName'
         })
         .populate({
             path: 'activities.signature.user',
             model: 'User',
-            select: 'firstName lastName'
+            select: '_id firstName lastName'
         });
     if (!npi || npi == null) throw Error('There is no NPI with this number: ' + npiNumber)
     //console.log(npi)
@@ -375,8 +375,12 @@ exports.promoteNpi = async req => {
         var invalidFields = hasInvalidFields(npi)
         console.log(invalidFields)
         if (invalidFields) throw ({ errors: invalidFields })
+
+        let oldStatus = npi.stage
         npi = await evolve(req, npi)
         var savedNpi = await npi.save()
+        if (npi.stage == oldStatus)
+            throw ('NPI não pode passar para desenvolvimento com data de lançamento posterior à data prevista em estoque')
         return { npi: savedNpi, changedFields: { stage: npi.stage } }
     } catch (e) {
         throw ({ message: e })
@@ -462,19 +466,59 @@ function advanceToAnalisys(data) {
 
 function advanceToDevelopment(data) {
     console.log('advancing to development')
-    data.stage = 4
-    data.activities = []
-    global.MACRO_STAGES.forEach(stage => {
-        data.activities.push({
-            activity: stage.value,
-            dept: stage.dept,
-            term: stage.term,
-            registry: null,
-            annex: null,
-            apply: true
+    if (!data.activities || !data.activities.length) {
+        data.activities = []
+        global.MACRO_STAGES.forEach(stage => {
+            if (stage.value != "RELEASE")
+                data.activities.push({
+                    activity: stage.value,
+                    dept: stage.dept,
+                    term: stage.term,
+                    registry: null,
+                    annex: null,
+                    apply: true
+                })
         })
-    })
+        return data
+    }
+    console.log(getEndDate(data, 'RELEASE'), data.inStockDate)
+    if (getEndDate(data, 'RELEASE').valueOf() <= data.inStockDate.valueOf())
+        data.stage = 4
     return data
+}
+
+function getEndDate(data, activityName) {
+    let activityConst = global.MACRO_STAGES.find(a => a.value == activityName)
+
+    let endDate = getCriticalApprovalDate(data)
+
+    if (activityConst.dep)
+        activityConst.dep.forEach(depName => {
+            endDate = new Date(Math.max(endDate.valueOf(), getEndDate(data, depName).valueOf()))
+        })
+
+    let npiActivity = data.activities.find(a => a.activity == activityName)
+    if (npiActivity && npiActivity.apply)
+        endDate = new Date(endDate.valueOf() + npiActivity.term * 24 * 3600 * 1000)
+    return endDate
+}
+
+function getCriticalApprovalDate(data) {
+    if (data.critical) {
+        var isCriticallyApproved = data.critical.every(
+            analisys => analisys.status == 'accept'
+        ) || data.finalApproval.status == 'accept'
+        if (isCriticallyApproved) {
+            if (data.finalApproval && data.finalApproval.status == 'accept')
+                return data.finalApproval.signature.date
+            var lastAnalysisDate = data.critical[0].signature.date
+            data.critical.forEach(analysis => {
+                lastAnalysisDate = lastAnalysisDate < analysis.signature.date ?
+                    analysis.signature.date : lastAnalysisDate
+            })
+            return lastAnalysisDate
+        }
+    }
 }
 
 function advanceToClientApproval(data) {
@@ -488,39 +532,41 @@ function hasInvalidFields(data) {
     console.log('Analysing invalid fields')
     var invalidFields = {}
 
-    if (!data.name) invalidFields.name = data.name
-    if (!data.client) invalidFields.client = data.client
-    if (!data.description) invalidFields.description = data.description
+    if (data.stage == 1) {
 
-    if (!data.resources) invalidFields.resources = data.resources
-    else {
-        if (!data.resources.description) invalidFields.resources.description = data.resources.description
-        if (!data.resources.annex || !data.resources.annex.length) invalidFields['resources.annex'] = data.resources.annex
-    }
+        if (!data.name) invalidFields.name = data.name
+        if (!data.client) invalidFields.client = data.client
+        if (!data.description) invalidFields.description = data.description
 
-    if (!data.norms) invalidFields.norms = data.norms
-    else {
-        if (!data.norms.description) invalidFields.norms.description = data.norms.description
-        if (!data.norms.annex || !data.norms.annex.length) invalidFields['norms.annex'] = data.norms.annex
-    }
+        if (!data.resources) invalidFields.resources = data.resources
+        else {
+            if (!data.resources.description) invalidFields.resources.description = data.resources.description
+            if (!data.resources.annex || !data.resources.annex.length) invalidFields['resources.annex'] = data.resources.annex
+        }
 
-    if (!data.fiscals) invalidFields.fiscals = data.fiscals
-    if (!data.complexity) invalidFields.complexity = data.complexity
+        if (!data.norms) invalidFields.norms = data.norms
+        else {
+            if (!data.norms.description) invalidFields.norms.description = data.norms.description
+            if (!data.norms.annex || !data.norms.annex.length) invalidFields['norms.annex'] = data.norms.annex
+        }
 
-    if (!data.investment) invalidFields['investment'] = data.investment
-    else {
-        if (!data.investment.value && data.investment.value !== 0)
-            invalidFields['investment.value'] = data.investment.value
-        if (!data.investment.annex || !data.investment.annex.length)
-            invalidFields['investment.annex'] = data.investment.annex
-    }
+        if (!data.fiscals) invalidFields.fiscals = data.fiscals
 
-    if (!data.projectCost) invalidFields['projectCost'] = data.projectCost
-    else {
-        if (!data.projectCost.value && data.projectCost.value !== 0)
-            invalidFields['projectCost.value'] = data.projectCost.value
-        if (!data.projectCost.annex || !data.projectCost.annex.length)
-            invalidFields['projectCost.annex'] = data.projectCost.annex
+        if (!data.investment) invalidFields['investment'] = data.investment
+        else {
+            if (!data.investment.value && data.investment.value !== 0)
+                invalidFields['investment.value'] = data.investment.value
+            if (!data.investment.annex || !data.investment.annex.length)
+                invalidFields['investment.annex'] = data.investment.annex
+        }
+
+        if (!data.projectCost) invalidFields['projectCost'] = data.projectCost
+        else {
+            if (!data.projectCost.value && data.projectCost.value !== 0)
+                invalidFields['projectCost.value'] = data.projectCost.value
+            if (!data.projectCost.annex || !data.projectCost.annex.length)
+                invalidFields['projectCost.annex'] = data.projectCost.annex
+        }
     }
 
     if (data.critical && data.critical.length > 0) {
@@ -543,19 +589,21 @@ function hasInvalidFields(data) {
 
     switch (kind) {
         case 'pixel':
-            if (data.price && !data.price.value && data.price.value !== 0)
-                invalidFields.price = data.price
-            if (data.cost && !data.cost.value && data.cost.value !== 0)
-                invalidFields.cost = data.cost
-            if (!data.inStockDate)
-                invalidFields.inStockDate = data.inStockDate
-            if (data.regulations)
-                if (data.regulations.standard.other && (!data.regulations.additional || data.regulations.additional == ''))
-                    invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
-            if (!data.demand) invalidFields.demand = data.demand
-            else {
-                if (!data.demand.amount && data.demand.amount != 0) invalidFields['demand.amount'] = data.demand.amount
-                if (!data.demand.period) invalidFields['demand.period'] = data.demand.period
+            if (data.stage == 1) {
+                if (data.price && !data.price.value && data.price.value !== 0)
+                    invalidFields.price = data.price
+                if (data.cost && !data.cost.value && data.cost.value !== 0)
+                    invalidFields.cost = data.cost
+                if (!data.inStockDate)
+                    invalidFields.inStockDate = data.inStockDate
+                if (data.regulations)
+                    if (data.regulations.standard.other && (!data.regulations.additional || data.regulations.additional == ''))
+                        invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
+                if (!data.demand) invalidFields.demand = data.demand
+                else {
+                    if (!data.demand.amount && data.demand.amount != 0) invalidFields['demand.amount'] = data.demand.amount
+                    if (!data.demand.period) invalidFields['demand.period'] = data.demand.period
+                }
             }
             break;
         case 'internal':

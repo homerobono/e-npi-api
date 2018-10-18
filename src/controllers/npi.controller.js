@@ -77,7 +77,7 @@ exports.promoteNpi = async function (req, res, next) {
     return res.status(200).send({ data: result, message: "Succesfully promoted NPI" })
   } catch (e) {
     console.log(e)
-    return res.status(401).send({ message: e.message })
+    return res.status(403).send({ message: e.message })
   }
 }
 
@@ -91,7 +91,7 @@ exports.newNpiVersion = async function (req, res, next) {
     return res.status(200).send({ data: result, message: "Succesfully created new NPI version" })
   } catch (e) {
     console.log(e)
-    return res.status(401).send({ message: e.message })
+    return res.status(403).send({ message: e.message })
   }
 }
 
