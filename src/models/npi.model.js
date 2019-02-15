@@ -59,16 +59,6 @@ var NpiSchema = new mongoose.Schema({
             default: []
         }
     },
-    norms: {
-        description: {
-            type: String,
-            default: null
-        },
-        annex: {
-            type: [typeof FileClass],
-            default: []
-        }
-    },
     investment: {
         value: {
             type: Number,

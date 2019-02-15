@@ -16,14 +16,40 @@ var OemSchema = new mongoose.Schema({
             default: null
         }
     },
-    regulations : {
+    regulations: {
         standard: {
-            type : Object,
+            abnt: {
+                type: Boolean,
+                default: null
+            },
+            anatel: {
+                type: Boolean,
+                default: null
+            },
+            inmetro: {
+                type: Boolean,
+                default: null
+            },
+            anvisa: {
+                type: Boolean,
+                default: null
+            },
+            other: {
+                type: Boolean,
+                default: null
+            },
+        },
+        additional: {
+            type: String,
             default: null
         },
-        additional :{
-            type : String,
+        description: {
+            type: String,
             default: null
+        },
+        annex: {
+            type: [typeof FileClass],
+            default: []
         }
     },
     demand: {
@@ -81,14 +107,14 @@ var OemSchema = new mongoose.Schema({
 
 
 OemSchema.pre('save', async function () {
-    if (this.isNew){
+    if (this.isNew) {
         var version = 1
         try {
             let latestVersion = await Npi.findOne({ 'number': this.number }, 'version').sort('-version')
             if (latestVersion != null)
                 version = latestVersion.version + 1
         } catch (e) { throw (e) }
-        console.log('NEW VERSION V'+version)
+        console.log('NEW VERSION V' + version)
         this.version = version
     }
 });

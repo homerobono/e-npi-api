@@ -32,12 +32,38 @@ Npi.discriminator(
         },
         regulations: {
             standard: {
-                type: Object,
-                default: null
+                abnt: {
+                    type: Boolean,
+                    default: null
+                },
+                anatel: {
+                    type: Boolean,
+                    default: null
+                },
+                inmetro: {
+                    type: Boolean,
+                    default: null
+                },
+                anvisa: {
+                    type: Boolean,
+                    default: null
+                },
+                other: {
+                    type: Boolean,
+                    default: null
+                },
             },
             additional: {
                 type: String,
                 default: null
+            },
+            description: {
+                type: String,
+                default: null
+            },
+            annex: {
+                type: [typeof FileClass],
+                default: []
             }
         },
         demand: {

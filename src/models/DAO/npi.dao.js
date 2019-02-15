@@ -229,10 +229,10 @@ exports.updateNpi = async function (user, npi) {
     console.log(changedFields)
 
     try {
-        if (oldNpi.stage != 1) {
+       // if (oldNpi.stage != 1) {
             var invalidFields = hasInvalidFields(npi)
             if (invalidFields) throw ({ errors: invalidFields })
-        }
+      //  }
         if (!Object.keys(changedFields).length) return { npi: oldNpi, changedFields }
         var savedNpi = await oldNpi.save()
         //var savedNpi = Npi.findByIdAndUpdate(oldNpi._id, npi)
@@ -539,34 +539,26 @@ function hasInvalidFields(data) {
         if (!data.description) invalidFields.description = data.description
 
         if (!data.resources) invalidFields.resources = data.resources
-        else {
-            if (!data.resources.description) invalidFields.resources.description = data.resources.description
-            if (!data.resources.annex || !data.resources.annex.length) invalidFields['resources.annex'] = data.resources.annex
-        }
+        else
+            if (!data.resources.description && !data.resources.annex)
+                invalidFields.resources = data.resources.description
 
-        if (!data.norms) invalidFields.norms = data.norms
-        else {
-            if (!data.norms.description) invalidFields.norms.description = data.norms.description
-            if (!data.norms.annex || !data.norms.annex.length) invalidFields['norms.annex'] = data.norms.annex
-        }
+        if (data.regulations && !(data.regulations.description || data.regulations.annex))
+            invalidFields['regulations.description'] = data.regulations.description
 
         if (!data.fiscals) invalidFields.fiscals = data.fiscals
 
         if (!data.investment) invalidFields['investment'] = data.investment
-        else {
-            if (!data.investment.value && data.investment.value !== 0)
-                invalidFields['investment.value'] = data.investment.value
-            if (!data.investment.annex || !data.investment.annex.length)
-                invalidFields['investment.annex'] = data.investment.annex
-        }
+        else
+            if ((!data.investment.value && data.investment.value !== 0) &&
+                (!data.investment.annex || !data.investment.annex.length))
+                invalidFields.investment = data.investment.value
 
         if (!data.projectCost) invalidFields['projectCost'] = data.projectCost
-        else {
-            if (!data.projectCost.value && data.projectCost.value !== 0)
-                invalidFields['projectCost.value'] = data.projectCost.value
-            if (!data.projectCost.annex || !data.projectCost.annex.length)
-                invalidFields['projectCost.annex'] = data.projectCost.annex
-        }
+        else
+            if ((!data.projectCost.value && data.projectCost.value !== 0) &&
+                (!data.projectCost.annex || !data.projectCost.annex.length))
+                invalidFields.projectCost = data.projectCost.value
     }
 
     if (data.critical && data.critical.length > 0) {
@@ -680,7 +672,7 @@ function hasInvalidFields(data) {
 
 function validateFiles(npi) {
     let result = {}
-    Array.from(['resources', 'norms', 'investment', 'projectCost']).forEach(field => {
+    Array.from(['resources', 'regulations', 'investment', 'projectCost']).forEach(field => {
         console.log(field, npi[field])
         if (!npi[field]) result[field] = npi[field]
         else if (!npi[field].annex) result[field + '.annex'] = npi[field].annex

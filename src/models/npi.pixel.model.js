@@ -56,6 +56,14 @@ Npi.discriminator(
             additional: {
                 type: String,
                 default: null
+            },
+            description: {
+                type: String,
+                default: null
+            },
+            annex: {
+                type: [typeof FileClass],
+                default: []
             }
         },
         demand: {
