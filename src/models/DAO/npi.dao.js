@@ -401,8 +401,6 @@ exports.promoteNpi = async req => {
         let oldStatus = npi.stage
         npi = await evolve(req, npi)
         var savedNpi = await npi.save()
-        if (npi.stage == oldStatus)
-            throw ('NPI não pode passar para desenvolvimento com data de lançamento posterior à data prevista em estoque')
         return { npi: savedNpi, changedFields: { stage: npi.stage } }
     } catch (e) {
         throw ({ message: e })
@@ -509,6 +507,8 @@ function advanceToDevelopment(data) {
     console.log(getEndDate(data, 'RELEASE'), data.inStockDate)
     if (getEndDate(data, 'RELEASE').valueOf() <= data.inStockDate.valueOf())
         data.stage = 4
+    else
+        throw ('NPI não pode passar para desenvolvimento com data de lançamento posterior à data prevista em estoque')
     return data
 }
 
@@ -603,6 +603,9 @@ function hasInvalidFields(data) {
 
     if (data.finalApproval && data.finalApproval.status == 'accept' && !data.finalApproval.comment)
         invalidFields['finalApproval.comment'] = data.finalApproval.comment
+
+    if (data.validation && data.validation.finalApproval && data.validation.finalApproval.status == 'false' && !data.validation.finalApproval.comment)
+        invalidFields['validation.finalApproval'] = data.validation.finalApproval.comment
 
     /*let result = validateFiles(data)
     if (result) {
