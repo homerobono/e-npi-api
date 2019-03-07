@@ -221,6 +221,7 @@ exports.updateNpi = async function (user, npi) {
 
     oldNpi.critical = sign(user, oldNpi.critical, changedFields.critical)
     oldNpi.activities = activitySign(user, oldNpi.activities, changedFields.activities)
+    oldNpi.validation = validationSign(user, oldNpi.validation, changedFields.validation)
     /*
         console.log("updated Object")
         console.log(oldNpi)
@@ -229,10 +230,10 @@ exports.updateNpi = async function (user, npi) {
     console.log(changedFields)
 
     try {
-       // if (oldNpi.stage != 1) {
-            var invalidFields = hasInvalidFields(npi)
-            if (invalidFields) throw ({ errors: invalidFields })
-      //  }
+        // if (oldNpi.stage != 1) {
+        var invalidFields = hasInvalidFields(npi)
+        if (invalidFields) throw ({ errors: invalidFields })
+        //  }
         if (!Object.keys(changedFields).length) return { npi: oldNpi, changedFields }
         var savedNpi = await oldNpi.save()
         //var savedNpi = Npi.findByIdAndUpdate(oldNpi._id, npi)
@@ -326,6 +327,16 @@ exports.findNpiById = async npiId => {
             path: 'activities.signature.user',
             model: 'User',
             select: '_id firstName lastName'
+        })
+        .populate({
+            path: 'validation.disapprovals.signature.user',
+            model: 'User',
+            select: '_id firstName lastName'
+        })
+        .populate({
+            path: 'validation.finalApproval.signature.user',
+            model: 'User',
+            select: '_id firstName lastName'
         });
 
     if (!npi || npi == null) throw Error('There is no NPI with this number: ' + npiNumber)
@@ -353,7 +364,18 @@ exports.findNpiByNumber = async npiNumber => {
             path: 'activities.signature.user',
             model: 'User',
             select: '_id firstName lastName'
+        })
+        .populate({
+            path: 'validation.disapprovals.signature.user',
+            model: 'User',
+            select: '_id firstName lastName'
+        })
+        .populate({
+            path: 'validation.finalApproval.signature.user',
+            model: 'User',
+            select: '_id firstName lastName'
         });
+
     if (!npi || npi == null) throw Error('There is no NPI with this number: ' + npiNumber)
     //console.log(npi)
     return npi
@@ -421,8 +443,11 @@ async function evolve(req, npi) {
                     npi.clientApproval = { approval: null, comment: null }
             } else throw ('NPI não passou na aprovação do cliente')
             break
+        case 4:
+            npi = closeNpi(npi)
+            break
         default:
-            return npi
+            break
     }
     return npi
 }
@@ -487,6 +512,11 @@ function advanceToDevelopment(data) {
     return data
 }
 
+function closeNpi(data) {
+    data.stage = 5
+    return data
+}
+
 function getEndDate(data, activityName) {
     let activityConst = global.MACRO_STAGES.find(a => a.value == activityName)
 
@@ -529,7 +559,7 @@ function advanceToClientApproval(data) {
 }
 
 function hasInvalidFields(data) {
-    console.log('Analysing invalid fields')
+    //console.log('Analysing invalid fields')
     var invalidFields = {}
 
     if (data.stage == 1) {
@@ -537,6 +567,9 @@ function hasInvalidFields(data) {
         if (!data.name) invalidFields.name = data.name
         if (!data.client) invalidFields.client = data.client
         if (!data.description) invalidFields.description = data.description
+        else
+            if (!data.description.description && !data.description.annex)
+                invalidFields.description = data.description.description
 
         if (!data.resources) invalidFields.resources = data.resources
         else
@@ -742,6 +775,31 @@ function activitySign(user, npiTask, changedFields) {
     return npiTask
 }
 
+function validationSign(user, npiValidation, changedFields) {
+    console.log("CHANGED FIELDS", changedFields)
+    if (changedFields && changedFields.finalApproval) {
+        if (changedFields.finalApproval.status == "false") {
+            console.log("adding disapproval")
+            npiValidation.disapprovals.push({
+                comment: changedFields.finalApproval.comment,
+                signature: {
+                    user: user._id, date: Date.now()
+                }
+            })
+            npiValidation.finalApproval = {
+                status: null,
+                comment: null,
+                signature: null
+            }
+        }
+        else if (changedFields.finalApproval.status == "true") {
+            console.log("adding approval")
+            npiValidation.finalApproval.signature = { user: user._id, date: Date.now() }
+        }
+    }
+    return npiValidation
+}
+
 function finalSign(user, npiFinal) {
     npiFinal.signature = { user: user._id, date: Date.now() }
     console.log(npiFinal.signature)
@@ -800,10 +858,10 @@ function updateObject(oldObject, newObject) {
                                 newObject[prop] = new Date(newObject[prop])
                             }
                         }
-                        console.log(prop + ' field has changed:')
-                        console.log(oldObject[prop])
-                        console.log('!!==')
-                        console.log(newObject[prop])
+                        //console.log(prop + ' field has changed:')
+                        //console.log(oldObject[prop])
+                        //console.log('!!==')
+                        //console.log(newObject[prop])
 
                         oldObject[prop] = newObject[prop]
                         changedFields[prop] = newObject[prop]
@@ -834,7 +892,7 @@ function updateObject(oldObject, newObject) {
                             }
                         }
                         if (!childExists) {
-                            console.log('Arrays are different, pushing new child')
+                            //console.log('Arrays are different, pushing new child')
                             oldObject[prop].push(newChild)
                         }
                     }
@@ -842,7 +900,7 @@ function updateObject(oldObject, newObject) {
                         changedFields[prop] = changedFieldsArr
                 }
             } else if (Object.keys(newObject[prop]).length > 0) {
-                console.log('recursing ' + prop + ' in ' + newObject[prop])
+                //console.log('recursing ' + prop + ' in ' + newObject[prop])
                 //console.log(prop + ' is instance of ' + typeof npi[prop])
                 if (oldObject[prop] == null) {
                     oldObject[prop] = newObject[prop]

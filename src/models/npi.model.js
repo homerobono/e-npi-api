@@ -46,8 +46,14 @@ var NpiSchema = new mongoose.Schema({
         default: null
     },
     description: {
-        type: String,
-        default: null
+        description: {
+            type: String,
+            default: null
+        },
+        annex: {
+            type: [typeof FileClass],
+            default: []
+        }
     },
     resources: {
         description: {
@@ -127,8 +133,8 @@ var NpiSchema = new mongoose.Schema({
                 type: String,
                 default: null
             },
-            closed:{
-                type : Boolean,
+            closed: {
+                type: Boolean,
                 default: false,
             },
             signature: {
@@ -197,13 +203,45 @@ var NpiSchema = new mongoose.Schema({
         }
     },
     validation: {
-        pilot: {
-            type: String,
-            default: null
+        disapprovals: {
+            type: [{
+                comment: {
+                    type: String,
+                    default: null
+                },
+                signature: {
+                    date: {
+                        type: Date,
+                        default: null
+                    },
+                    user: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: 'User',
+                        default: null
+                    }
+                }
+            }]
         },
-        product: {
-            type: String,
-            default: null
+        finalApproval: {
+            status: {
+                type: Boolean,
+                default: false,
+            },
+            comment: {
+                type: String,
+                default: null
+            },
+            signature: {
+                date: {
+                    type: Date,
+                    default: null
+                },
+                user: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
+                    default: null
+                }
+            }
         },
         final: {
             type: String,
