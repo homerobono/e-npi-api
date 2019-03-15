@@ -10,6 +10,10 @@ var NpiSchema = new mongoose.Schema({
         type: Number,
         //unique: true,
     },
+    version: {
+        type: Number,
+        default: 1
+    },
     created: {
         type: Date,
         default: Date.now(),

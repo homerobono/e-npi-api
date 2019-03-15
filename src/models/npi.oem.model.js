@@ -2,10 +2,6 @@ var mongoose = require('mongoose')
 let Npi = require('./npi.model')
 
 var OemSchema = new mongoose.Schema({
-    version: {
-        type: Number,
-        default: 1
-    },
     inStockDate: {
         fixed: {
             type: Date,
@@ -65,27 +61,53 @@ var OemSchema = new mongoose.Schema({
     },
     oemActivities: {
         type: [{
-            title: {
+            activity: {
                 type: String,
                 default: null
+            },
+            apply: {
+                type: Boolean,
+                default: true
             },
             dept: {
                 type: String,
+                enum: (Array.from(global.DEPARTMENTS).concat([null])),
                 default: null
             },
-            date: {
-                type: Date,
+            responsible: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
                 default: null
             },
-            comment: {
+            term: {
+                type: Number,
+                default: null
+            },
+            registry: {
                 type: String,
                 default: null
             },
             annex: {
                 type: String,
                 default: null
+            },
+            closed: {
+                type: Boolean,
+                default: false,
+            },
+            signature: {
+                date: {
+                    type: Date,
+                    default: null
+                },
+                user: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
+                    default: null
+                }
             }
-        }]
+        }],
+        default: null
     },
     clientApproval: {
         approval: {
