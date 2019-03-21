@@ -78,7 +78,7 @@ global.OEM_ACTIVITIES = [
   { value: 'PROP', label: 'Proposta',                                      dep: [], dept: 'COM', term: 8, annex: true, required: true }
 ],
 
-  global.MACRO_STAGES = [
+global.MACRO_STAGES = [
     { value: 'SPECS_HW', 	label:'Especificação Técnica - Funcionalidade HW',  dept: 'MPR', term: 1, annex: true },
 		{ value: 'SPECS_SW', 	label:'Especificação Técnica - Funcionalidade de SW',dept:'MPR', term: 1, annex: true },
 		{ value: 'MECH_SPEC', 	label: 'Especificação Mecânica/Dimensional', 		dept: 'MPR', term: 1, annex: true },
@@ -116,7 +116,7 @@ global.OEM_ACTIVITIES = [
 		{ value: 'RELEASE',		label: 'Data de Lançamento', 						dept: null,  term: 0, dep: ["MECH_LAYOUT", "SPEC_TAG", "SPEC_PACKING", "SMT", "DOCUMENT_FW", "DOCUMENT_SW", "RELEASE_PLAN", "PILOT"], required: true, annex: false }
   ],
   
-  global.OEM_STAGES = [
+global.OEM_STAGES = [
 		{ value: 'SPECS_HW', 	label:'Especificação Técnica - Funcionalidade HW',  dept: 'MPR', term: 1, annex: true },
 		{ value: 'SPECS_SW', 	label:'Especificação Técnica - Funcionalidade de SW',dept:'MPR', term: 1, annex: true },
 		{ value: 'MECH_SPEC', 	label: 'Especificação Mecânica/Dimensional', 		dept: 'MPR', term: 1, annex: true },

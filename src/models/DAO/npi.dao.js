@@ -491,7 +491,8 @@ function advanceToDevelopment(data) {
     console.log('advancing to development')
     if (!data.activities || !data.activities.length) {
         data.activities = []
-        (data.entry == 'oem' ? global.OEM_STAGES : global.MACRO_STAGES).forEach(stage => {
+        let activities = data.entry == 'oem' ? global.OEM_STAGES : global.MACRO_STAGES
+        activities.forEach(stage => {
             if (stage.value != "RELEASE")
                 data.activities.push({
                     activity: stage.value,
@@ -518,7 +519,8 @@ function closeNpi(data) {
 }
 
 function getEndDate(data, activityName) {
-    let activityConst = (data.entry == 'oem' ? global.OEM_STAGES : global.MACRO_STAGES).find(a => a.value == activityName)
+    let activities = data.entry == 'oem' ? global.OEM_STAGES : global.MACRO_STAGES
+    let activityConst = activities.find(a => a.value == activityName)
 
     let endDate = getCriticalApprovalDate(data)
 
@@ -637,19 +639,19 @@ function hasInvalidFields(data) {
         case 'internal':
             break;
         case 'oem':
-            if (
-                data.inStockDate == null ||
-                (
+            if (data.inStockDate != undefined &&
+                (data.inStockDate == null ||
                     (
-                        data.inStockDate.fixed == null ||
-                        data.inStockDate.fixed == ''
-                    )
-                    &&
-                    (
-                        data.inStockDate.offset == null ||
-                        data.inStockDate.offset == ''
-                    )
-                )
+                        (
+                            data.inStockDate.fixed == null ||
+                            data.inStockDate.fixed == ''
+                        )
+                        &&
+                        (
+                            data.inStockDate.offset == null ||
+                            data.inStockDate.offset == ''
+                        )
+                    ))
             ) {
                 invalidFields.inStockDateType = data.inStockDate
             }

@@ -43,15 +43,86 @@ mongoose.connection.on('connected',
       (error, count) => {
         if (error) return error
         if (count == 0) {
-          userDAO.createAdmin({
+          userDAO.createDebugUsers([
+            {
             email: 'admin',
             password: 'admin',
             firstName: 'Administrador',
             level: 3,
             status: 'active',
             notify: false
-          })
-          console.info('Users DB empty, created admin-admin user')
+          },
+          {
+            email: 'com',
+            password: '1234',
+            firstName: 'Comercial',
+            lastName: 'Gestor',
+            department: 'COM',
+            level: 1,
+            status: 'active',
+            notify: false
+          },
+          {
+            email: 'adm',
+            password: '1234',
+            firstName: 'Administrativo Gestor',
+            lastName: 'Gestor',
+            department: 'ADM',
+            level: 1,
+            status: 'active',
+            notify: false
+          },
+          {
+            email: 'prod',
+            password: '1234',
+            firstName: 'Produto Gestor',
+            lastName: 'Gestor',
+            department: 'MPR',
+            level: 1,
+            status: 'active',
+            notify: false
+          },
+          {
+            email: 'opr',
+            password: '1234',
+            firstName: 'Operações Gestor',
+            lastName: 'Gestor',
+            department: 'OPR',
+            level: 1,
+            status: 'active',
+            notify: false
+          },
+          {
+            email: 'compras',
+            password: '1234',
+            firstName: 'Compras Gestor',
+            department: 'OSC',
+            level: 1,
+            status: 'active',
+            notify: false
+          },
+          {
+            email: 'proc',
+            password: '1234',
+            firstName: 'Processo Gestor',
+            lastName: 'Gestor',
+            department: 'MEP',
+            level: 1,
+            status: 'active',
+            notify: false
+          },
+          {
+            email: 'ped',
+            password: '1234',
+            firstName: 'P&D Gestor',
+            lastName: 'Gestor',
+            department: 'MPD',
+            level: 1,
+            status: 'active',
+            notify: false
+          },
+        ])
+          console.info('Users DB empty, created debug users')
         }
       }
     )
