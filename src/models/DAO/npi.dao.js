@@ -491,7 +491,7 @@ function advanceToDevelopment(data) {
     console.log('advancing to development')
     if (!data.activities || !data.activities.length) {
         data.activities = []
-        global.MACRO_STAGES.forEach(stage => {
+        (data.entry == 'oem' ? global.OEM_STAGES : global.MACRO_STAGES).forEach(stage => {
             if (stage.value != "RELEASE")
                 data.activities.push({
                     activity: stage.value,
@@ -518,7 +518,7 @@ function closeNpi(data) {
 }
 
 function getEndDate(data, activityName) {
-    let activityConst = global.MACRO_STAGES.find(a => a.value == activityName)
+    let activityConst = (data.entry == 'oem' ? global.OEM_STAGES : global.MACRO_STAGES).find(a => a.value == activityName)
 
     let endDate = getCriticalApprovalDate(data)
 
@@ -653,7 +653,7 @@ function hasInvalidFields(data) {
             ) {
                 invalidFields.inStockDateType = data.inStockDate
             }
-            if (data.oemActivities) {
+            /*if (data.oemActivities) {
                 for (let i = 0; i < data.oemActivities.length; i++) {
                     let activity = data.oemActivities[i]
                     if (!activity.date)
@@ -663,7 +663,7 @@ function hasInvalidFields(data) {
                     //if (!activity.annex)
                     //    invalidFields['oemActivities.' + i + '.annex'] = activity.annex
                 }
-            }
+            }*/
             if (data.regulations)
                 if (data.regulations.standard.other &&
                     (!data.regulations.additional || data.regulations.additional == ''))
