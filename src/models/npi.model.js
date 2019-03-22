@@ -262,63 +262,65 @@ var NpiSchema = new mongoose.Schema({
         },
     },
     requests: {
-        class: {
-            type: String,
-            default: null
-        },
-        responsible: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            default: null
-        },
-        comment: {
-            type: String,
-            default: null
-        },
-        closed: {
-            type: String,
-            default: false
-        },
-        signature: {
-            date: {
-                type: Date,
+        type: [{
+            class: {
+                type: String,
                 default: null
             },
-            user: {
+            responsible: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'User',
                 default: null
-            }
-        },
-        analysis: {
-            type: [{
-                dept: {
-                    type: String,
-                    enum: global.DEPARTMENTS,
+            },
+            comment: {
+                type: String,
+                default: null
+            },
+            closed: {
+                type: String,
+                default: false
+            },
+            signature: {
+                date: {
+                    type: Date,
                     default: null
                 },
-                status: {
-                    type: String,
-                    enum: [null, 'deny', 'accept', 'condition'],
+                user: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
                     default: null
-                },
-                comment: {
-                    type: String,
-                    default: null
-                },
-                signature: {
-                    date: {
-                        type: Date,
+                }
+            },
+            analysis: {
+                type: [{
+                    dept: {
+                        type: String,
+                        enum: global.DEPARTMENTS,
                         default: null
                     },
-                    user: {
-                        type: mongoose.Schema.Types.ObjectId,
-                        ref: 'User',
+                    status: {
+                        type: String,
+                        enum: [null, 'deny', 'accept', 'condition'],
                         default: null
+                    },
+                    comment: {
+                        type: String,
+                        default: null
+                    },
+                    signature: {
+                        date: {
+                            type: Date,
+                            default: null
+                        },
+                        user: {
+                            type: mongoose.Schema.Types.ObjectId,
+                            ref: 'User',
+                            default: null
+                        }
                     }
-                }
-            }]
-        }
+                }]
+            }
+        }]
     },
     updated: {
         type: Date,

@@ -312,7 +312,7 @@ exports.deleteAllNpis = async function (user) {
 exports.findNpiById = async npiId => {
     var npi = await Npi.findById(npiId)
         .populate('npiRef', '_id number name stage created')
-        .populate('requester', 'firstName lastName')
+        .populate('requester', '_id firstName lastName')
         .populate({
             path: 'critical.signature.user',
             model: 'User',
@@ -446,7 +446,7 @@ async function evolve(req, npi) {
                 if (npi.clientApproval) {
                     if (npi.clientApproval.approval == 'accept') {
                         npi.clientApproval = clientSign(req.user.data, npi.clientApproval)
-                        npi = advanceToDevelopment(npi)
+                        npi = advanceToDevelopment(npi, req.user.data)
                     }
                 } else
                     npi.clientApproval = { approval: null, comment: null }
@@ -520,6 +520,7 @@ function advanceToDevelopment(data, user) {
     if (getEndDate(data, 'RELEASE').valueOf() <= getInStockDate(data).valueOf())
         data.stage = 4
     else {
+        console.log('REQUESTS:', data.requests)
         if (data.requests) {
             let request = data.requests.find(r => r.class == "DELAYED_RELEASE")
             if (request)
@@ -528,9 +529,9 @@ function advanceToDevelopment(data, user) {
                 else
                     throw ('Solicitacao de desenvolvimento com data de lancamento em atraso nao foi aprovada, NPI nao pode avancar.')
             else
-                data = openDelayedDevelopmentRequest(data, user)
+                data = openRequest(data, user, 'DELAYED_RELEASE')
         } else
-            data = openDelayedDevelopmentRequest(data, user)
+            data = openRequest(data, user, 'DELAYED_RELEASE')
     }
     return data
 }
@@ -547,7 +548,7 @@ function getInStockDate(npi) {
     return null
 }
 
-function openRequest(npi, requestLabel) {
+function openRequest(npi, user, requestLabel) {
     let npiEntry = npi.entry ? npi.entry : npi.__t
     if (!npi.requests)
         npi.requests = []
@@ -564,7 +565,7 @@ function openRequest(npi, requestLabel) {
     let i = npi.requests.findIndex(r => r.class = requestLabel)
     switch (requestLabel) {
         case 'DELAYED_RELEASE':
-            let analysisDeptsArray = global.REQUEST_ANALYSERS[npiEntry]
+            let analysisDeptsArray = global.REQUEST_DEPTS[npiEntry]
             analysisDeptsArray.forEach(analysisDept => {
                 npi.requests[i].analysis.push({
                     dept: analysisDept,
@@ -574,7 +575,7 @@ function openRequest(npi, requestLabel) {
                 })
             })
             npi.requests[i].analysis.push({
-                dept: null,
+                dept: user.department,
                 author: npi.requester,
                 status: null,
                 comment: null,
