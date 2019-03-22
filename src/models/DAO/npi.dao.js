@@ -324,6 +324,11 @@ exports.findNpiById = async npiId => {
             select: '_id firstName lastName'
         })
         .populate({
+            path: 'clientApproval.signature.user',
+            model: 'User',
+            select: '_id firstName lastName'
+        })
+        .populate({
             path: 'activities.signature.user',
             model: 'User',
             select: '_id firstName lastName'
@@ -357,6 +362,11 @@ exports.findNpiByNumber = async npiNumber => {
         })
         .populate({
             path: 'finalApproval.signature.user',
+            model: 'User',
+            select: '_id firstName lastName'
+        })
+        .populate({
+            path: 'clientApproval.signature.user',
             model: 'User',
             select: '_id firstName lastName'
         })
@@ -435,6 +445,7 @@ async function evolve(req, npi) {
             if (npi.stage == 3) {
                 if (npi.clientApproval) {
                     if (npi.clientApproval.approval == 'accept') {
+                        npi.clientApproval = clientSign(req.user.data, npi.clientApproval)
                         npi = advanceToDevelopment(npi)
                     }
                 } else
@@ -491,7 +502,7 @@ function advanceToDevelopment(data) {
     console.log('advancing to development')
     if (!data.activities || !data.activities.length) {
         data.activities = []
-        let activities = data.entry == 'oem' ? global.OEM_STAGES : global.MACRO_STAGES
+        let activities = data.__t == 'oem' || data.entry == 'oem' ? global.OEM_STAGES : global.MACRO_STAGES
         activities.forEach(stage => {
             if (stage.value != "RELEASE")
                 data.activities.push({
@@ -505,12 +516,24 @@ function advanceToDevelopment(data) {
         })
         return data
     }
-    console.log(getEndDate(data, 'RELEASE'), data.inStockDate)
-    if (getEndDate(data, 'RELEASE').valueOf() <= data.inStockDate.valueOf())
+    console.log(getEndDate(data, 'RELEASE'), getInStockDate(data), getEndDate(data, 'RELEASE').valueOf() <= getInStockDate(data).valueOf())
+    if (getEndDate(data, 'RELEASE').valueOf() <= getInStockDate(data).valueOf())
         data.stage = 4
     else
         throw ('NPI não pode passar para desenvolvimento com data de lançamento posterior à data prevista em estoque')
     return data
+}
+
+function getInStockDate(npi) {
+    if (npi.__t == 'oem' || npi.entry == 'oem') {
+        console.log(npi.inStockDate)
+        if (npi.inStockDate.fixed)
+            return npi.inStockDate.fixed
+        if (npi.inStockDate.offset)
+            return new Date(npi.clientApproval.signature.date.valueOf() + npi.inStockDate.offset * 24 * 3600 * 1000)
+    }
+    else return npi.inStockDate
+    return null
 }
 
 function closeNpi(data) {
@@ -519,7 +542,7 @@ function closeNpi(data) {
 }
 
 function getEndDate(data, activityName) {
-    let activities = data.entry == 'oem' ? global.OEM_STAGES : global.MACRO_STAGES
+    let activities = data.__t == 'oem' || data.entry == 'oem' ? global.OEM_STAGES : global.MACRO_STAGES
     let activityConst = activities.find(a => a.value == activityName)
 
     let endDate = getCriticalApprovalDate(data)
@@ -809,6 +832,12 @@ function finalSign(user, npiFinal) {
     npiFinal.signature = { user: user._id, date: Date.now() }
     console.log(npiFinal.signature)
     return npiFinal
+}
+
+function clientSign(user, npiClient) {
+    npiClient.signature = { user: user._id, date: Date.now() }
+    console.log(npiClient.signature)
+    return npiClient
 }
 
 function updateObject(oldObject, newObject) {

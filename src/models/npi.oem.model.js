@@ -118,6 +118,17 @@ var OemSchema = new mongoose.Schema({
         comment: {
             type: String,
             default: null
+        },
+        signature: {
+            date: {
+                type: Date,
+                default: null
+            },
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+                default: null
+            }
         }
     },
     versions: {
