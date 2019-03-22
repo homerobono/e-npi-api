@@ -435,7 +435,7 @@ async function evolve(req, npi) {
                 console.log(req.user)
                 npi.finalApproval = finalSign(req.user.data, npi.finalApproval)
                 if (npi.__t != 'oem') {
-                    npi = advanceToDevelopment(npi)
+                    npi = advanceToDevelopment(npi, req.user.data)
                 } else {
                     npi = advanceToClientApproval(npi)
                 }
@@ -498,7 +498,7 @@ function advanceToAnalisys(data) {
     return data
 }
 
-function advanceToDevelopment(data) {
+function advanceToDevelopment(data, user) {
     console.log('advancing to development')
     if (!data.activities || !data.activities.length) {
         data.activities = []
@@ -519,8 +519,19 @@ function advanceToDevelopment(data) {
     console.log(getEndDate(data, 'RELEASE'), getInStockDate(data), getEndDate(data, 'RELEASE').valueOf() <= getInStockDate(data).valueOf())
     if (getEndDate(data, 'RELEASE').valueOf() <= getInStockDate(data).valueOf())
         data.stage = 4
-    else
-        throw ('NPI não pode passar para desenvolvimento com data de lançamento posterior à data prevista em estoque')
+    else {
+        if (data.requests) {
+            let request = data.requests.find(r => r.class == "DELAYED_RELEASE")
+            if (request)
+                if (request.approval == 'accept')
+                    data.stage = 4
+                else
+                    throw ('Solicitacao de desenvolvimento com data de lancamento em atraso nao foi aprovada, NPI nao pode avancar.')
+            else
+                data = openDelayedDevelopmentRequest(data, user)
+        } else
+            data = openDelayedDevelopmentRequest(data, user)
+    }
     return data
 }
 
@@ -534,6 +545,46 @@ function getInStockDate(npi) {
     }
     else return npi.inStockDate
     return null
+}
+
+function openRequest(npi, requestLabel) {
+    let npiEntry = npi.entry ? npi.entry : npi.__t
+    if (!npi.requests)
+        npi.requests = []
+    if (npi.requests.find(r => r.class == requestLabel)) throw "Chamado ja foi aberto, aguarde conclusao da analise."
+
+    npi.requests.push({
+        class: requestLabel,
+        responsible: user._id,
+        comment: '',
+        closed: false,
+        signature: null,
+        analysis: []
+    })
+    let i = npi.requests.findIndex(r => r.class = requestLabel)
+    switch (requestLabel) {
+        case 'DELAYED_RELEASE':
+            let analysisDeptsArray = global.REQUEST_ANALYSERS[npiEntry]
+            analysisDeptsArray.forEach(analysisDept => {
+                npi.requests[i].analysis.push({
+                    dept: analysisDept,
+                    status: null,
+                    comment: null,
+                    signature: null,
+                })
+            })
+            npi.requests[i].analysis.push({
+                dept: null,
+                author: npi.requester,
+                status: null,
+                comment: null,
+                signature: null,
+            })
+            break
+        default:
+            break
+    }
+    return npi
 }
 
 function closeNpi(data) {

@@ -71,6 +71,13 @@ global.NPI_INTERNAL_CRITICAL_DEPTS = ['MEP', 'OPR', 'ADM', 'COM']
 global.NPI_CUSTOM_CRITICAL_DEPTS = ['MEP', 'OPR', 'ADM', 'COM']
 global.NPI_OEM_CRITICAL_DEPTS = ['MEP', 'OPR', 'ADM', 'COM']
 
+global.REQUEST_DEPTS = {
+	'pixel': ['MPR', 'MEP', 'OPR', 'ADM', 'COM'],
+	'internal': ['MEP', 'OPR', 'ADM', 'COM'],
+	'custom': ['MEP', 'OPR', 'ADM', 'COM'],
+	'oem': ['MEP', 'OPR', 'ADM', 'COM']
+}
+
 global.OEM_ACTIVITIES = [
   { value: 'DOCS', label: 'Solicitação de Documentos (BOM, Gerbers, etx)', dep: [], dept: 'COM', term: 4, annex: true, required: true },
   { value: 'NCM',  label: 'Solicitação do NCM',                            dep: [], dept: 'COM', term: 4,  annex: false, required: true },

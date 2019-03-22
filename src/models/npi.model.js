@@ -35,7 +35,6 @@ var NpiSchema = new mongoose.Schema({
         type: String,
         default: null
     },
-    annex: String,
     client: {
         type: String,
         default: null
@@ -48,6 +47,16 @@ var NpiSchema = new mongoose.Schema({
     name: {
         type: String,
         default: null
+    },
+    designThinking: {
+        apply: {
+            type: Boolean,
+            default: null
+        },
+        annex: {
+            type: [typeof FileClass],
+            default: []
+        }
     },
     description: {
         description: {
@@ -251,6 +260,65 @@ var NpiSchema = new mongoose.Schema({
             type: String,
             default: null
         },
+    },
+    requests: {
+        class: {
+            type: String,
+            default: null
+        },
+        responsible: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            default: null
+        },
+        comment: {
+            type: String,
+            default: null
+        },
+        closed: {
+            type: String,
+            default: false
+        },
+        signature: {
+            date: {
+                type: Date,
+                default: null
+            },
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+                default: null
+            }
+        },
+        analysis: {
+            type: [{
+                dept: {
+                    type: String,
+                    enum: global.DEPARTMENTS,
+                    default: null
+                },
+                status: {
+                    type: String,
+                    enum: [null, 'deny', 'accept', 'condition'],
+                    default: null
+                },
+                comment: {
+                    type: String,
+                    default: null
+                },
+                signature: {
+                    date: {
+                        type: Date,
+                        default: null
+                    },
+                    user: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: 'User',
+                        default: null
+                    }
+                }
+            }]
+        }
     },
     updated: {
         type: Date,
