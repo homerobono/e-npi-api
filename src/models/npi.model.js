@@ -216,44 +216,19 @@ var NpiSchema = new mongoose.Schema({
         }
     },
     validation: {
-        disapprovals: {
-            type: [{
-                comment: {
-                    type: String,
-                    default: null
-                },
-                signature: {
-                    date: {
-                        type: Date,
-                        default: null
-                    },
-                    user: {
-                        type: mongoose.Schema.Types.ObjectId,
-                        ref: 'User',
-                        default: null
-                    }
-                }
-            }]
+        status: {
+            type: Boolean,
+            default: false,
         },
-        finalApproval: {
-            status: {
-                type: Boolean,
-                default: false,
-            },
-            comment: {
-                type: String,
+        signature: {
+            date: {
+                type: Date,
                 default: null
             },
-            signature: {
-                date: {
-                    type: Date,
-                    default: null
-                },
-                user: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: 'User',
-                    default: null
-                }
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+                default: null
             }
         },
         final: {
@@ -277,7 +252,7 @@ var NpiSchema = new mongoose.Schema({
                 default: null
             },
             closed: {
-                type: String,
+                type: Boolean,
                 default: false
             },
             signature: {
@@ -300,8 +275,7 @@ var NpiSchema = new mongoose.Schema({
                     },
                     status: {
                         type: String,
-                        enum: [null, 'deny', 'accept', 'condition'],
-                        default: null
+                        enum: [null, 'deny', 'accept'],
                     },
                     comment: {
                         type: String,

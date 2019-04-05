@@ -119,6 +119,10 @@ var OemSchema = new mongoose.Schema({
             type: String,
             default: null
         },
+        annex: {
+            type: String,
+            default: null
+        },
         signature: {
             date: {
                 type: Date,
