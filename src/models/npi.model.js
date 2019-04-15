@@ -14,6 +14,11 @@ var NpiSchema = new mongoose.Schema({
         type: Number,
         default: 1
     },
+    versions: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'Npi',
+        default: null
+    },
     created: {
         type: Date,
         default: Date.now(),
@@ -304,6 +309,7 @@ var NpiSchema = new mongoose.Schema({
 });
 
 NpiSchema.pre('save', async function () {
+    console.log("Saving")
     if (this.isNew && this.number == undefined) {
         let users = await Npi.find({ 'number': { $exists: true } }, 'number').sort('number')
         let numVec = users.map(n => n.number)
@@ -313,6 +319,16 @@ NpiSchema.pre('save', async function () {
         }
         if (number == undefined) throw Error('undefined number')
         this.number = number
+    }
+    if (this.isNew) {
+        var version = 1
+        try {
+            let latestVersion = await Npi.findOne({ 'number': this.number }, 'version').sort('-version')
+            if (latestVersion != null)
+                version = latestVersion.version + 1
+        } catch (e) { throw (e) }
+        console.log('NEW VERSION V' + version)
+        this.version = version
     }
     //this.updated = Date.now()
 });

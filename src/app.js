@@ -38,7 +38,7 @@ mongoose.connect(dbUrl)
 
 mongoose.connection.on('connected',
   () => {
-    console.log('Succesfully Connected to the Mongodb Database at ' + dbUrl)
+    console.log('Succesfully Connected to production mongodb database at ' + dbUrl)
     mongoose.connection.db.collection('users').countDocuments(
       (error, count) => {
         if (error) return error
