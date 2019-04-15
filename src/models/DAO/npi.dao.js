@@ -139,10 +139,10 @@ exports.migrateNpi = async function (req) {
         throw Error("Npi number " + data.number + " already exists")
 
     var kind = data.entry
-    //console.log(data)
     try {
         // Saving the Npi
         let newNpi = new Npi();
+        console.log("constructed new npi")
 
         if (data.npiRef == '') {
             data.npiRef = null
@@ -154,6 +154,7 @@ exports.migrateNpi = async function (req) {
             if (npiRef)
                 data.npiRef = npiRef._id
         }
+        console.log("loaded ref")
 
         if (data.stage < 4) { //client approval and below
             delete data.activities
@@ -164,6 +165,7 @@ exports.migrateNpi = async function (req) {
                 }
             }
         }
+        console.log(data)
 
         //data = advanceToAnalisys(data)
         var invalidFields = hasInvalidFields(data)
@@ -172,8 +174,14 @@ exports.migrateNpi = async function (req) {
             throw ({ errors: invalidFields })
         }
 
-        data.activities = migrateSign(data)
-        data.updated = data.validation.signature.date
+        if (data.activities)
+            data = migrateSign(data)
+        console.log("signed")
+
+        if (data.validation) 
+            data.updated = data.validation.signature.date
+        console.log(data)
+        //delete data.activities
 
         switch (kind) {
             case 'pixel':
@@ -943,9 +951,10 @@ function activitySign(user, npiTask, changedFields) {
 }
 
 function migrateSign(npi) {
-    npi.activities.forEach(taskRow => {
-        taskRow.signature = { user: taskRow.responsible, date: taskRow.endDate }
-    });
+    if (npi.activities)
+        npi.activities.forEach(taskRow => {
+            taskRow.signature = { user: taskRow.responsible, date: taskRow.endDate }
+        });
     //npi.validation.signature
 
     return npi
