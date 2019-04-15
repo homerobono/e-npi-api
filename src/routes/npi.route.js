@@ -12,6 +12,7 @@ router.get('/npi/:npiNumber', authService.authorize, npiController.findNpiByNumb
 router.get('/npi/:npiNumber/promote', authService.authorize, npiController.promoteNpi);
 router.post('/npi', authService.authorize, npiController.newNpiVersion)
 router.post('/npis', authService.authorize, npiController.createNpi)
+router.post('/npis/migrate', authService.authorize, npiController.migrateNpi)
 router.put('/npi/', authService.authorize, npiController.updateNpi)
 router.delete('/npi/:npiId', authService.authorize, npiController.removeNpi)
 router.delete('/npis', authService.authorize, npiController.removeAll)
