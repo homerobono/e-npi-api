@@ -52,7 +52,7 @@ mongoose.connection.on('connected',
             status: 'active',
             notify: false
           },
-          /*{
+          {
             email: 'com',
             password: '1234',
             firstName: 'Comercial',
@@ -120,7 +120,7 @@ mongoose.connection.on('connected',
             level: 1,
             status: 'active',
             notify: false
-          },*/
+          },
         ])
           console.info('Users DB empty, created admin user')
         }
