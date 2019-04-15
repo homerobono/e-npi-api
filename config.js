@@ -1,7 +1,7 @@
 "use strict";
 
-//global.URL_BASE = "http://191.252.113.160";
-global.URL_BASE = "http://192.168.0.4";
+global.URL_BASE = "http://191.252.113.160";
+//global.URL_BASE = "http://192.168.0.4";
 //global.URL_BASE = "http://localhost:4200";
 //global.URL_BASE = "http://localhost:6002";
 //global.URL_BASE = "http://10.0.0.174:4200";
