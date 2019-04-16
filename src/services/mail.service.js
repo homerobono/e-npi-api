@@ -22,8 +22,8 @@ exports.createTransport = async () =>
         port: '465',
         tls: { rejectUnauthorized: false },
         auth: {
-            user: 'homero@pixelti.com.br',
-            pass: '1346@pixel13'
+            user: 'e-npi@pixelti.com.br',
+            pass: '17@00pixel1700'
         }
     });
 
@@ -33,7 +33,7 @@ exports.sendResetEmail = async (email, token) => {
 
     var mailOptions = {
         to: email,
-        from: 'homero@pixelti.com.br',
+        from: 'e-npi@pixelti.com.br',
         subject: 'e-NPI | Alteração de Senha',
         html: 'Você está recebendo esse e-mail porque você (ou outra pessoa) solicitou a alteração da sua senha ' +
             'no sistema <a href="' + global.URL_BASE + '">e-NPI</a>.<br><br>' +
@@ -53,7 +53,7 @@ exports.sendRegisterEmail = async (email, token) => {
 
     var mailOptions = {
         to: email,
-        from: 'homero@pixelti.com.br',
+        from: 'e-npi@pixelti.com.br',
         subject: 'e-NPI | Cadastro de Conta',
         html:
             '<h2>Confirmação de Cadastro</h2>' +
@@ -142,7 +142,7 @@ exports.sendNpiStatusEmail = async (users, updateData) => {
         console.log('preparing email to ' + user.email);
         var mailOptions = {
             to: user.email,
-            from: 'homero@pixelti.com.br',
+            from: 'e-npi@pixelti.com.br',
             subject: email.subject,
             html: email.body
         };
@@ -177,7 +177,7 @@ exports.sendNpiChangesEmail = async (users, updateData) => {
         console.log('preparing email to ' + user.email);
         var mailOptions = {
             to: user.email,
-            from: 'homero@pixelti.com.br',
+            from: 'e-npi@pixelti.com.br',
             subject: 'e-NPI | Alteração NPI #' + updateData.npi.number,
             html:
                 'Caro usuário, <br><br>' +
