@@ -14,6 +14,11 @@ var NpiSchema = new mongoose.Schema({
         type: Number,
         default: 1
     },
+    versions: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'Npi',
+        default: null
+    },
     created: {
         type: Date,
         default: Date.now(),
@@ -35,7 +40,6 @@ var NpiSchema = new mongoose.Schema({
         type: String,
         default: null
     },
-    annex: String,
     client: {
         type: String,
         default: null
@@ -48,6 +52,16 @@ var NpiSchema = new mongoose.Schema({
     name: {
         type: String,
         default: null
+    },
+    designThinking: {
+        apply: {
+            type: Boolean,
+            default: null
+        },
+        annex: {
+            type: [typeof FileClass],
+            default: []
+        }
     },
     description: {
         description: {
@@ -207,33 +221,44 @@ var NpiSchema = new mongoose.Schema({
         }
     },
     validation: {
-        disapprovals: {
-            type: [{
-                comment: {
-                    type: String,
-                    default: null
-                },
-                signature: {
-                    date: {
-                        type: Date,
-                        default: null
-                    },
-                    user: {
-                        type: mongoose.Schema.Types.ObjectId,
-                        ref: 'User',
-                        default: null
-                    }
-                }
-            }]
+        status: {
+            type: Boolean,
+            default: false,
         },
-        finalApproval: {
-            status: {
-                type: Boolean,
-                default: false,
+        signature: {
+            date: {
+                type: Date,
+                default: null
+            },
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+                default: null
+            }
+        },
+        final: {
+            type: String,
+            default: null
+        },
+    },
+    requests: {
+        type: [{
+            class: {
+                type: String,
+                default: null
+            },
+            responsible: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+                default: null
             },
             comment: {
                 type: String,
                 default: null
+            },
+            closed: {
+                type: Boolean,
+                default: false
             },
             signature: {
                 date: {
@@ -245,12 +270,36 @@ var NpiSchema = new mongoose.Schema({
                     ref: 'User',
                     default: null
                 }
+            },
+            analysis: {
+                type: [{
+                    dept: {
+                        type: String,
+                        enum: global.DEPARTMENTS,
+                        default: null
+                    },
+                    status: {
+                        type: String,
+                        enum: [null, 'deny', 'accept'],
+                    },
+                    comment: {
+                        type: String,
+                        default: null
+                    },
+                    signature: {
+                        date: {
+                            type: Date,
+                            default: null
+                        },
+                        user: {
+                            type: mongoose.Schema.Types.ObjectId,
+                            ref: 'User',
+                            default: null
+                        }
+                    }
+                }]
             }
-        },
-        final: {
-            type: String,
-            default: null
-        },
+        }]
     },
     updated: {
         type: Date,
@@ -260,6 +309,7 @@ var NpiSchema = new mongoose.Schema({
 });
 
 NpiSchema.pre('save', async function () {
+    console.log("Saving")
     if (this.isNew && this.number == undefined) {
         let users = await Npi.find({ 'number': { $exists: true } }, 'number').sort('number')
         let numVec = users.map(n => n.number)
@@ -270,7 +320,17 @@ NpiSchema.pre('save', async function () {
         if (number == undefined) throw Error('undefined number')
         this.number = number
     }
-    this.updated = Date.now()
+    if (this.isNew) {
+        var version = 1
+        try {
+            let latestVersion = await Npi.findOne({ 'number': this.number }, 'version').sort('-version')
+            if (latestVersion != null)
+                version = latestVersion.version + 1
+        } catch (e) { throw (e) }
+        console.log('NEW VERSION V' + version)
+        this.version = version
+    }
+    //this.updated = Date.now()
 });
 
 //NpiSchema.plugin(sequence, { inc_field: 'number' })

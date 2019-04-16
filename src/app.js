@@ -32,13 +32,13 @@ var app = express();
 //angularjs-bridge
 //const filesRouter = require('angular-filemanager-nodejs-bridge').router;
 
-var dbUrl = 'mongodb://127.0.0.1/enpi'
+var dbUrl = 'mongodb://127.0.0.1/e-npi'
 mongoose.Promise = bluebird;
 mongoose.connect(dbUrl)
 
 mongoose.connection.on('connected',
   () => {
-    console.log('Succesfully Connected to the Mongodb Database at ' + dbUrl)
+    console.log('Succesfully Connected to production mongodb database at ' + dbUrl)
     mongoose.connection.db.collection('users').countDocuments(
       (error, count) => {
         if (error) return error
@@ -52,7 +52,7 @@ mongoose.connection.on('connected',
             status: 'active',
             notify: false
           },
-          {
+          /*{
             email: 'com',
             password: '1234',
             firstName: 'Comercial',
@@ -120,9 +120,9 @@ mongoose.connection.on('connected',
             level: 1,
             status: 'active',
             notify: false
-          },
+          },*/
         ])
-          console.info('Users DB empty, created debug users')
+          console.info('Users DB empty, created admin user')
         }
       }
     )

@@ -67,6 +67,18 @@ exports.createNpi = async function (req, res, next) {
   }
 }
 
+exports.migrateNpi = async function (req, res, next) {
+  var npi = req.body;
+  try {
+    var migratedNpi = await npiDAO.migrateNpi(req)
+    //var sentNotify = sendStatusNotify(req, migratedNpi)
+    return res.status(201).send({ data: migratedNpi, message: "Succesfully Migrated Npi" })
+  } catch (e) {
+    console.log({ message: e.message })
+    return res.status(401).send({ message: e.message })
+  }
+}
+
 exports.promoteNpi = async function (req, res, next) {
   try {
     console.log(req.params)

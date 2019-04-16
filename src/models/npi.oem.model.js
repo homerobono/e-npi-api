@@ -119,6 +119,10 @@ var OemSchema = new mongoose.Schema({
             type: String,
             default: null
         },
+        annex: {
+            type: String,
+            default: null
+        },
         signature: {
             date: {
                 type: Date,
@@ -131,26 +135,7 @@ var OemSchema = new mongoose.Schema({
             }
         }
     },
-    versions: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: 'oem',
-        default: null
-    }
 })
-
-
-OemSchema.pre('save', async function () {
-    if (this.isNew) {
-        var version = 1
-        try {
-            let latestVersion = await Npi.findOne({ 'number': this.number }, 'version').sort('-version')
-            if (latestVersion != null)
-                version = latestVersion.version + 1
-        } catch (e) { throw (e) }
-        console.log('NEW VERSION V' + version)
-        this.version = version
-    }
-});
 
 Npi.discriminator(
     'oem',
