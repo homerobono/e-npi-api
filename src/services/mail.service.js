@@ -10,7 +10,7 @@ var footNote = '<div style="color: #888; background-color: #f2f2f2; ' +
     '</small></div>';
 
 const logoEnpi = '<span style="color:chartreuse; font-family:sans-serif"><b>e</b>-</span><span style="color: orange; font-family: sans-serif">NPI</span>';
-const npiEmail = 'e-npi@pixelti.com.br';
+const npiEmail = '"e-NPI" <e-npi@pixelti.com.br>';
 
 exports.mailScheduler = async (users, notification, start, period, end) => {
 
@@ -25,7 +25,7 @@ exports.createTransport = async () =>
         port: '465',
         tls: { rejectUnauthorized: false },
         auth: {
-            user: npiEmail,
+            user: 'e-npi@pixelti.com.br',
             pass: '17@00pixelti17'
         }
     });
