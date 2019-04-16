@@ -55,7 +55,7 @@ global.DEPARTMENTS = [
   'MPD',
   'MPR',
   'OPR',
-  'MEP',
+  'PRO',
 ]
 
 global.DEPARTMENTS_LABELS = [
@@ -65,19 +65,20 @@ global.DEPARTMENTS_LABELS = [
   { value: 'MPD', label: 'P&D' },
   { value: 'MPR', label: 'Produto' },
   { value: 'OPR', label: 'Operações' },
-  { value: 'MEP', label: 'Processo' }
+  { value: 'PRO', label: 'Processo' },
+  { value: 'MKT', label: 'Processo' }
 ],
 
-global.NPI_PIXEL_CRITICAL_DEPTS = ['MPR', 'MEP', 'OPR', 'ADM', 'COM']
-global.NPI_INTERNAL_CRITICAL_DEPTS = ['MEP', 'OPR', 'ADM', 'COM']
-global.NPI_CUSTOM_CRITICAL_DEPTS = ['MEP', 'OPR', 'ADM', 'COM']
-global.NPI_OEM_CRITICAL_DEPTS = ['MEP', 'OPR', 'ADM', 'COM']
+global.NPI_PIXEL_CRITICAL_DEPTS = ['MPR', 'PRO', 'OPR', 'ADM', 'COM']
+global.NPI_INTERNAL_CRITICAL_DEPTS = ['PRO', 'OPR', 'ADM', 'COM']
+global.NPI_CUSTOM_CRITICAL_DEPTS = ['PRO', 'OPR', 'ADM', 'COM']
+global.NPI_OEM_CRITICAL_DEPTS = ['PRO', 'OPR', 'ADM', 'COM']
 
 global.REQUEST_DEPTS = {
-	'pixel': ['MPR', 'MEP', 'OPR', 'ADM', 'COM'],
-	'internal': ['MEP', 'OPR', 'ADM', 'COM'],
-	'custom': ['MEP', 'OPR', 'ADM', 'COM'],
-	'oem': ['MEP', 'OPR', 'ADM', 'COM']
+	'pixel': ['MPR', 'PRO', 'OPR', 'ADM', 'COM'],
+	'internal': ['PRO', 'OPR', 'ADM', 'COM'],
+	'custom': ['PRO', 'OPR', 'ADM', 'COM'],
+	'oem': ['PRO', 'OPR', 'ADM', 'COM']
 }
 
 global.OEM_ACTIVITIES = [
@@ -101,8 +102,8 @@ global.MACRO_STAGES = [
 		{ value: 'PROTO_SW', 	label: 'Protótipo de Software', 					dept: 'MPD', term:100,dep: ["SPECS_SW"], annex: true },
 		{ value: 'PROTO_VERIF',	label: 'Testes de Verificação de Protótipo',        dept: 'MPD', term: 15,dep: ["PROTO_ASSEMB"], required: true, annex: true },
 		{ value: 'PROTO_VALID',	label: 'Testes de Validação de Protótipo',          dept: 'MPR', term: 15,dep: ["PROTO_VERIF"], required: true, annex: true },
-		{ value: 'BOM_SUBMIT',	label: 'Cadastro de BOM no Sistema',	            dept: 'MEP', term: 3, dep: ["PROTO_VALID"], required: true, annex: false },
-		{ value: 'CHECKLIST',	label: 'Checklist Produtivo',			            dept: 'MEP', term: 7, dep: ["PROTO_VALID"], required: true, annex: true },
+		{ value: 'BOM_SUBMIT',	label: 'Cadastro de BOM no Sistema',	            dept: 'PRO', term: 3, dep: ["PROTO_VALID"], required: true, annex: false },
+		{ value: 'CHECKLIST',	label: 'Checklist Produtivo',			            dept: 'PRO', term: 7, dep: ["PROTO_VALID"], required: true, annex: true },
 		{ value: 'DEVICE', 		label: 'Dispositivos/Moldes - Projeto e Compra',	dept: 'MPR', term: 90,dep: ["MECH_LAYOUT", "CHECKLIST"], annex: true },
 		{ value: 'TEMPLATE', 	label: 'Estêncil/Templates', 						dept: 'OSC', term: 5, dep: ["CHECKLIST" ], annex: true },
 		{ value: 'DATASHEET', 	label: 'Datasheet do Produto', 				 		dept: 'MPR', term: 5, dep: ["PROTO_VALID"], required: true, annex: true },
@@ -112,7 +113,7 @@ global.MACRO_STAGES = [
 		{ value: 'HOMOLOG', 	label: 'Homologação', 			        			dept: 'MPR', term:150,dep: ["DATASHEET"], annex: true },
 		{ value: 'EQUIPMENT',   label:'Definição de Equipamentos e Processo de Teste',dept:'MPD',term: 10,dep: ["PROTO_VALID"], required: true, annex: true },
 		{ value: 'JIG', 		label: 'Confecção de Equipamentos e Jiga de Testes',dept: 'OPR', term: 10,dep: ["EQUIPMENT"], required: true, annex: true },
-		{ value: 'SMT', 		label: 'Programa para Máquina SMT', 				dept: 'MEP', term: 5, dep: ["GERBER", "BOM_SUBMIT", "TEMPLATE"], annex: false },
+		{ value: 'SMT', 		label: 'Programa para Máquina SMT', 				dept: 'PRO', term: 5, dep: ["GERBER", "BOM_SUBMIT", "TEMPLATE"], annex: false },
 		{ value: 'TRYOUT', 		label: 'Try Out Injetora',           				dept: 'OPR', term: 5, dep: ["BOM_SUBMIT", "DEVICE"], annex: false },
 		{ value: 'GOLDEN', 		label: 'Golden Sample', 							dept: 'MPR', term: 5, dep: ["PROTO_VALID"], annex: false },
 		{ value: 'DOCUMENT_SW',	label: 'Documento de Software',						dept: 'MPD', term: 5, dep: ["PROTO_SW", "PROTO_VALID"], annex: true },
@@ -120,8 +121,8 @@ global.MACRO_STAGES = [
 		{ value: 'PRICE_TABLE',	label: 'Tabela de Preço', 							dept: 'COM', term: 5, dep: ["PROTO_VALID"], required: true, annex: true },
 		{ value: 'RELEASE_PLAN',label: 'Plano de Lançamento', 						dept: 'MPR', term: 5, dep: ["PROTO_VALID","PRICE_TABLE"], required: false, annex: false },
 		{ value: 'PRODUCTION',	label: 'Compra do Primeiro Lote de Produção',		dept: 'OSC', term: 90,dep: ["BOM_SUBMIT", "CHECKLIST"], required: true, annex: true },
-		{ value: 'ASSEMBLY',    label: 'Instrução de Montagem', 					dept: 'MEP', term: 5, dep: ["JIG", "CHECKLIST", "GOLDEN", "PRODUCTION"], required: true, annex: true },
-		{ value: 'PILOT', 		label: 'Lote Piloto', 								dept: 'MEP', term: 5, dep: ["ASSEMBLY", "PRODUCTION"], required: true, annex: true },
+		{ value: 'ASSEMBLY',    label: 'Instrução de Montagem', 					dept: 'PRO', term: 5, dep: ["JIG", "CHECKLIST", "GOLDEN", "PRODUCTION"], required: true, annex: true },
+		{ value: 'PILOT', 		label: 'Lote Piloto', 								dept: 'PRO', term: 5, dep: ["ASSEMBLY", "PRODUCTION"], required: true, annex: true },
 		{ value: 'RELEASE',		label: 'Data de Lançamento', 						dept: null,  term: 0, dep: ["MECH_LAYOUT", "SPEC_TAG", "SPEC_PACKING", "SMT", "DOCUMENT_FW", "DOCUMENT_SW", "RELEASE_PLAN", "PILOT"], required: true, annex: false }
 	],
 	
@@ -129,18 +130,18 @@ global.OEM_STAGES = [
 		{ value: 'SPECS_HW', 	label:'Especificação Técnica - Funcionalidade HW',  dept: null, term: 1, annex: true },
 		{ value: 'SPECS_SW', 	label:'Especificação Técnica - Funcionalidade de SW',dept:null, term: 1, annex: true },
 		{ value: 'MECH_SPEC', 	label: 'Especificação Mecânica/Dimensional', 		dept: null, term: 1, annex: true },
-		{ value: 'ELETRIC_LAYOUT',label:'Esquema Elétrico/Layout', 					dept: 'MEP', term: 60, annex: true },
-		{ value: 'BOM_DESC', 	label: 'BOM com P/N, Descrição', 					dept: 'MEP', term: 5,  required: true, annex: true },
-		{ value: 'GERBER', 		label: 'Arquivo Gerber e Centroide', 				dept: 'MEP', term: 5,  annex: true },
-		{ value: 'MECH_LAYOUT', label: 'Desenho de Partes Mecânicas', 				dept: 'MEP', term: 60, annex: true },
+		{ value: 'ELETRIC_LAYOUT',label:'Esquema Elétrico/Layout', 					dept: 'PRO', term: 60, annex: true },
+		{ value: 'BOM_DESC', 	label: 'BOM com P/N, Descrição', 					dept: 'PRO', term: 5,  required: true, annex: true },
+		{ value: 'GERBER', 		label: 'Arquivo Gerber e Centroide', 				dept: 'PRO', term: 5,  annex: true },
+		{ value: 'MECH_LAYOUT', label: 'Desenho de Partes Mecânicas', 				dept: 'PRO', term: 60, annex: true },
 		{ value: 'FIRMWARE', 	label: 'Firmware', 									dept: 'OPR', term: 10, annex: true },
 		{ value: 'BOM_PRICE', 	label: 'Cotação/Compra da BOM de Protótipo', 		dept: 'OSC', term: 20,dep: ["ELETRIC_LAYOUT", "BOM_DESC"], annex: true },
 		{ value: 'PROTO_ASSEMB',label: 'Montagem de Protótipo', 					dept: 'MPD', term: 10,dep: ["FIRMWARE","BOM_PRICE"], annex: false },
 		{ value: 'PROTO_SW', 	label: 'Protótipo de Software', 					dept: 'MPD', term:100,dep: ["SPECS_SW"], annex: true },
 		{ value: 'PROTO_VERIF',	label: 'Testes de Verificação de Protótipo',        dept: 'MPD', term: 15,dep: ["PROTO_ASSEMB"], annex: true },
 		{ value: 'PROTO_VALID',	label: 'Testes de Validação de Protótipo',          dept: 'MPR', term: 15,dep: ["PROTO_VERIF"], annex: true },
-		{ value: 'BOM_SUBMIT',	label: 'Cadastro de BOM no Sistema',	            dept: 'MEP', term: 3, dep: ["BOM_DESC"], required: true, annex: false },
-		{ value: 'CHECKLIST',	label: 'Checklist Produtivo',			            dept: 'MEP', term: 7, dep: ["ELETRIC_LAYOUT", "BOM_DESC", "GERBER", "MECH_LAYOUT"], required: true, annex: true },
+		{ value: 'BOM_SUBMIT',	label: 'Cadastro de BOM no Sistema',	            dept: 'PRO', term: 3, dep: ["BOM_DESC"], required: true, annex: false },
+		{ value: 'CHECKLIST',	label: 'Checklist Produtivo',			            dept: 'PRO', term: 7, dep: ["ELETRIC_LAYOUT", "BOM_DESC", "GERBER", "MECH_LAYOUT"], required: true, annex: true },
 		{ value: 'DEVICE', 		label: 'Dispositivos/Moldes - Projeto e Compra',	dept: 'MPR', term: 90,dep: ["MECH_LAYOUT", "CHECKLIST"], annex: true },
 		{ value: 'TEMPLATE', 	label: 'Estêncil/Templates', 						dept: 'OSC', term: 5, dep: ["GERBER", "CHECKLIST" ], annex: true },
 		{ value: 'DATASHEET', 	label: 'Datasheet do Produto', 				 		dept: 'MPR', term: 5, dep: ["PROTO_VALID"], annex: true },
@@ -150,7 +151,7 @@ global.OEM_STAGES = [
 		{ value: 'HOMOLOG', 	label: 'Homologação', 			        			dept: 'MPR', term:150,dep: ["DATASHEET"], annex: true },
 		{ value: 'EQUIPMENT',   label:'Definição de Equipamentos e Processo de Teste',dept:'MPD',term: 10,dep: ["PROTO_VALID"], annex: true },
 		{ value: 'JIG', 		label: 'Confecção de Equipamentos e Jiga de Testes',dept: 'OPR', term: 10,dep: ["CHECKLIST"], annex: true },
-		{ value: 'SMT', 		label: 'Programa para Máquina SMT', 				dept: 'MEP', term: 5, dep: ["GERBER", "BOM_SUBMIT", "TEMPLATE"], annex: false },
+		{ value: 'SMT', 		label: 'Programa para Máquina SMT', 				dept: 'PRO', term: 5, dep: ["GERBER", "BOM_SUBMIT", "TEMPLATE"], annex: false },
 		{ value: 'TRYOUT', 		label: 'Try Out Injetora',           				dept: 'OPR', term: 5, dep: ["BOM_SUBMIT", "CHECKLIST"], annex: false },
 		{ value: 'GOLDEN', 		label: 'Golden Sample', 						    dept: 'MPR', term: 5, dep: ["CHECKLIST"], annex: false },
 		{ value: 'DOCUMENT_SW',	label: 'Documento de Software',						dept: 'MPD', term: 5, dep: ["PROTO_SW", "PROTO_VALID"], annex: true },
@@ -158,8 +159,8 @@ global.OEM_STAGES = [
 		{ value: 'PRICE_TABLE',	label: 'Tabela de Preço', 							dept: 'COM', term: 5, dep: ["PROTO_VALID"], annex: true },
 		{ value: 'RELEASE_PLAN',label: 'Plano de Lançamento', 						dept: 'MPR', term: 5, dep: ["PROTO_VALID","PRICE_TABLE"], annex: false },
 		{ value: 'PRODUCTION',	label: 'Compra do Primeiro Lote de Produção',		dept: 'OSC', term: 90,dep: ["BOM_SUBMIT", "CHECKLIST"], required: true, annex: true },
-		{ value: 'ASSEMBLY',    label: 'Instrução de Montagem', 					dept: 'MEP', term: 7, dep: ["JIG", "CHECKLIST", "GOLDEN", "PRODUCTION"], required: true, annex: true },		
-		{ value: 'PILOT', 		label: 'Lote Piloto', 								dept: 'MEP', term: 5, dep: ["ASSEMBLY", "PRODUCTION"], required: true, annex: true },
+		{ value: 'ASSEMBLY',    label: 'Instrução de Montagem', 					dept: 'PRO', term: 7, dep: ["JIG", "CHECKLIST", "GOLDEN", "PRODUCTION"], required: true, annex: true },		
+		{ value: 'PILOT', 		label: 'Lote Piloto', 								dept: 'PRO', term: 5, dep: ["ASSEMBLY", "PRODUCTION"], required: true, annex: true },
 		{ value: 'RELEASE',		label: 'Data de Lançamento', 						dept: null,  term: 0, dep: ["MECH_LAYOUT", "SPEC_TAG", "SPEC_PACKING", "SMT", "DOCUMENT_FW", "DOCUMENT_SW", "RELEASE_PLAN", "PILOT"], required: true, annex: false }
 	],
 

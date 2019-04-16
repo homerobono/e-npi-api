@@ -106,7 +106,7 @@ mongoose.connection.on('connected',
             password: '1234',
             firstName: 'Processo Gestor',
             lastName: 'Gestor',
-            department: 'MEP',
+            department: 'PRO',
             level: 1,
             status: 'active',
             notify: false
