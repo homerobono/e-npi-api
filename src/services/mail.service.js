@@ -7,9 +7,10 @@ var footNote = '<div style="color: #888; background-color: #f2f2f2; ' +
     'no menu de perfil de usuário através da opção "Receber notificações": ' +
     '<a href="' + global.URL_BASE + '/profile">Editar Perfil</a><br>' +
     'Para outros assuntos ou eventuais problemas contate o administrador do sistema.' +
-    '</small></div>'
+    '</small></div>';
 
-const logoEnpi = '<span style="color:chartreuse; font-family:sans-serif"><b>e</b>-</span><span style="color: orange; font-family: sans-serif">NPI</span>'
+const logoEnpi = '<span style="color:chartreuse; font-family:sans-serif"><b>e</b>-</span><span style="color: orange; font-family: sans-serif">NPI</span>';
+const npiEmail = 'e-npi@pixelti.com.br';
 
 exports.mailScheduler = async (users, notification, start, period, end) => {
 
@@ -24,8 +25,8 @@ exports.createTransport = async () =>
         port: '465',
         tls: { rejectUnauthorized: false },
         auth: {
-            user: 'e-npi@pixelti.com.br',
-            pass: '17@00pixel1700'
+            user: npiEmail,
+            pass: '17@00pixelti17'
         }
     });
 
@@ -35,7 +36,7 @@ exports.sendResetEmail = async (email, token) => {
 
     var mailOptions = {
         to: email,
-        from: 'e-npi@pixelti.com.br',
+        from: npiEmail,
         subject: 'e-NPI | Alteração de Senha',
         html: 'Você está recebendo esse e-mail porque você (ou outra pessoa) solicitou a alteração da sua senha ' +
             'no sistema <a href="' + global.URL_BASE + '">e-NPI</a>.<br><br>' +
@@ -55,7 +56,7 @@ exports.sendRegisterEmail = async (email, token) => {
 
     var mailOptions = {
         to: email,
-        from: 'e-npi@pixelti.com.br',
+        from: npiEmail,
         subject: 'Cadastro de Conta',
         html:   '<h3>Confirmação de Cadastro: e-NPI</h3>'+
 		'Você está recebendo essa mensagem porque um administrador do sistema de gerenciamento de NPI\'s da Pixel TI, <a href="http://pixelti.com.br">e-NPI</a>, '+
@@ -142,7 +143,7 @@ exports.sendNpiStatusEmail = async (users, updateData) => {
         console.log('preparing email to ' + user.email);
         var mailOptions = {
             to: user.email,
-            from: 'e-npi@pixelti.com.br',
+            from: npiEmail,
             subject: email.subject,
             html: email.body
         };
@@ -177,7 +178,7 @@ exports.sendNpiChangesEmail = async (users, updateData) => {
         console.log('preparing email to ' + user.email);
         var mailOptions = {
             to: user.email,
-            from: 'e-npi@pixelti.com.br',
+            from: npiEmail,
             subject: 'Alteração NPI #' + updateData.npi.number,
             html:
                 'Caro usuário, <br><br>' +
