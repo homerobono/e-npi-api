@@ -1007,6 +1007,10 @@ function activitySign(user, npiTask, changedFields) {
 }
 
 function migrateSign(npi) {
+    if (npi.oemActivities)
+        npi.oemActivities.forEach(taskRow => {
+            taskRow.signature.user = taskRow.responsible
+        });
     if (npi.activities)
         npi.activities.forEach(taskRow => {
             taskRow.signature = { user: taskRow.responsible, date: taskRow.endDate }
