@@ -66,7 +66,7 @@ global.DEPARTMENTS_LABELS = [
   { value: 'MPR', label: 'Produto' },
   { value: 'OPR', label: 'Operações' },
   { value: 'PRO', label: 'Processo' },
-  { value: 'MKT', label: 'Processo' }
+  { value: 'MKT', label: 'Marketing' }
 ],
 
 global.NPI_PIXEL_CRITICAL_DEPTS = ['MPR', 'PRO', 'OPR', 'ADM', 'COM']

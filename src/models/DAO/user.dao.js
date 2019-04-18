@@ -132,7 +132,13 @@ exports.deleteUser = async function (id) {
 
     // Delete the User
     try {
-        var deleted = await User.findByIdAndUpdate(id, { status: 'disabled' })
+        var deleted
+        var toDelete = await User.findById(id)
+        if (toDelete.status == 'active') {
+            toDelete.status = 'disabled'
+            deleted = await toDelete.save()
+        } else
+            deleted = await toDelete.delete()
         if (deleted.result.n === 0) {
             throw Error("User could not be deleted")
         }

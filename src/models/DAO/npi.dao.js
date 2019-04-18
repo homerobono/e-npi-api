@@ -211,6 +211,62 @@ exports.migrateNpi = async function (req) {
     }
 }
 
+exports.migrateUpdateNpi = async function (user, npi) {
+    var id = npi.id
+    try {
+        var oldNpi = await Npi.findById(id);
+    } catch (e) {
+        throw Error("Error occured while Finding the Npi")
+    }
+
+    if (!oldNpi) {
+        throw Error("No NPI id " + id)
+    }
+
+    if (npi.npiRef == '') {
+        npi.npiRef = null
+    } else {
+        let npiRef = await Npi.findOne({ number: npi.npiRef, stage: { $ne: 1 } })
+        if (npiRef)
+            npi.npiRef = npiRef._id
+    }
+
+    if (npi.stage < 4) { //client approval and below
+        delete npi.activities
+        if (npi.stage < 3) { //critical analysis and below
+            delete npi.clientApproval
+            if (npi.stage < 2) { //draft or canceled
+                delete npi.critical
+            }
+        }
+    }
+    console.log('npi')
+    console.log(npi)
+    console.log('oldNpi')
+    console.log(oldNpi)
+
+    //var updateResult = updateObject(oldNpi, npi)
+
+    if (npi.activities)
+            npi = migrateSign(npi)
+        console.log("signed")
+
+        if (npi.validation) 
+            npi.updated = npi.validation.signature.date
+        console.log(npi)
+
+    try {
+        var savedNpi = await Npi.findByIdAndUpdate(id, npi)
+        //var savedNpi = Npi.findByIdAndUpdate(oldNpi._id, npi)
+        //console.log(savedNpi)
+        return { npi: savedNpi, changedFields: {} }
+        //return savedNpi;
+    } catch (e) {
+        console.log(e)
+        throw ({ message: e })
+    }
+}
+
 exports.newNpiVersion = async function (req) {
     console.log('CREATING NEW NPI VERSION')
     var npi = req.body
