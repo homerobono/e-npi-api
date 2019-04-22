@@ -178,7 +178,7 @@ exports.migrateNpi = async function (req) {
             data = migrateSign(data)
         console.log("signed")
 
-        if (data.validation) 
+        if (data.validation)
             data.updated = data.validation.signature.date
         console.log(data)
         //delete data.activities
@@ -240,20 +240,20 @@ exports.migrateUpdateNpi = async function (user, npi) {
             }
         }
     }
-    console.log('npi')
-    console.log(npi)
-    console.log('oldNpi')
-    console.log(oldNpi)
+    //console.log('npi')
+    //console.log(npi)
+    //console.log('oldNpi')
+    //console.log(oldNpi)
 
     //var updateResult = updateObject(oldNpi, npi)
 
     if (npi.activities)
-            npi = migrateSign(npi)
-        console.log("signed")
+        npi = migrateSign(npi)
+    console.log("signed")
 
-        if (npi.validation) 
-            npi.updated = npi.validation.signature.date
-        console.log(npi)
+    if (npi.validation)
+        npi.updated = npi.validation.signature.date
+    console.log(npi)
 
     try {
         var savedNpi = await Npi.findByIdAndUpdate(id, npi)
@@ -402,21 +402,26 @@ exports.cancelNpi = async function (id) {
     }
 }
 
-exports.updateAnnexList = async npiNumber => {
+exports.updateAnnexList = async (npiId, field) => {
     try {
-        var npi = await Npi.find({ number: npiNumber }).sort('-version')
+        var npi = await Npi.findById(npiId)
     } catch (e) {
         throw Error("Error occured while Finding the Npi")
     }
 
     if (!npi) {
-        throw Error("No NPI number " + npiNumber)
+        throw Error("No NPI id " + npiId)
     }
-    npi = npi[0]
-
+    //console.log('NPI for files:', npi)
     try {
         console.log('dir structure')
-        console.log(read(npiNumber))
+        console.log(field)
+        //console.log(await fs.readdir(global.FILES_DIR + '/' + npiId))
+        var files = await read(global.FILES_DIR + '/' + npiId)
+        //console.log(files)
+        files = await files.map(file => file.replace(`${global.FILES_DIR}\/${npiId}`, ''))
+        console.log(files)
+        npi[field]
         /*var invalidFields = hasInvalidFields(npi)
         console.log(invalidFields)
         if (invalidFields) throw ({ errors: invalidFields })

@@ -27,8 +27,8 @@ var storage = multer.diskStorage({
 exports.uploadFiles = multer({ storage: storage }).any()
 
 exports.uploadResponse = function (req, res, next) {
-    //console.log('LEVEL UP NPI')
-    //npiDao.updateAnnexList(req.body.npiNumber)
+  console.log('Upload Body', req.body, req.files)
+  npiDao.updateAnnexList(req.body._id, req.body.destination)
   res.status(200).send({
     "result": {
       "success": true,
