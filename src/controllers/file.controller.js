@@ -28,7 +28,7 @@ exports.uploadFiles = multer({ storage: storage }).any()
 
 exports.uploadResponse = function (req, res, next) {
   console.log('Upload Body', req.body, req.files)
-  npiDao.updateAnnexList(req.body._id, req.body.destination)
+  npiDao.updateAnnexList(req.body._id, req.body.destination+'/')
   res.status(200).send({
     "result": {
       "success": true,
@@ -167,6 +167,8 @@ exports.remove = function (req, res, next) {
 
   var filePath = path.join(pathResolver.baseDir(req), req.body.params.path, req.body.params.name);
   var promise = fs.remove(filePath);
+  console.log("Remove body", req.body)
+  npiDao.updateAnnexList(req.body.params.path.replace(/^\/?([a-z0-9]*)\/.*$/, "$1"), req.body.params.path)
 
   promise = promise.then(function () {
     res.status(200);
@@ -194,8 +196,10 @@ exports.remove = function (req, res, next) {
 exports.createFolder = function (req, res, next) {
 
   var folderPath = path.join(pathResolver.baseDir(req), req.body.params.path, req.body.params.name);
-  console.log(folderPath);
+  console.log("Folder Path: ", folderPath);
   var promise = fs.mkdirs(folderPath, 0o777);
+  console.log("Create folder body", req.body)
+  npiDao.updateAnnexList(req.body.params.path.replace(/^\/?([a-z0-9]*)\/.*$/, "$1"), req.body.params.path)
 
   promise = promise.then(function () {
     res.status(200);
@@ -226,8 +230,10 @@ exports.rename = function (req, res, next) {
   var newPath = path.join(pathResolver.baseDir(req), req.body.params.path, req.body.params.newName);
 
   var promise = fs.renameAsync(filePath, newPath);
+  console.log("Rename body", req.body)
 
   promise = promise.then(function () {
+    npiDao.updateAnnexList(req.body.params.path.replace(/^\/?([a-z0-9]*)\/.*$/, "$1"), req.body.params.path)
     res.status(200);
     res.send({
       "result": {
@@ -254,11 +260,13 @@ exports.move = function (req, res, next) {
 
   var oldPath = path.join(pathResolver.baseDir(req), req.body.params.path, req.body.params.name);
   var newPath = path.join(pathResolver.baseDir(req), req.body.params.newPath, req.body.params.name);
+  console.log("Move folder body", req.body)
 
   console.log("copying " + oldPath + ' to ' + newPath)
   var promise = fs.move(oldPath, newPath);
 
   promise = promise.then(function () {
+    npiDao.updateAnnexList(req.body.params.path.replace(/^\/?([a-z0-9]*)\/.*$/, "$1"), req.body.params.path)
     res.status(200);
     res.send({
       "result": {

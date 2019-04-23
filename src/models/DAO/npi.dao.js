@@ -253,12 +253,31 @@ exports.migrateUpdateNpi = async function (user, npi) {
 
     if (npi.validation)
         npi.updated = npi.validation.signature.date
-    console.log(npi)
+    //console.log(npi)
+
+    var updateResult = updateObject(oldNpi, npi)
+    var changedFields = updateResult.changedFields
+    oldNpi = updateResult.updatedObject
+
+    if (oldNpi.oemActivities) {
+        oldNpi.oemActivities = npi.oemActivities
+        console.log("OEM: ", oldNpi.oemActivities.toString())
+    }
+    if (oldNpi.critical)
+        oldNpi.critical = npi.critical
+    if (oldNpi.clientApproval)
+        oldNpi.clientApproval = npi.clientApproval
+    if (oldNpi.validation)
+        oldNpi.validation = npi.validation
+    oldNpi.activities = npi.activities
+    if (oldNpi.regulations)
+        oldNpi.regulations = npi.regulations
 
     try {
-        var savedNpi = await Npi.findByIdAndUpdate(id, npi)
-        //var savedNpi = Npi.findByIdAndUpdate(oldNpi._id, npi)
-        //console.log(savedNpi)
+        var savedNpi = await oldNpi.save()
+        //await Npi.replaceOne({_id: id}, npi)
+        //var savedNpi = await Npi.findById(id)
+        console.log("Change Fields: ", changedFields)
         return { npi: savedNpi, changedFields: {} }
         //return savedNpi;
     } catch (e) {
@@ -402,7 +421,9 @@ exports.cancelNpi = async function (id) {
     }
 }
 
-exports.updateAnnexList = async (npiId, field) => {
+exports.updateAnnexList = async (npiId, path) => {
+    
+    console.log("NPI ID: '" + npiId + "'")
     try {
         var npi = await Npi.findById(npiId)
     } catch (e) {
@@ -415,18 +436,49 @@ exports.updateAnnexList = async (npiId, field) => {
     //console.log('NPI for files:', npi)
     try {
         console.log('dir structure')
-        console.log(field)
+        console.log(path)
         //console.log(await fs.readdir(global.FILES_DIR + '/' + npiId))
         var files = await read(global.FILES_DIR + '/' + npiId)
-        //console.log(files)
-        files = await files.map(file => file.replace(`${global.FILES_DIR}\/${npiId}`, ''))
-        console.log(files)
-        npi[field]
+        console.log(`${global.FILES_DIR}${path}`)
+        var prefix = `${global.FILES_DIR}${path}`.replace(/^\.\//, '')
+        let field = path.replace(`${npiId}/`, '').replace(/\//, '')
+
+        files = await files.filter(file => file.match(prefix))
+            .map(file => {
+                return {
+                    path: field,
+                    name: file.replace(prefix, '')
+                }
+            })
+        console.log("Prefix, field, files: ", prefix, field, files)
+        let subfields = field.split('.')
+        let subfield = subfields[0]
+        let npiField = npi[subfield]
+        console.log("Root field: ", subfield)
+        if (subfield == 'activities' || subfield == 'oemActivities') {
+            console.log('Activity: ', subfields[1])
+            let activityIndex = npiField.findIndex(activity => activity.activity == subfields[1])
+            console.log("Index: ", activityIndex)
+            if (activityIndex != -1)
+                npiField = npiField[activityIndex]
+            else
+                throw ("No activity index of " + subfields[1] + " from " + subfields[0])
+        } else {
+            console.log("Recursing ", npiField)
+            for (let i = 1; i < subfields.length; i++) {
+                npiField = npiField[subfields[i]]
+            }
+        }
+        //console.log("Annexes before:", npi[subfields[0]])
+        npiField.annex = files
+        var savedNpi = await npi.save()
+        console.log("Annexes after:", savedNpi[subfields[0]])
+        return savedNpi
         /*var invalidFields = hasInvalidFields(npi)
         console.log(invalidFields)
         if (invalidFields) throw ({ errors: invalidFields })
         npi = await evolve(req, npi)
-        var savedNpi = await npi.save()
+        
         return { npi: savedNpi, changedFields }*/
     } catch (e) {
         throw ({ message: e })
@@ -1014,7 +1066,7 @@ function activitySign(user, npiTask, changedFields) {
 function migrateSign(npi) {
     if (npi.oemActivities)
         npi.oemActivities.forEach(taskRow => {
-            taskRow.signature.user = taskRow.responsible
+            taskRow.signature = { user: taskRow.responsible, date: taskRow.endDate }
         });
     if (npi.activities)
         npi.activities.forEach(taskRow => {
@@ -1151,10 +1203,10 @@ function updateObject(oldObject, newObject) {
                     }
                 }
             } else if (Array.isArray(newObject[prop])) {
-                //console.log(prop + ' is array')
+                console.log(prop + ' is array')
                 if (!oldObject[prop]) {
                     oldObject[prop] = newObject[prop]
-                    changedFields = newObject[prop]
+                    changedFields[prop] = newObject[prop]
                 } else {
                     let changedFieldsArr = []
                     for (let i = 0; i < newObject[prop].length; i++) {

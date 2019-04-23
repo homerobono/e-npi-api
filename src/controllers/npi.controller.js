@@ -82,8 +82,8 @@ exports.migrateNpi = async function (req, res, next) {
 exports.migrateUpdateNpi = async function (req, res, next) {
   try {
     var result = await npiDAO.migrateUpdateNpi(req.user.data, req.body)
-    var sentNotify = sendChangesNotify(req, result)
-    console.log(result)
+    //var sentNotify = sendChangesNotify(req, result)
+    console.log("Result", result)
     //scheduleNotifications(req, result)
     //result.sentNotify = sentNotify*/
     return res.status(200).send({ data: result, message: "Succesfully updated NPI" })

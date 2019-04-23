@@ -32,7 +32,7 @@ var app = express();
 //angularjs-bridge
 //const filesRouter = require('angular-filemanager-nodejs-bridge').router;
 
-var dbUrl = 'mongodb://127.0.0.1/enpi'
+var dbUrl = 'mongodb://127.0.0.1/e-npi'
 mongoose.Promise = bluebird;
 mongoose.connect(dbUrl)
 

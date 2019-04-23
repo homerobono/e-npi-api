@@ -1,7 +1,7 @@
 "use strict";
 
-//global.URL_BASE = "http://191.252.113.160";
-global.URL_BASE = "http://192.168.1.131";
+global.URL_BASE = "http://191.252.113.160";
+//global.URL_BASE = "http://192.168.1.131";
 //global.URL_BASE = "http://192.168.0.4";
 //global.URL_BASE = "http://localhost:4200";
 //global.URL_BASE = "http://localhost:6002";
@@ -46,7 +46,53 @@ global.NPI_LABELS = {
   dev: 'Desenvolvimento',
   finished: 'Concluído',
   canceled: 'Cancelado',
-  draft: 'Rascunho'
+  draft: 'Rascunho',
+  finalApproval: 'Aprovação Final',
+	validation: 'Validação',
+	clientApproval: 'Aprovação do Cliente',
+	oemActivities: {
+		DOCS: 'Solicitação de Documentos (BOM, Gerbers, etc)',
+		PROP: 'Proposta de Desenvolvimento', 
+		BOM: 'Cotação da BOM',               
+		PRICE: 'Formação de preço',           
+	},
+	activities:{
+		SPECS_HW: 'Especificação Técnica - Funcionalidade HW',  
+		SPECS_SW: 'Especificação Técnica - Funcionalidade de SW',
+		MECH_SPEC: 'Especificação Mecânica/Dimensional', 		
+		ELETRIC_LAYOUT: 'Esquema Elétrico/Layout', 					
+		BOM_DESC: 'BOM com P/N, Descrição', 					
+		GERBER: 'Arquivo Gerber e Centroide', 				
+		MECH_LAYOUT: 'Desenho de Partes Mecânicas', 				
+		FIRMWARE: 'Firmware', 									
+		BOM_PRICE: 'Cotação/Compra da BOM de Protótipo', 		
+		PROTO_ASSEMB: 'Montagem de Protótipo', 					
+		PROTO_SW: 'Protótipo de Software', 					
+		PROTO_VERIF: 'Testes de Verificação de Protótipo',        
+		PROTO_VALID: 'Testes de Validação de Protótipo',          
+		BOM_SUBMIT: 'Cadastro de BOM no Sistema',	            
+		CHECKLIST: 'Checklist Produtivo',			            
+		DEVICE: 'Dispositivos/Moldes - Projeto e Compra',	
+		TEMPLATE: 'Estêncil/Templates', 						
+		DATASHEET: 'Datasheet do Produto', 				 		
+		SPEC_TAG: 'Desenho/Especificação de Etiquetas', 		
+		SPEC_PACKING: 'Desenho/Especificação Embalagem',           
+		MANUAL: 'Manual para o Produto', 					
+		HOMOLOG: 'Homologação', 			        			
+		EQUIPMENT:'Definição de Equipamentos e Processo de Teste',
+		JIG: 'Confecção de Equipamentos e Jiga de Testes',
+		SMT: 'Programa para Máquina SMT', 				
+		TRYOUT: 'Try Out Injetora',           				
+		GOLDEN: 'Golden Sample', 							
+		DOCUMENT_SW: 'Documento de Software',						
+		DOCUMENT_FW: 'Documento de Firmware', 					
+		PRICE_TABLE: 'Tabela de Preço', 							
+		RELEASE_PLAN: 'Plano de Lançamento', 						
+		PRODUCTION: 'Compra do Primeiro Lote de Produção',		
+		ASSEMBLY: 'Instrução de Montagem', 					
+		PILOT: 'Lote Piloto', 								
+		RELEASE: 'Data de Lançamento', 						
+	}
 }
 
 global.DEPARTMENTS = [
