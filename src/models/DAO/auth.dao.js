@@ -3,11 +3,11 @@ const encrypto = require("../../services/encrypto.service");
 const authService = require("../../services/auth.service");
 
 exports.authUser = async data => {
-  console.log(data)
+  //console.log(data)
   if (data.password == undefined) throw new Error("Senha inválida!");
 
   let password = await encrypto.encryptData(data.password);
-  console.log(password)
+  //console.log(password)
   let userFinds = await User.findOne({
     email: data.email,
     password: password,
@@ -17,7 +17,7 @@ exports.authUser = async data => {
   if (userFinds) {
     userFinds.password = null
     let token = await authService.generateToken(userFinds);
-    console.log('User ' + userFinds.email + ' logged');
+    //console.log('User ' + userFinds.email + ' logged');
     return (data = {
       token,
     });
@@ -38,8 +38,8 @@ exports.resetPassword = async data => {
 };
 
 exports.verifyResetToken = async resetToken => {
-  console.log('token: ')
-  console.log(resetToken)
+  //console.log('token: ')
+  //console.log(resetToken)
   if (!resetToken || resetToken == '') throw new Error('Nenhum token fornecido');
   user = await User.findOne(
     {
@@ -50,8 +50,8 @@ exports.verifyResetToken = async resetToken => {
 };
 
 exports.verifyRegisterToken = async registerToken => {
-  console.log('token: ')
-  console.log(registerToken)
+  //console.log('token: ')
+  //console.log(registerToken)
   if (!registerToken || registerToken == '') throw new Error('Nenhum token de cadastro fornecido');
   user = await User.findOne(
     {

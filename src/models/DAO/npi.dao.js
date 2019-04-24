@@ -858,7 +858,7 @@ function hasInvalidFields(data) {
                 invalidFields.resources = data.resources.description
 
         if (data.regulations) {
-            if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg != true)))
+            if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg => reg != true)))
                 invalidFields['regulations'] = data.regulations
             if (data.regulations.standard && data.regulations.standard.other &&
                 (!data.regulations.additional || data.regulations.additional == ''))
@@ -914,7 +914,7 @@ function hasInvalidFields(data) {
                 if (!data.inStockDate)
                     invalidFields.inStockDate = data.inStockDate
                 if (data.regulations) {
-                    if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg != true)))
+                    if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg => reg != true)))
                         invalidFields['regulations'] = data.regulations
                     if (data.regulations.standard && data.regulations.standard.other &&
                         (!data.regulations.additional || data.regulations.additional == ''))
@@ -958,7 +958,7 @@ function hasInvalidFields(data) {
                 }
             }*/
             if (data.regulations) {
-                if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg != true)))
+                if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg => reg != true)))
                     invalidFields['regulations'] = data.regulations
                 if (data.regulations.standard && data.regulations.standard.other &&
                     (!data.regulations.additional || data.regulations.additional == ''))
@@ -983,7 +983,7 @@ function hasInvalidFields(data) {
             }
             if (!data.inStockDate) invalidFields.inStockDate = data.inStockDate
             if (data.regulations) {
-                if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg != true)))
+                if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg => reg != true)))
                     invalidFields['regulations'] = data.regulations
                 if (data.regulations.standard && data.regulations.standard.other &&
                     (!data.regulations.additional || data.regulations.additional == ''))

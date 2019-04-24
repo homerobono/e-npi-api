@@ -35,15 +35,15 @@ exports.createUser = async function(data){
     //data.password = await encryptoService.encryptData(data.password);
     data.created = Date.now();
     data.password = data.newPassword;
-    console.log(data)
+    //console.log(data)
     try{
         // Saving the User
         let newUser = await User.create(data);
         //var savedUser = await newUser.save()
-        console.log('saved: '+newUser)
+        //console.log('saved: '+newUser)
         return newUser;
     } catch(e) {
-        console.log(e)
+        //console.log(e)
         // return a Error message describing the reason     
         throw Error(e)
     }
@@ -69,14 +69,14 @@ exports.updateUser = async function(thisUser, data){
     
     for (var prop in data.user) {
         if (oldUser[prop]!=null) {
-            console.log('setting '+prop+', from '+oldUser[prop]+' to '+data.user[prop]);
+            //console.log('setting '+prop+', from '+oldUser[prop]+' to '+data.user[prop]);
             oldUser[prop] = data.user[prop];
         }
     }
 
     try{
         var savedUser = await oldUser.save();
-        console.log(savedUser);
+        //console.log(savedUser);
         return savedUser;
     }catch(e){
         throw Error("An error occured while updating the User");

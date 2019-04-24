@@ -22,8 +22,8 @@ exports.resetPassword = async (req, res, next) => {
     try {
       let user = await authDAO.verifyResetToken(req.params.resetToken);
       req.body.user = user;  
-      console.log('body: ');
-      console.log(req.body);
+      //console.log('body: ');
+      //console.log(req.body);
       let result = await authDAO.resetPassword(req.body);
       res.status(200).send({
         success: true,
@@ -38,7 +38,7 @@ exports.resetPassword = async (req, res, next) => {
 
 exports.authorizeRegisterToken = async (req, res, next) => {
   try{
-    console.log(req.params.registerToken);
+    //console.log(req.params.registerToken);
     let result = await authDAO.verifyRegisterToken(req.params.registerToken);
     next()
   } catch (err){
@@ -50,7 +50,7 @@ exports.authorizeRegisterToken = async (req, res, next) => {
 
 exports.verifyRegisterToken = async (req, res, next) => {
   try{
-    console.log(req.params.registerToken);
+    //console.log(req.params.registerToken);
     let result = await authDAO.verifyRegisterToken(req.params.registerToken);
     res.status(200).send({
       success: true,
@@ -65,7 +65,7 @@ exports.verifyRegisterToken = async (req, res, next) => {
 
 exports.authorizeResetToken = async (req, res, next) => {
   try{
-    console.log(req.params.ResetToken);
+    //console.log(req.params.ResetToken);
     let result = await authDAO.verifyResetToken(req.params.resetToken);
     next()
   } catch (err){
@@ -78,7 +78,7 @@ exports.authorizeResetToken = async (req, res, next) => {
 
 exports.verifyResetToken = async (req, res, next) => {
   try{
-    console.log(req.params.resetToken);
+    //console.log(req.params.resetToken);
     let result = await authDAO.verifyResetToken(req.params.resetToken);
     res.status(200).send({
       success: true,
@@ -95,7 +95,7 @@ exports.sendResetToken = async (req, res, next) => {
   try {
     var token = await crypto.randomBytes(20).toString('hex');
     let thisUser = await userDAO.findUserByEmail(req.params.email)
-    console.log(thisUser);
+    //console.log(thisUser);
 
     if (!thisUser) {
       res.status(400).send({ error:'Não existe conta cadastrada com o e-mail '+req.params.email+'.' });
@@ -108,9 +108,9 @@ exports.sendResetToken = async (req, res, next) => {
 
     let userId = thisUser._id;
 
-    console.log('saving token in db');
+    //console.log('saving token in db');
     await userDAO.updateUser(thisUser, {userId: userId, user: userData})
-    console.log('saved');
+    //console.log('saved');
   
     let result = await mailerService.sendResetEmail(req.params.email, token)
     if (result)
@@ -118,11 +118,11 @@ exports.sendResetToken = async (req, res, next) => {
         'Um e-mail foi enviado para ' + req.params.email + ' com instruções para alterar sua senha.'
       });
     else {
-      console.log('Algo deu errado')
+      //console.log('Algo deu errado')
       res.status(400).send({message: 'Erro ao enviar e-mail'});
     }
   } catch (err) {
-    console.log(err)
+    //console.log(err)
     res.status(400).send(err);
   }
 }

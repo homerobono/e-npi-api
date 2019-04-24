@@ -23,19 +23,19 @@ exports.createPendingUser = async function (data) {
         data.registerExpires = Date.now() + 3600000 * 24 * 30 //30 dias
     data.status = 'pending'
 
-    console.log('saving register token in db');
-    console.log(data)
+    //console.log('saving register token in db');
+    //console.log(data)
     try {
         var newUser
         var actualUser = await User.findOne({ email: data.email, status: 'disabled' })
         if (actualUser) {
-            console.log('overwriting disabled user')
+            //console.log('overwriting disabled user')
             newUser = await this.updateUser(null, { userId: actualUser._id, user: data })
         } else {
-            console.log('creating new user')
+            //console.log('creating new user')
             newUser = await User.create(data);
         }
-        console.log('saved: ' + newUser)
+        //console.log('saved: ' + newUser)
         return newUser;
     } catch (e) {
         console.log(e)
@@ -78,7 +78,7 @@ exports.createUser = async function (data) {
     try {
         // Saving the User
         let newUser = await pendingUser.save();
-        console.log('saved: ' + newUser)
+        //console.log('saved: ' + newUser)
         return newUser;
     } catch (e) {
         console.log(e)
@@ -107,7 +107,7 @@ exports.updateUser = async function (thisUser, data) {
 
         for (var prop in data.user) {
             if (oldUser[prop] != null) {
-                console.log('setting ' + prop + ', from ' + oldUser[prop] + ' to ' + data.user[prop]);
+                //console.log('setting ' + prop + ', from ' + oldUser[prop] + ' to ' + data.user[prop]);
                 oldUser[prop] = data.user[prop];
             }
         }

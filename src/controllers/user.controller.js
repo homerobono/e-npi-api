@@ -11,7 +11,7 @@ exports.getUser = async (req, res, next) => {
     let id = req.user.data._id;
     try {
       let user = await userDAO.findUserById(id);
-      console.log(user);
+      //console.log(user);
       res.status(200).send(user);
     } catch (err) {
       res.status(400).send({
@@ -81,7 +81,7 @@ exports.findUserById = async (req, res, next) => {
   
       try{
           // Calling the Service function with the new object from the Request Body
-          console.log(req.body)
+          //console.log(req.body)
           var updatedUser = await userDAO.updateUser(req.user.data, req.body)
           await sendRegisterToken(updatedUser)
           return res.status(201).send(
@@ -99,7 +99,7 @@ exports.findUserById = async (req, res, next) => {
 exports.createUser = async function(req, res, next){
 // Req.Body contains the form submit values.
     var user = req.body;
-    console.log(user)
+    //console.log(user)
 
     try{
         // Calling the Service function with the new object from the Request Body
@@ -112,7 +112,7 @@ exports.createUser = async function(req, res, next){
 }
 
 exports.updateUser = async function(req, res, next){
-    console.log(req.body)
+    //console.log(req.body)
     try{
         var updatedUser = await userDAO.updateUser(req.user.data, req.body)
         return res.status(200).send({status: 200, data: updatedUser, message: "Succesfully updated User"})
@@ -122,7 +122,7 @@ exports.updateUser = async function(req, res, next){
 }
 
 exports.removeUser = async function(req, res, next){
-    console.log(req.params)
+    //console.log(req.params)
     if (req.user.data.level > 0) {
         try {
           let user = await userDAO.deleteUser(req.params.id);
@@ -144,7 +144,7 @@ async function sendRegisterToken(user) {
     var token = user.registerToken
     //let userId = thisUser._id;
   
-    console.log(user)
+    //console.log(user)
     let result = await mailerService.sendRegisterEmail(user.email, token)
     if (result)
       return result;
