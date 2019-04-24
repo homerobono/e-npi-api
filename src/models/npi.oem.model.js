@@ -13,6 +13,10 @@ var OemSchema = new mongoose.Schema({
         }
     },
     regulations: {
+        none: {
+            type: Boolean,
+            default: null
+        },
         standard: {
             abnt: {
                 type: Boolean,

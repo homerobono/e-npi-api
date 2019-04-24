@@ -9,6 +9,9 @@ var path = require('path');
 var fs = require('fs-extra');
 var FileDescriptor = require('../file.model')
 var path = require('path');
+var Promise = require('bluebird');
+var fs = Promise.promisifyAll(require('fs-extra'));
+var path = require('path');
 
 _this = this
 
@@ -404,8 +407,10 @@ exports.cancelNpi = async function (id) {
     // Conditionally Delete the Npi
     try {
         var toDelete = await Npi.findById(id)
-        if (toDelete.stage < 2)
+        if (toDelete.stage < 2) {
             var deleted = await Npi.remove({ _id: id })
+            fs.remove(`${global.FILES_DIR}/${id}`);
+        }
         else {
             toDelete.stage = 0
             toDelete.updated = Date.now()
@@ -422,7 +427,7 @@ exports.cancelNpi = async function (id) {
 }
 
 exports.updateAnnexList = async (npiId, path) => {
-    
+
     console.log("NPI ID: '" + npiId + "'")
     try {
         var npi = await Npi.findById(npiId)
@@ -852,8 +857,13 @@ function hasInvalidFields(data) {
             if (!data.resources.description && !data.resources.annex)
                 invalidFields.resources = data.resources.description
 
-        if (data.regulations && !(data.regulations.description || data.regulations.annex))
-            invalidFields['regulations.description'] = data.regulations.description
+        if (data.regulations) {
+            if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg != true)))
+                invalidFields['regulations'] = data.regulations
+            if (data.regulations.standard && data.regulations.standard.other &&
+                (!data.regulations.additional || data.regulations.additional == ''))
+                invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
+        }
 
         if (!data.fiscals) invalidFields.fiscals = data.fiscals
 
@@ -903,9 +913,13 @@ function hasInvalidFields(data) {
                     invalidFields.cost = data.cost
                 if (!data.inStockDate)
                     invalidFields.inStockDate = data.inStockDate
-                if (data.regulations)
-                    if (data.regulations.standard.other && (!data.regulations.additional || data.regulations.additional == ''))
+                if (data.regulations) {
+                    if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg != true)))
+                        invalidFields['regulations'] = data.regulations
+                    if (data.regulations.standard && data.regulations.standard.other &&
+                        (!data.regulations.additional || data.regulations.additional == ''))
                         invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
+                }
                 if (!data.demand) invalidFields.demand = data.demand
                 else {
                     if (!data.demand.amount && data.demand.amount != 0) invalidFields['demand.amount'] = data.demand.amount
@@ -943,10 +957,13 @@ function hasInvalidFields(data) {
                     //    invalidFields['oemActivities.' + i + '.annex'] = activity.annex
                 }
             }*/
-            if (data.regulations)
-                if (data.regulations.standard.other &&
+            if (data.regulations) {
+                if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg != true)))
+                    invalidFields['regulations'] = data.regulations
+                if (data.regulations.standard && data.regulations.standard.other &&
                     (!data.regulations.additional || data.regulations.additional == ''))
                     invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
+            }
             break;
         case 'custom':
             if (data.price && !data.price.value && data.price.value !== 0)
@@ -965,9 +982,13 @@ function hasInvalidFields(data) {
                 invalidFields.npiRef = data.npiRef
             }
             if (!data.inStockDate) invalidFields.inStockDate = data.inStockDate
-            if (data.regulations)
-                if (data.regulations.standard.other && (!data.regulations.additional || data.regulations.additional == ''))
+            if (data.regulations) {
+                if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg != true)))
+                    invalidFields['regulations'] = data.regulations
+                if (data.regulations.standard && data.regulations.standard.other &&
+                    (!data.regulations.additional || data.regulations.additional == ''))
                     invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
+            }
             if (!data.demand) invalidFields.demand = data.demand
             else {
                 if (!data.demand.amount && data.demand.amount != 0) invalidFields['demand.amount'] = data.demand.amount
