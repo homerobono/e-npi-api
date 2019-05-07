@@ -234,15 +234,15 @@ exports.migrateUpdateNpi = async function (user, npi) {
             npi.npiRef = npiRef._id
     }
 
-    if (npi.stage < 4) { //client approval and below
-        delete npi.activities
-        if (npi.stage < 3) { //critical analysis and below
-            delete npi.clientApproval
-            if (npi.stage < 2) { //draft or canceled
-                delete npi.critical
-            }
-        }
-    }
+    //if (npi.stage < 4) { //client approval and below
+    //    delete npi.activities
+    //    if (npi.stage < 3) { //critical analysis and below
+    //        delete npi.clientApproval
+    //        if (npi.stage < 2) { //draft or canceled
+    //            delete npi.critical
+    //        }
+    //    }
+   // }
     //console.log('npi')
     //console.log(npi)
     //console.log('oldNpi')
