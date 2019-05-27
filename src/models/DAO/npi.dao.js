@@ -242,7 +242,7 @@ exports.migrateUpdateNpi = async function (user, npi) {
     //            delete npi.critical
     //        }
     //    }
-   // }
+    // }
     //console.log('npi')
     //console.log(npi)
     //console.log('oldNpi')
@@ -906,7 +906,7 @@ function hasInvalidFields(data) {
 
     switch (kind) {
         case 'pixel':
-            if (data.stage == 1) {
+            if (data.stage == 1 || data.stage == 2) {
                 if (data.price && !data.price.value && data.price.value !== 0)
                     invalidFields.price = data.price
                 if (data.cost && !data.cost.value && data.cost.value !== 0)
@@ -966,33 +966,35 @@ function hasInvalidFields(data) {
             }
             break;
         case 'custom':
-            if (data.price && !data.price.value && data.price.value !== 0)
-                invalidFields.price = data.price
-            if (data.cost && !data.cost.value && data.cost.value !== 0)
-                invalidFields.cost = data.cost
-            if (data.npiRef != null && data.npiRef != undefined && data.npiRef != '') {
-                if (data.npiRef instanceof mongoose.Types.ObjectId)
-                    var npiRef = Npi.findOne({ _id: data.npiRef, stage: { $ne: 1 } })
-                else
-                    var npiRef = Npi.findOne({ number: data.npiRef, stage: { $ne: 1 } })
+            if (data.stage == 1) {
+                if (data.price && !data.price.value && data.price.value !== 0)
+                    invalidFields.price = data.price
+                if (data.cost && !data.cost.value && data.cost.value !== 0)
+                    invalidFields.cost = data.cost
+                if (data.npiRef != null && data.npiRef != undefined && data.npiRef != '') {
+                    if (data.npiRef instanceof mongoose.Types.ObjectId)
+                        var npiRef = Npi.findOne({ _id: data.npiRef, stage: { $ne: 1 } })
+                    else
+                        var npiRef = Npi.findOne({ number: data.npiRef, stage: { $ne: 1 } })
 
-                if (!npiRef)
+                    if (!npiRef)
+                        invalidFields.npiRef = data.npiRef
+                } else {
                     invalidFields.npiRef = data.npiRef
-            } else {
-                invalidFields.npiRef = data.npiRef
-            }
-            if (!data.inStockDate) invalidFields.inStockDate = data.inStockDate
-            if (data.regulations) {
-                if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg => reg != true)))
-                    invalidFields['regulations'] = data.regulations
-                if (data.regulations.standard && data.regulations.standard.other &&
-                    (!data.regulations.additional || data.regulations.additional == ''))
-                    invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
-            }
-            if (!data.demand) invalidFields.demand = data.demand
-            else {
-                if (!data.demand.amount && data.demand.amount != 0) invalidFields['demand.amount'] = data.demand.amount
-                if (!data.demand.period) invalidFields['demand.period'] = data.demand.period
+                }
+                if (data.inStockDate != null && data.inStockDate != undefined) invalidFields.inStockDate = data.inStockDate
+                if (data.regulations) {
+                    if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg => reg != true)))
+                        invalidFields['regulations'] = data.regulations
+                    if (data.regulations.standard && data.regulations.standard.other &&
+                        (!data.regulations.additional || data.regulations.additional == ''))
+                        invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
+                }
+                if (data.demand != null && data.demand != undefined) invalidFields.demand = data.demand
+                else {
+                    if (!data.demand.amount && data.demand.amount != 0) invalidFields['demand.amount'] = data.demand.amount
+                    if (!data.demand.period) invalidFields['demand.period'] = data.demand.period
+                }
             }
             break;
 
