@@ -119,56 +119,6 @@ var NpiSchema = new mongoose.Schema({
             default: []
         }
     },
-    activities: {
-        type: [{
-            activity: {
-                type: String,
-                default: null
-            },
-            apply: {
-                type: Boolean,
-                default: true
-            },
-            dept: {
-                type: String,
-                enum: (Array.from(global.DEPARTMENTS).concat([null])),
-                default: null
-            },
-            responsible: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'User',
-                default: null
-            },
-            term: {
-                type: Number,
-                default: null
-            },
-            registry: {
-                type: String,
-                default: null
-            },
-            annex: {
-                type: String,
-                default: null
-            },
-            closed: {
-                type: Boolean,
-                default: false,
-            },
-            signature: {
-                date: {
-                    type: Date,
-                    default: null
-                },
-                user: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: 'User',
-                    default: null
-                }
-            }
-        }],
-        default: null
-    },
     critical: {
         type: [{
             dept: {
@@ -219,6 +169,56 @@ var NpiSchema = new mongoose.Schema({
                 default: null
             }
         }
+    },
+    activities: {
+        type: [{
+            activity: {
+                type: String,
+                default: null
+            },
+            apply: {
+                type: Boolean,
+                default: true
+            },
+            dept: {
+                type: String,
+                enum: (Array.from(global.DEPARTMENTS).concat([null])),
+                default: null
+            },
+            responsible: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+                default: null
+            },
+            term: {
+                type: Number,
+                default: null
+            },
+            registry: {
+                type: String,
+                default: null
+            },
+            annex: {
+                type: String,
+                default: null
+            },
+            closed: {
+                type: Boolean,
+                default: false,
+            },
+            signature: {
+                date: {
+                    type: Date,
+                    default: null
+                },
+                user: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
+                    default: null
+                }
+            }
+        }],
+        default: null
     },
     validation: {
         status: {
@@ -304,6 +304,12 @@ var NpiSchema = new mongoose.Schema({
     updated: {
         type: Date,
         default: Date.now()
+    },
+    notify: {
+        critical: {
+            type: Date,
+            default: null
+        },
     },
     options
 });

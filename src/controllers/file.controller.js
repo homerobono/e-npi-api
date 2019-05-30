@@ -28,7 +28,7 @@ exports.uploadFiles = multer({ storage: storage }).any()
 
 exports.uploadResponse = function (req, res, next) {
   console.log('Upload Body', req.body, req.files)
-  npiDao.updateAnnexList(req.body._id, req.body.destination+'/')
+  npiDao.updateAnnexList(req.body._id, req.body.destination + '/')
   res.status(200).send({
     "result": {
       "success": true,
@@ -106,12 +106,10 @@ exports.download = function (req, res, next) {
 
   var mimeType = mime.lookup(filePath);
   console.log('mimetype: ' + mimeType);
-
   res.setHeader('Content-disposition', 'attachment; filename=' + fileName);
   res.setHeader('Content-type', mimeType);
 
-  promise = promise.then(function (stat) {
-
+  return promise.then(function (stat) {
     if (!stat.isFile()) {
       console.log('Element is folder: compressing and sending to downloading')
       var output = fs.createWriteStream('/tmp/' + fileName + '-compressed.zip');
@@ -148,9 +146,7 @@ exports.download = function (req, res, next) {
       var filestream = fs.createReadStream(filePath);
       filestream.pipe(res);
     }
-  });
-
-  promise = promise.catch(function (err) {
+  }).catch(function (err) {
     res.status(500);
     res.send({
       "result": {
@@ -159,8 +155,6 @@ exports.download = function (req, res, next) {
       }
     });
   });
-
-  return promise;
 }
 
 exports.remove = function (req, res, next) {
