@@ -1,9 +1,9 @@
 "use strict";
 
-global.URL_BASE = "http://191.252.113.160";
+//global.URL_BASE = "http://191.252.113.160";
 //global.URL_BASE = "http://192.168.1.131";
 //global.URL_BASE = "http://192.168.0.4";
-//global.URL_BASE = "http://localhost:4200";
+global.URL_BASE = "http://localhost";
 //global.URL_BASE = "http://localhost:6002";
 //global.URL_BASE = "http://10.0.0.174:4200";
 //global.URL_BASE = "http://iraflor.com.br";
@@ -120,6 +120,14 @@ global.NPI_PIXEL_CRITICAL_DEPTS = ['MPR', 'PRO', 'OPR', 'ADM', 'COM']
 global.NPI_INTERNAL_CRITICAL_DEPTS = ['PRO', 'OPR', 'ADM', 'COM']
 global.NPI_CUSTOM_CRITICAL_DEPTS = ['PRO', 'OPR', 'ADM', 'COM']
 global.NPI_OEM_CRITICAL_DEPTS = ['PRO', 'OPR', 'ADM', 'COM']
+
+global.CRITICAL_DEPTS = { 
+	pixel: ['MPR', 'PRO', 'OPR', 'ADM', 'COM'],
+	internal: ['PRO', 'OPR', 'ADM', 'COM'],
+	custom: ['PRO', 'OPR', 'ADM', 'COM'],
+	oem: ['PRO', 'OPR', 'ADM', 'COM']
+}
+
 
 global.REQUEST_DEPTS = {
 	'pixel': ['MPR', 'PRO', 'OPR', 'ADM', 'COM'],

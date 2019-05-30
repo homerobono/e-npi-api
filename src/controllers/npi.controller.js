@@ -60,7 +60,7 @@ exports.createNpi = async function (req, res, next) {
   try {
     var createdNpi = await npiDAO.createNpi(req)
     var sentNotify = sendStatusNotify(req, createdNpi)
-    return res.status(201).send({ data: createdNpi, message: "Succesfully Created Npi" })
+    return res.status(201).send({ data: createdNpi, message: "Sucessfully Created Npi" })
   } catch (e) {
     console.log({ message: e.message })
     return res.status(401).send({ message: e.message })
@@ -72,7 +72,7 @@ exports.migrateNpi = async function (req, res, next) {
   try {
     var migratedNpi = await npiDAO.migrateNpi(req)
     //var sentNotify = sendStatusNotify(req, migratedNpi)
-    return res.status(201).send({ data: migratedNpi, message: "Succesfully Migrated Npi" })
+    return res.status(201).send({ data: migratedNpi, message: "Sucessfully Migrated Npi" })
   } catch (e) {
     console.log({ message: e.message })
     return res.status(401).send({ message: e.message })
@@ -86,7 +86,7 @@ exports.migrateUpdateNpi = async function (req, res, next) {
     console.log("Result", result)
     //scheduleNotifications(req, result)
     //result.sentNotify = sentNotify*/
-    return res.status(200).send({ data: result, message: "Succesfully updated NPI" })
+    return res.status(200).send({ data: result, message: "Sucessfully updated NPI" })
   } catch (e) {
     console.log(e)
     return res.status(400).send({ message: e.message })
@@ -100,7 +100,7 @@ exports.promoteNpi = async function (req, res, next) {
     var sentNotify = sendChangesNotify(req, result)
     console.log(result)
     //result.sentNotify = sentNotify*/
-    return res.status(200).send({ data: result, message: "Succesfully promoted NPI" })
+    return res.status(200).send({ data: result, message: "Sucessfully promoted NPI" })
   } catch (e) {
     console.log(e)
     return res.status(403).send({ message: e.message })
@@ -113,8 +113,8 @@ exports.newNpiVersion = async function (req, res, next) {
     var result = await npiDAO.newNpiVersion(req)
     var sentNotify = sendChangesNotify(req, result)
     console.log(result)
-    //result.sentNotify = sentNotify*/
-    return res.status(200).send({ data: result, message: "Succesfully created new NPI version" })
+    result.sentNotify = sentNotify
+    return res.status(200).send({ data: result, message: "Sucessfully created new NPI version" })
   } catch (e) {
     console.log(e)
     return res.status(403).send({ message: e.message })
@@ -124,11 +124,10 @@ exports.newNpiVersion = async function (req, res, next) {
 exports.updateNpi = async function (req, res, next) {
   try {
     var result = await npiDAO.updateNpi(req.user.data, req.body)
-    var sentNotify = sendChangesNotify(req, result)
+    //var sentNotify = sendChangesNotify(req, result)
     console.log(result)
-    //scheduleNotifications(req, result)
-    //result.sentNotify = sentNotify*/
-    return res.status(200).send({ data: result, message: "Succesfully updated NPI" })
+    //result.sentNotify = sentNotify
+    return res.status(200).send({ data: result, message: "Sucessfully updated NPI" })
   } catch (e) {
     console.log(e)
     return res.status(400).send({ message: e.message })
