@@ -43,7 +43,7 @@ exports.sendResetEmail = async (email, token) => {
             'Se você não fez essa solicitação, ou não sabe do que essa mensagem se trata, ignore esse e-mail.<br><br>' +
             ''
     };
-    console.log('sending mail');
+    console.log('[mail-service] Sending reset password e-mail to', email);
     return await smtpTransport.sendMail(mailOptions)
 }
 
@@ -65,7 +65,7 @@ exports.sendRegisterEmail = async (email, token) => {
             'Você tem 30 dias para completar o seu cadastro. Após esse período, contate o administrador ' +
             'para reenviar o link de confirmação.<br><br>'
     };
-    console.log('sending mail');
+    console.log('[mail-service] Sending register invite e-mail to', email);
     return await smtpTransport.sendMail(mailOptions)
 }
 
@@ -140,14 +140,14 @@ exports.sendNpiStatusEmail = async (users, updateData) => {
     var results = []
     for (var i = 0; i < users.length; i++) {
         var user = users[i]
-        console.log('preparing email to ' + user.email);
+        //console.log('preparing email to ' + user.email);
         var mailOptions = {
             to: user.email,
             from: npiEmail,
             subject: email.subject,
             html: email.body
         };
-        console.log('sending mail');
+        console.log('[mail-service] Sending status change e-mail to', users);
         var result
         try {
             result = await smtpTransport.sendMail(mailOptions)
@@ -176,7 +176,7 @@ exports.sendNpiChangesEmail = async (users, updateData) => {
     var results = []
     for (var i = 0; i < users.length; i++) {
         var user = users[i]
-        console.log('preparing email to ' + user.email);
+        //console.log('preparing email to ' + user.email);
         var mailOptions = {
             to: user.email,
             from: npiEmail,
@@ -190,7 +190,7 @@ exports.sendNpiChangesEmail = async (users, updateData) => {
                 'Acesse a ' + npiLink + ' para conferir as alterações realizadas.<br>' +
                 footNote
         };
-        console.log('sending mail');
+        console.log('[mail-service] Sending npi updates e-mail to', users);
         var result
         try {
             result = await smtpTransport.sendMail(mailOptions)
@@ -223,7 +223,7 @@ exports.sendCriticalAnalisysReminder = async (users, npi) => {
                 'Acesse a ' + npiLink + ' para registrar a sua análise.<br>' +
                 footNote
         };
-        console.log('sending mail');
+        console.log('[mail-service] Sending critical analisys reminder e-mail to', users);
         var result
         try {
             result = await smtpTransport.sendMail(mailOptions)
