@@ -1,4 +1,5 @@
 var mailer = require('nodemailer');
+var npiDAO = require('../models/DAO/npi.dao')
 
 var footNote = '<div style="color: #888; background-color: #f2f2f2; ' +
     'padding: 10px 16px 10px 16px; margin: 25px 40px 10px 40px"><small>' +
@@ -70,6 +71,7 @@ exports.sendRegisterEmail = async (email, token) => {
 
 exports.sendNpiStatusEmail = async (users, updateData) => {
     console.log('selecting email message')
+    let notifyField
     var npiLink = '<a href="' + global.URL_BASE + '/npi/' +
         updateData.npi.number + '">NPI #' + updateData.npi.number +
         ' - ' + updateData.npi.name + '</a>'
@@ -103,6 +105,7 @@ exports.sendNpiStatusEmail = async (users, updateData) => {
                     '<b>Autor:</b> ' + authorOfChanges + '</div><div>' +
                     'Acesse a ' + npiLink + ' para conferir os detalhes da proposta.<br></div>'
             }
+            notifyField = 'critical'
             break;
         case 3:
             var email = {
@@ -153,6 +156,7 @@ exports.sendNpiStatusEmail = async (users, updateData) => {
         }
         results.push(result)
     };
+    npiDAO.updateNotify(npi._id, notifyField)
     return results
 }
 

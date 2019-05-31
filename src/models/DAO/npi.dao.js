@@ -1251,7 +1251,8 @@ exports.updateNotify = async function (npiId, param) {
                 break
         }
     }
-    npi = await Npi.findByIdAndUpdate(npiId, data)
-    console.log("update notify", npi.notify)
+    if (data)
+        npi = await Npi.findByIdAndUpdate(npiId, data)
+    //console.log("update notify", npi.notify)
     return npi
 }
