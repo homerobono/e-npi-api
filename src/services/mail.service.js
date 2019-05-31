@@ -91,7 +91,7 @@ exports.sendNpiStatusEmail = async (users, updateData) => {
         case 1:
             return "E-mail shouldn't be sent for draft status"
         case 2:
-            users = users.filter(user => global.CRITICAL_DEPTS[updateData.npi.__t].includes(user.department))
+            users = users.filter(user => global.CRITICAL_DEPTS[updateData.npi.__t].includes(user.department) && user.level==1)
             var email = {
                 subject: 'NPI Submetida para Análise Crítica',
                 body:
