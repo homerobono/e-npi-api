@@ -363,12 +363,11 @@ exports.updateNpi = async function (user, npi) {
         console.log("updated Object")
         console.log(oldNpi)
     */
-    console.log('changedFields')
-    console.log(changedFields)
+    console.log('changedFields', changedFields)
 
     try {
         if (oldNpi.stage != 1) {
-            var invalidFields = hasInvalidFields(npi)
+            var invalidFields = hasInvalidFields(npi, oldNpi)
             if (invalidFields) throw ({ errors: invalidFields })
         }
         if (!Object.keys(changedFields).length) return { npi: oldNpi, changedFields }
@@ -787,8 +786,8 @@ function advanceToClientApproval(data) {
     return data
 }
 
-function hasInvalidFields(data) {
-    //console.log('Analysing invalid fields')
+function hasInvalidFields(data, npi) {
+    console.log('[npi-dao] [invalid-fields] Analysing invalid fields', data)
     var invalidFields = {}
 
     if (data.stage == 1) {
@@ -826,6 +825,14 @@ function hasInvalidFields(data) {
             if ((!data.projectCost.value && data.projectCost.value !== 0) &&
                 (!data.projectCost.annex || !data.projectCost.annex.length))
                 invalidFields.projectCost = data.projectCost.value
+    } else if (data.stage == 4){
+        console.log(data)
+        if (data.activities)
+            data.activities.forEach(activity => {
+                files = this.updateAnnexList(data.id, `activities.${activity.activity}`)
+                if (!files)
+                    invalidFields[`activities.${activity.activity}`] = files
+            })
     }
 
     if (data.critical && data.critical.length > 0) {
@@ -1129,6 +1136,7 @@ function updateObject(oldObject, newObject) {
                 newObject[prop] instanceof mongoose.Types.ObjectId ||
                 newObject[prop] == null || newObject[prop] === null
             ) {
+                //console.log(oldObject[prop], newObject[prop])
                 if (typeof oldObject[prop] !== "undefined") {
                     let objectsDiffer = false
                     if (oldObject[prop] == null || newObject[prop] == null) {
@@ -1171,13 +1179,15 @@ function updateObject(oldObject, newObject) {
 
                         oldObject[prop] = newObject[prop]
                         changedFields[prop] = newObject[prop]
+                        //console.log("subresult:", oldObject, changedFields)
                     }
                 }
             } else if (Array.isArray(newObject[prop])) {
-                //console.log(prop + ' is array')
+                console.log(prop + ' is array')
                 if (!oldObject[prop]) {
+                    //console.log('property is new, setting it entirely')
                     oldObject[prop] = newObject[prop]
-                    changedFields = newObject[prop]
+                    changedFields[prop] = newObject[prop]
                 } else {
                     let changedFieldsArr = []
                     for (let i = 0; i < newObject[prop].length; i++) {
@@ -1186,6 +1196,7 @@ function updateObject(oldObject, newObject) {
                         for (let j = 0; j < oldObject[prop].length; j++) {
                             let oldChild = oldObject[prop][j]
                             if (newChild._id == oldChild._id) {
+                                //console.log('recursing array object')
                                 let childResult = updateObject(oldChild, newChild)
                                 Object.assign(oldObject[prop][j], childResult.updatedObject)
                                 if (Object.keys(childResult.changedFields).length > 0) {
@@ -1200,13 +1211,16 @@ function updateObject(oldObject, newObject) {
                         if (!childExists) {
                             //console.log('Arrays are different, pushing new child')
                             oldObject[prop].push(newChild)
+                            if (!changedFields[prop])
+                                changedFields[prop] = []
+                            changedFields[prop].push(newChild)
                         }
                     }
                     if (changedFieldsArr.length > 0)
                         changedFields[prop] = changedFieldsArr
                 }
             } else if (Object.keys(newObject[prop]).length > 0) {
-                //console.log('recursing ' + prop + ' in ' + newObject[prop])
+                //console.log('recursing ' + prop + ' in ', newObject[prop])
                 //console.log(prop + ' is instance of ' + typeof npi[prop])
                 if (oldObject[prop] == null) {
                     oldObject[prop] = newObject[prop]
@@ -1216,15 +1230,16 @@ function updateObject(oldObject, newObject) {
                     Object.assign(oldObject[prop], childResult.updatedObject)
                     if (Object.keys(childResult.changedFields).length > 0)
                         changedFields[prop] = childResult.changedFields
-                    //console.log(result)
+                    //console.log(childResult)
                 }
             } else {
                 //console.log(prop + ' is instance of ' + typeof npi[prop])
             }
         }
     } catch (e) {
-        console.log(e)
+        console.error("[npi-update] [update-object]", e)
     }
+    //console.log("RETURN OBJ:", { 'updatedObject': oldObject, 'changedFields': changedFields })
     return { 'updatedObject': oldObject, 'changedFields': changedFields }
 }
 
