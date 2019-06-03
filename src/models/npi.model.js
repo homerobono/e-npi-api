@@ -199,7 +199,7 @@ var NpiSchema = new mongoose.Schema({
                 default: null
             },
             annex: {
-                type: String,
+                type: Object,
                 default: null
             },
             closed: {
