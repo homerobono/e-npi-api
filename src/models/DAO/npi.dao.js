@@ -12,6 +12,7 @@ var path = require('path');
 var Promise = require('bluebird');
 var fs = Promise.promisifyAll(require('fs-extra'));
 var path = require('path');
+var dateformat = require('../../controllers/utils/dateformat');
 
 _this = this
 
@@ -411,28 +412,55 @@ exports.updateAnnexList = async (npiId, field) => {
     try {
         var npi = await Npi.findById(npiId)
     } catch (e) {
-        throw Error("Error occured while Finding the Npi")
+        throw Error("[file-controller] Error occured while Finding the Npi")
     }
 
     if (!npi) {
-        throw Error("No NPI id " + npiId)
+        throw Error("[file-controller] No NPI id " + npiId)
     }
     //console.log('NPI for files:', npi)
     try {
-        console.log('dir structure')
-        console.log(field)
+        //console.log('dir structure')
+        console.log("[file-controller] field", field)
         //console.log(await fs.readdir(global.FILES_DIR + '/' + npiId))
-        var files = await read(global.FILES_DIR + '/' + npiId)
-        //console.log(files)
-        files = await files.map(file => file.replace(`${global.FILES_DIR}\/${npiId}`, ''))
-        console.log(files)
-        npi[field]
+        //var files = fs.readdirSync() 
+        var files = read(global.FILES_DIR + '/' + npiId).map(filePath => {
+            console.log("REGEXP", filePath, filePath.replace(/.*\/([^\/]*)$/, '$1'),
+                //filePath.replace(/.*\/([^\/]*)$/, ''),
+            )
+            try {
+                var stat = fs.statSync(filePath)
+            } catch (err) {
+                throw ("[file-controller] error reading stats:", err)
+            }
+            console.log("STAT", stat)
+            return {
+                name: filePath.replace(/.*\/([^\/]*)$/, '$1'),
+                rights: "drwxr-xr-x", // TODO
+                size: stat.size,
+                date: dateformat.dateToString(stat.mtime),
+                type: stat.isDirectory() ? 'dir' : 'file',
+                path: filePath.replace(/.*\/([^\/]*)$/, '$1'),
+            }
+        })
+
+        console.log("[file-controller] files readed")
+        //files = await files.map(file => file.replace(`${global.FILES_DIR}${npiId}`, ''))
+        console.log("[file-controller] files", `${global.FILES_DIR}${npiId}`, files)
+        let subfields = field.split('.')
+        console.log('[file-controller] subfields', subfields)
+        if (subfields[0] == 'activities' || subfields[0] == 'oemActivities')
+            var actIndex = npi[subfields[0]].findIndex(act => act.activity == subfields[1])
+        npi[subfields[0]][actIndex].annex = files
         /*var invalidFields = hasInvalidFields(npi)
         console.log(invalidFields)
         if (invalidFields) throw ({ errors: invalidFields })
-        npi = await evolve(req, npi)
-        var savedNpi = await npi.save()
-        return { npi: savedNpi, changedFields }*/
+        npi = await evolve(req, npi)*/
+        if (actIndex > -1) {
+            console.log("[file-controlller] npi:", npi[subfields[0]][actIndex])
+            var savedNpi = await npi.save()
+            return { npi: savedNpi, changedFields }
+        }
     } catch (e) {
         throw ({ message: e })
     }
@@ -579,18 +607,18 @@ async function evolve(req, npi) {
             } else throw ('NPI não passou na análise crítica')
             break
         case 3:
-            if (npi.stage == 3) {
-                if (npi.clientApproval) {
-                    if (npi.clientApproval.approval == 'accept') {
-                        npi.clientApproval = clientSign(req.user.data, npi.clientApproval)
-                        npi = advanceToDevelopment(npi, req.user.data)
-                    }
-                } else
-                    npi.clientApproval = { approval: null, comment: null }
-            } else throw ('NPI não passou na aprovação do cliente')
+            if (npi.clientApproval) {
+                if (npi.clientApproval.approval == 'accept') {
+                    npi.clientApproval = clientSign(req.user.data, npi.clientApproval)
+                    npi = advanceToDevelopment(npi, req.user.data)
+                }
+            } else
+                npi.clientApproval = { approval: null, comment: null }
             break
         case 4:
-            npi = closeNpi(npi)
+            if (npi.activities.every(activity => !activity.apply || activity.closed))
+                npi = closeNpi(npi)
+            else throw ('NPI possui atividades em aberto')
             break
         default:
             break
