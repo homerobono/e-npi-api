@@ -346,14 +346,23 @@ exports.updateNpi = async function (user, npi) {
             }
         }
     }
-    console.log('npi')
-    console.log(npi)
-    console.log('oldNpi')
-    console.log(oldNpi)
+    //console.log('npi')
+    //console.log(npi)
+    //console.log('oldNpi')
+    //console.log(oldNpi)
 
     var updateResult = updateObject(oldNpi, npi)
 
+    if (updateResult.updatedObject.stage == 2 && updateResult.updatedObject.critical &&
+        updateResult.updatedObject.critical.some(analisys => analisys.status == 'deny') &&
+        Object.keys(updateResult.changedFields).some(field => field != 'critical' && field != 'activities')) {
+        console.log(`[npi-update] Npi ${oldNpi.number} changed after critical reproval`)
+        updateResult.updatedObject = advanceToAnalisys(updateResult.updatedObject)
+        updateResult.changedFields.critical = updateResult.updatedObject.critical
+    }
+
     var changedFields = updateResult.changedFields
+
     oldNpi = updateResult.updatedObject
 
     oldNpi.critical = criticalSign(user, oldNpi.critical, changedFields.critical)
@@ -364,20 +373,23 @@ exports.updateNpi = async function (user, npi) {
         console.log("updated Object")
         console.log(oldNpi)
     */
-    console.log('changedFields', changedFields)
+    console.log('[npi-update] changedFields', changedFields)
 
     try {
+        //oldNpi.activities = []
+        //oldNpi.stage = 2
+        //console.log("OLDNPI", oldNpi)
+        //var savedNpi = await oldNpi.save()
+
         if (oldNpi.stage != 1) {
             var invalidFields = hasInvalidFields(npi, oldNpi)
+            console.log('[npi-update] invalid fields', invalidFields)
             if (invalidFields) throw ({ errors: invalidFields })
         }
         if (!Object.keys(changedFields).length) return { npi: oldNpi, changedFields }
         oldNpi.updated = Date.now()
         var savedNpi = await oldNpi.save()
-        //var savedNpi = Npi.findByIdAndUpdate(oldNpi._id, npi)
-        //console.log(savedNpi)
         return { npi: savedNpi, changedFields: changedFields }
-        //return savedNpi;
     } catch (e) {
         console.log(e)
         throw ({ message: e })
@@ -407,6 +419,56 @@ exports.cancelNpi = async function (id) {
     }
 }
 
+exports.getAnnexList = async (npiId, field) => {
+    try {
+        var npi = await Npi.findById(npiId)
+    } catch (e) {
+        throw Error("[file-controller] Error occured while Finding the Npi")
+    }
+
+    if (!npi) {
+        throw Error("[file-controller] No NPI id " + npiId)
+    }
+    //console.log('NPI for files:', npi)
+    try {
+        //console.log('dir structure')
+        console.log("[file-controller] path, field", `${global.FILES_DIR}${npiId}/${field}`, field)
+        //var files = fs.readdirSync() 
+        var files = read(`${global.FILES_DIR}${npiId}/${field}`).map(filePath => {
+            //console.log("REGEXP", filePath, filePath.replace(/.*\/([^\/]*)$/, '$1'),
+            //filePath.replace(/.*\/([^\/]*)$/, ''),
+            //)
+            try {
+                var stat = fs.statSync(filePath)
+            } catch (err) {
+                throw ("[file-controller] error reading stats:", err)
+            }
+            //console.log("STAT", stat)
+            return {
+                name: filePath.replace(/.*\/([^\/]*)$/, '$1'),
+                rights: `${stat.isDirectory() ? 'd' : '-'}rwxr-xr-x`, // TODO
+                size: stat.size,
+                date: dateformat.dateToString(stat.mtime),
+                type: stat.isDirectory() ? 'dir' : 'file',
+                path: filePath.replace(/(.*)\/[^\/]*$/, '$1'),
+            }
+        })
+
+        console.log("[file-controller] files readed")
+        //files = await files.map(file => file.replace(`${global.FILES_DIR}${npiId}`, ''))
+        //console.log("[file-controller] files", files)
+        let subfields = field.split('.')
+        //console.log('[file-controller] subfields', subfields)
+        if (subfields[0] == 'activities' || subfields[0] == 'oemActivities')
+            var actIndex = npi[subfields[0]].findIndex(act => act.activity == subfields[1])
+        npi[subfields[0]][actIndex].annex = files
+        return files
+    } catch (e) {
+        throw ({ message: e })
+    }
+    return null
+}
+
 exports.updateAnnexList = async (npiId, field) => {
     try {
         var npi = await Npi.findById(npiId)
@@ -420,34 +482,33 @@ exports.updateAnnexList = async (npiId, field) => {
     //console.log('NPI for files:', npi)
     try {
         //console.log('dir structure')
-        console.log("[file-controller] field", field)
-        //console.log(await fs.readdir(global.FILES_DIR + '/' + npiId))
+        console.log("[file-controller] path, field", `${global.FILES_DIR}${npiId}/${field}`, field)
         //var files = fs.readdirSync() 
-        var files = read(global.FILES_DIR + '/' + npiId).map(filePath => {
-            console.log("REGEXP", filePath, filePath.replace(/.*\/([^\/]*)$/, '$1'),
-                //filePath.replace(/.*\/([^\/]*)$/, ''),
-            )
+        var files = read(`${global.FILES_DIR}${npiId}/${field}`).map(filePath => {
+            //console.log("REGEXP", filePath, filePath.replace(/.*\/([^\/]*)$/, '$1'),
+            //filePath.replace(/.*\/([^\/]*)$/, ''),
+            //)
             try {
                 var stat = fs.statSync(filePath)
             } catch (err) {
                 throw ("[file-controller] error reading stats:", err)
             }
-            console.log("STAT", stat)
+            //console.log("STAT", stat)
             return {
                 name: filePath.replace(/.*\/([^\/]*)$/, '$1'),
-                rights: "drwxr-xr-x", // TODO
+                rights: `${stat.isDirectory() ? 'd' : '-'}rwxr-xr-x`, // TODO
                 size: stat.size,
                 date: dateformat.dateToString(stat.mtime),
                 type: stat.isDirectory() ? 'dir' : 'file',
-                path: filePath.replace(/.*\/([^\/]*)$/, '$1'),
+                path: filePath.replace(/(.*)\/[^\/]*$/, '$1'),
             }
         })
 
         console.log("[file-controller] files readed")
         //files = await files.map(file => file.replace(`${global.FILES_DIR}${npiId}`, ''))
-        console.log("[file-controller] files", `${global.FILES_DIR}${npiId}`, files)
+        //console.log("[file-controller] files", files)
         let subfields = field.split('.')
-        console.log('[file-controller] subfields', subfields)
+        //console.log('[file-controller] subfields', subfields)
         if (subfields[0] == 'activities' || subfields[0] == 'oemActivities')
             var actIndex = npi[subfields[0]].findIndex(act => act.activity == subfields[1])
         npi[subfields[0]][actIndex].annex = files
@@ -456,10 +517,11 @@ exports.updateAnnexList = async (npiId, field) => {
         if (invalidFields) throw ({ errors: invalidFields })
         npi = await evolve(req, npi)*/
         if (actIndex > -1) {
-            console.log("[file-controlller] npi:", npi[subfields[0]][actIndex])
+            //console.log("[file-controlller] npi:", npi[subfields[0]][actIndex])
             var savedNpi = await npi.save()
-            return { npi: savedNpi, changedFields }
+            return savedNpi[subfields[0]][actIndex].annex
         }
+        return null
     } catch (e) {
         throw ({ message: e })
     }
@@ -649,16 +711,23 @@ function advanceToAnalisys(data) {
         default:
             console.log('NPI entry: ' + kind)
             throw Error('Tipo de NPI inválido: ' + kind)
-    }
-    data.critical = []
-    depts.forEach(dept => {
-        data.critical.push({
-            dept: dept,
-            status: null,
-            comment: null,
-            signature: null,
+    } if (!(data.critical && data.critical.length)) {
+        data.critical = []
+        depts.forEach(dept => {
+            data.critical.push({
+                dept: dept,
+                status: null,
+                comment: null,
+                signature: null,
+            })
         })
-    })
+    } else {
+        data.critical.forEach(analisys => {
+            analisys.status = null;
+            analisys.comment = null;
+            analisys.signature = null;
+        })
+    }
     return data
 }
 
@@ -853,13 +922,14 @@ function hasInvalidFields(data, npi) {
             if ((!data.projectCost.value && data.projectCost.value !== 0) &&
                 (!data.projectCost.annex || !data.projectCost.annex.length))
                 invalidFields.projectCost = data.projectCost.value
-    } else if (data.stage == 4){
-        console.log(data)
+    } else if (data.stage == 4) {
+        console.log("[invalid-fields] Data:", data)
         if (data.activities)
             data.activities.forEach(activity => {
                 files = this.updateAnnexList(data.id, `activities.${activity.activity}`)
-                if (!files)
-                    invalidFields[`activities.${activity.activity}`] = files
+                console.log(`[npi-dao] [invalid-fields] files:`, files)
+                if (!files || !files.length)
+                    invalidFields[`activities.${activity.activity}`] = 'Atividade não possui anexos'
             })
     }
 
@@ -1211,7 +1281,7 @@ function updateObject(oldObject, newObject) {
                     }
                 }
             } else if (Array.isArray(newObject[prop])) {
-                console.log(prop + ' is array')
+                //console.log(prop + ' is array')
                 if (!oldObject[prop]) {
                     //console.log('property is new, setting it entirely')
                     oldObject[prop] = newObject[prop]
@@ -1223,7 +1293,8 @@ function updateObject(oldObject, newObject) {
                         let childExists = false
                         for (let j = 0; j < oldObject[prop].length; j++) {
                             let oldChild = oldObject[prop][j]
-                            if (newChild._id == oldChild._id) {
+                            if (newChild._id == oldChild._id ||
+                                (newChild.activity != null && (newChild.activity == oldChild.activity))) {
                                 //console.log('recursing array object')
                                 let childResult = updateObject(oldChild, newChild)
                                 Object.assign(oldObject[prop][j], childResult.updatedObject)
@@ -1237,7 +1308,7 @@ function updateObject(oldObject, newObject) {
                             }
                         }
                         if (!childExists) {
-                            //console.log('Arrays are different, pushing new child')
+                            console.log('Arrays are different, pushing new child')
                             oldObject[prop].push(newChild)
                             if (!changedFields[prop])
                                 changedFields[prop] = []

@@ -124,8 +124,8 @@ exports.newNpiVersion = async function (req, res, next) {
 exports.updateNpi = async function (req, res, next) {
   try {
     var result = await npiDAO.updateNpi(req.user.data, req.body)
-    //var sentNotify = sendChangesNotify(req, result)
-    console.log(result)
+    var sentNotify = sendChangesNotify(req, result)
+    //console.log(result)
     //result.sentNotify = sentNotify
     return res.status(200).send({ data: result, message: "Sucessfully updated NPI" })
   } catch (e) {
@@ -214,13 +214,13 @@ async function sendStatusNotify(req, npi) {
 
   var users = await userDAO.getUsers({ status: 'active', notify: true }, 'email firstName lastName level department')
   console.log(users)
-  if (!users || users.length == 0) 
+  if (!users || users.length == 0)
     return "No users to send notifications"
 
-  var npiUpdate = { 
-    npi, 
-    changedFields: { stage: npi.stage }, 
-    authorOfChanges: author 
+  var npiUpdate = {
+    npi,
+    changedFields: { stage: npi.stage },
+    authorOfChanges: author
   }
 
   try {
@@ -228,7 +228,7 @@ async function sendStatusNotify(req, npi) {
       console.log("No changes made: emails not sent")
       return "No changes made: emails not sent"
     }
-    
+
     var result = await mailerService.sendNpiStatusEmail(users, npiUpdate)
 
     if (result && result.length > 0) {
@@ -249,10 +249,12 @@ async function sendChangesNotify(req, updateResult) {
 
   var users = await userDAO.getUsers(
     { status: 'active', notify: true },
-   'email firstName lastName level department'
+    '_id email firstName lastName level department'
   )
+  var requester = (await userDAO.getUsers({ _id: npi.requester }))
+  console.log(`[npi-controller] [changes-notifier] Requester: ${requester[0].email}`)
 
-  console.log(users)
+  //console.log(users)
   if (!users || users.length == 0) return "No users to send notifications"
 
   var changedFields = npiLabelOf(updateResult.changedFields)
@@ -265,11 +267,23 @@ async function sendChangesNotify(req, updateResult) {
       console.log("No changes made: emails not sent")
       return "No changes made: emails not sent"
     }
-
-    if (updateResult.changedFields.stage)
+    if (updateResult.changedFields.stage) {
+      console.log("[npi-controller] [changes-notifier] Update result:", updateResult)
       var result = await mailerService.sendNpiStatusEmail(users, npiUpdate)
-    else
-      var result = await mailerService.sendNpiChangesEmail(users, npiUpdate)
+    }
+    else if (updateResult.changedFields.critical && updateResult.changedFields.critical.some(analisys => analisys.status == 'deny')) {
+      console.log(`[npi-controller] [changes-notifier] [critical-reproval]`, updateResult.changedFields)
+      var result = await mailerService.sendNpiCriticalReprovalEmail(requester, npiUpdate)
+    }
+    else if (updateResult.changedFields.critical && updateResult.changedFields.critical.every(analisys => analisys.status !== undefined && analisys.status == null)) {
+      console.log(`[npi-controller] [changes-notifier] [critical-update]`, updateResult.changedFields)
+      var result = await mailerService.sendNpiCriticalUpdateEmail(users, npiUpdate)
+    }
+    else {
+      console.log("[npi-controller] [changes-notifier] Changes made but not elegible to notifications")
+      return "Changes made but not elegible to notifications"
+    }
+    //var result = await mailerService.sendNpiChangesEmail(users, npiUpdate)
 
     if (result && result.length > 0) {
       console.log(result)
@@ -289,7 +303,7 @@ async function scheduleNotifications(req, updateResult) {
 
   var users = await userDAO.getUsers(
     { status: 'active', notify: true },
-   'email firstName lastName level department'
+    'email firstName lastName level department'
   )
 
   console.log(users)

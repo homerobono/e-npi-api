@@ -28,22 +28,22 @@ exports.uploadFiles = multer({ storage: storage }).any()
 
 exports.uploadResponse = function (req, res, next) {
   console.log('Upload Body', req.body, req.files)
-  npiDao.updateAnnexList(req.body._id, req.body.destination.replace(`${req.body._id}/`,''))
+  let data = npiDao.getAnnexList(req.body._id, req.body.destination.replace(`${req.body._id}/`, ''))
   res.status(200).send({
     "result": {
       "success": true,
-      "error": null
+      "error": null,
+      "data": data
     }
   });
 
 }
 
 exports.list = function (req, res, next) {
-
   var promise;
   var self = this;
   var fsPath = path.join(pathResolver.baseDir(req), req.body.params.path);
-console.log("[file-controller] LIST", fsPath)
+  console.log("[file-controller] LIST", fsPath)
   promise = fs.statAsync(fsPath).then(function (stats) {
     if (!stats.isDirectory()) {
       throw new Error("Directory " + fsPath + ' does not exist!');

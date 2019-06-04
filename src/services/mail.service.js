@@ -93,32 +93,44 @@ exports.sendNpiStatusEmail = async (users, updateData) => {
         case 1:
             return "E-mail shouldn't be sent for draft status"
         case 2:
-            users = users.filter(user => global.CRITICAL_DEPTS[updateData.npi.__t].includes(user.department) && user.level==1)
-            var email = {
-                subject: 'NPI Submetida para Análise Crítica',
-                body:
-                    'Caro usuário, <br><br>' +
-                    'Uma nova NPI foi submetida para <b>análise crítica</b>: <br>' +
-                    '<div style="color: #666; background-color: #f8f8f8; padding: 10px 20px 10px 20px;' +
-                    'margin: 10px auto 10px 20px; display: inline-block;">' +
-                    '<b>' + npiLink + '</b><br>' +
-                    '<b>Autor:</b> ' + authorOfChanges + '</div><div>' +
-                    'Acesse a ' + npiLink + ' para conferir os detalhes da proposta.<br></div>'
+            if (updateData.npi.activities) {
+                users = users.filter(user => user.department == "MPR" && user.level == 1)
+                var email = {
+                    subject: 'NPI #' + updateData.npi.number + ' Aprovada na Análise Crítica',
+                    body:
+                        'Caro usuário, <br><br>' +
+                        'A ' + npiLink + ' foi <b>aprovada na análise crítica</b> e está pendente ' +
+                        'na definição das etapas macro do projeto.<br>' +
+                        'Acesse a ' + npiLink + ' para definir as atividades da fase desenvolvimento.<br>'
+                }
+            } else {
+                users = users.filter(user => global.CRITICAL_DEPTS[updateData.npi.__t].includes(user.department) && user.level == 1)
+                var email = {
+                    subject: 'NPI #' + updateData.npi.number + ' Submetida para Análise Crítica',
+                    body:
+                        'Caro usuário, <br><br>' +
+                        'Uma nova NPI foi submetida para <b>análise crítica</b>: <br>' +
+                        '<div style="color: #666; background-color: #f8f8f8; padding: 10px 20px 10px 20px;' +
+                        'margin: 10px auto 10px 20px; display: inline-block;">' +
+                        '<b>' + npiLink + '</b><br>' +
+                        '<b>Autor:</b> ' + authorOfChanges + '</div><div>' +
+                        'Acesse a ' + npiLink + ' para conferir os detalhes da proposta.<br></div>'
+                }
             }
             notifyField = 'critical'
             break;
-        case 3:
+        case 4:
             var email = {
                 subject: 'NPI #' + updateData.npi.number + ' Aprovada para Desenvolvimento',
                 body:
                     'Caro usuário, <br><br>' +
                     'A ' + npiLink + ' foi <b>aprovada na análise crítica</b> e avançou para a ' +
                     'fase de desenvolvimento.<br>' +
-                    'Acesse a ' + npiLink + ' para conferir os detalhes da aprovação e os prazos ' +
+                    'Acesse a ' + npiLink + ' para conferir os detalhes da proposta e os prazos ' +
                     'das próximas atividades.<br>'
             }
             break;
-        case 4:
+        case 5:
             var email = {
                 subject: 'NPI #' + updateData.npi.number + ' CONCLUÍDA',
                 body:
@@ -138,6 +150,7 @@ exports.sendNpiStatusEmail = async (users, updateData) => {
 
     var smtpTransport = await this.createTransport();
     var results = []
+    console.log('[mail-service] Sending status change e-mail to', users.map(u => u.email));
     for (var i = 0; i < users.length; i++) {
         var user = users[i]
         //console.log('preparing email to ' + user.email);
@@ -147,7 +160,6 @@ exports.sendNpiStatusEmail = async (users, updateData) => {
             subject: email.subject,
             html: email.body
         };
-        console.log('[mail-service] Sending status change e-mail to', users);
         var result
         try {
             result = await smtpTransport.sendMail(mailOptions)
@@ -174,6 +186,7 @@ exports.sendNpiChangesEmail = async (users, updateData) => {
 
     var smtpTransport = await this.createTransport();
     var results = []
+    console.log('[mail-service] Sending npi updates e-mail to', users.map(u => u.email));
     for (var i = 0; i < users.length; i++) {
         var user = users[i]
         //console.log('preparing email to ' + user.email);
@@ -190,7 +203,6 @@ exports.sendNpiChangesEmail = async (users, updateData) => {
                 'Acesse a ' + npiLink + ' para conferir as alterações realizadas.<br>' +
                 footNote
         };
-        console.log('[mail-service] Sending npi updates e-mail to', users);
         var result
         try {
             result = await smtpTransport.sendMail(mailOptions)
@@ -202,28 +214,125 @@ exports.sendNpiChangesEmail = async (users, updateData) => {
     return results
 }
 
-exports.sendCriticalAnalisysReminder = async (users, npi) => {
-    console.log("[mail-service] Users", users)
+exports.sendCriticalAnalisysReminder = async (elegibleUsers, npi) => {
+    console.log("[mail-service] Users", elegibleUsers.map(u => u.email))
     var npiLink = '<a href="' + global.URL_BASE + '/npi/' +
         npi.number + '">NPI #' + npi.number +
         ' - ' + npi.name + '</a>'
 
     var smtpTransport = await this.createTransport();
     var results = []
-    for (var i = 0; i < users.length; i++) {
-        var user = users[i]
-        console.log('preparing email to ' + user.email);
+
+    // Notify author only or masters
+    if (npi.stage == 2 && npi.critical.some(analisys => analisys.status == 'deny')) {
+        var user = elegibleUsers.find(u => u._id.toString() == npi.requester.toString()) // get author
+        console.log('[mail-service] Sending critical analisys reproval reminder to', user.email);
+        //console.log('preparing email to ' + user.email);
         var mailOptions = {
             to: user.email,
             from: npiEmail,
-            subject: 'NPI #' + npi.number + ' - Análise Crítica Pendente',
+            subject: 'NPI #' + npi.number + ' Reprovada: Atualização Pendente',
             html:
-                'Caro usuário, <br><br>' +
-                'A NPI #' + npi.number + ' - ' + npi.name + ' está pendente da sua aprovação na análise crítica.<br>' +
-                'Acesse a ' + npiLink + ' para registrar a sua análise.<br>' +
+                user.firstName + ', <br><br>' +
+                'A NPI #' + npi.number + ' - ' + npi.name + ', tem reprovações na análise crítica.<br>' +
+                'Acesse a ' + npiLink + ' para atualizá-la conforme apontado pelas reprovações e resubmetê-la à análise crítica ' +
+                'ou cancelá-la.<br>' +
                 footNote
         };
-        console.log('[mail-service] Sending critical analisys reminder e-mail to', users);
+        var result
+        try {
+            result = await smtpTransport.sendMail(mailOptions)
+        } catch (e) {
+            result = e
+        }
+        results.push(result)
+
+        // Notify masters
+        if (npi.stage == 2 && npi.critical.every(analisys => analisys.status != null)) {
+            var users = elegibleUsers.filter(u => u.level == 2) // get master users
+            console.log('[mail-service] Sending critical analisys superaproval reminder to', users.map(u => u.email));
+            for (var i = 0; i < users.length; i++) {
+                var user = users[i]
+                //console.log('preparing email to ' + user.email);
+                var mailOptions = {
+                    to: user.email,
+                    from: npiEmail,
+                    subject: 'NPI #' + npi.number + ' - Análise Crítica Concluída e Reprovada',
+                    html:
+                        'Caro usuário, <br><br>' +
+                        'A análise crítica da NPI #' + npi.number + ' - ' + npi.name + ' foi concluída com reprovações. ' +
+                        'Acesse a ' + npiLink + ' para registrar aprovação final ou cancelá-la.<br>' +
+                        footNote
+                };
+                var result
+                try {
+                    result = await smtpTransport.sendMail(mailOptions)
+                } catch (e) {
+                    result = e
+                }
+                results.push(result)
+            };
+        }
+        // Notify pending analisers
+    } else if (npi.stage == 2 && npi.critical.some(analisys => analisys.status == null)) {
+        var users = elegibleUsers.filter(u => u._id.toString() != npi.requester.toString()) // exclude author
+        console.log('[mail-service] Sending pending critical analisys reminder to', users.map(u => u.email));
+        for (var i = 0; i < users.length; i++) {
+            var user = users[i]
+            //console.log('preparing email to ' + user.email);
+            var mailOptions = {
+                to: user.email,
+                from: npiEmail,
+                subject: 'NPI #' + npi.number + ' - Análise Crítica Pendente',
+                html:
+                    'Caro usuário, <br><br>' +
+                    'A NPI #' + npi.number + ' - ' + npi.name + ' está pendente da sua aprovação na análise crítica.<br>' +
+                    'Acesse a ' + npiLink + ' para registrar a sua análise.<br>' +
+                    footNote
+            };
+            var result
+            try {
+                result = await smtpTransport.sendMail(mailOptions)
+            } catch (e) {
+                result = e
+            }
+            results.push(result)
+        };
+    }
+
+    console.log('[mail-service] Sending critical analisys reminder e-mail to', elegibleUsers.map(u => u.email));
+
+    npiDAO.updateNotify(npi._id, 'critical')
+    return results
+}
+
+
+exports.sendNpiCriticalReprovalEmail = async (users, updateData) => {
+    var author = updateData.authorOfChanges.firstName +
+        (updateData.authorOfChanges.lastName ? ' ' + updateData.authorOfChanges.lastName : '')
+    let npi = updateData.npi
+
+    console.log("[mail-service] Users", users.map(u => u.email))
+    var npiLink = '<a href="' + global.URL_BASE + '/npi/' +
+        npi.number + '">NPI #' + npi.number +
+        ' - ' + npi.name + '</a>'
+
+    var smtpTransport = await this.createTransport();
+    var results = []
+    console.log('[mail-service] Sending critical analisys reproval notification to', users.map(u => u.email));
+    for (var i = 0; i < users.length; i++) {
+        var user = users[i]
+        //console.log('preparing email to ' + user.email);
+        var mailOptions = {
+            to: user.email,
+            from: npiEmail,
+            subject: 'NPI #' + npi.number + ' Reprovada na Análise Crítica',
+            html:
+                user.firstName + ', <br><br>' +
+                'A NPI #' + npi.number + ' - ' + npi.name + ' foi reprovada na análise crítica por ' + author + '.<br>' +
+                'Acesse a ' + npiLink + ' para conferir os detalhes da análise e alterar a NPI.<br>' +
+                footNote
+        };
         var result
         try {
             result = await smtpTransport.sendMail(mailOptions)
@@ -232,5 +341,54 @@ exports.sendCriticalAnalisysReminder = async (users, npi) => {
         }
         results.push(result)
     };
+    npiDAO.updateNotify(npi._id, 'critical')
+    return results
+}
+
+exports.sendNpiCriticalUpdateEmail = async (elegibleUsers, updateData) => {
+    var author = updateData.authorOfChanges.firstName +
+        (updateData.authorOfChanges.lastName ? ' ' + updateData.authorOfChanges.lastName : '')
+    let npi = updateData.npi
+
+    var changedFields = ''
+    for (var field in updateData.changedFields) {
+        if (field != global.NPI_LABELS['critical'])
+            changedFields += '<li>' + field + '</li>'
+    }
+    let users = elegibleUsers.filter(user => global.CRITICAL_DEPTS[updateData.npi.__t].includes(user.department) && user.level == 1)
+
+    console.log("[mail-service] e-mails:", users.map(u => u.email))
+    var npiLink = '<a href="' + global.URL_BASE + '/npi/' +
+        npi.number + '">NPI #' + npi.number +
+        ' - ' + npi.name + '</a>'
+
+    var smtpTransport = await this.createTransport();
+    var results = []
+    console.log('[mail-service] Sending critical analisys update notification to', users.map(u => u.email));
+    for (var i = 0; i < users.length; i++) {
+        var user = users[i]
+        //console.log('preparing email to ' + user.email);
+        var mailOptions = {
+            to: user.email,
+            from: npiEmail,
+            subject: 'NPI #' + npi.number + ' Atualizada',
+            html:
+                user.firstName + ', <br><br>' +
+                'A NPI #' + npi.number + ' - ' + npi.name + ' foi atualizada por ' + author + ' após reprovação na análise crítica, ' +
+                'e está pendente da sua análise crítica novamente.<br>' +
+                'Os campos alterados foram: <br>' +
+                '<ul>' + changedFields + '</ul>' +
+                'Acesse a ' + npiLink + ' para registrar a sua nova análise.<br>' +
+                footNote
+        };
+        var result
+        try {
+            result = await smtpTransport.sendMail(mailOptions)
+        } catch (e) {
+            result = e
+        }
+        results.push(result)
+    };
+    npiDAO.updateNotify(npi._id, 'critical')
     return results
 }

@@ -1,9 +1,9 @@
 "use strict";
 
 //global.URL_BASE = "http://191.252.113.160";
-//global.URL_BASE = "http://192.168.1.135";
+global.URL_BASE = "http://192.168.1.135";
 //global.URL_BASE = "http://192.168.0.4";
-global.URL_BASE = "http://localhost";
+//global.URL_BASE = "http://localhost";
 //global.URL_BASE = "http://localhost:6002";
 //global.URL_BASE = "http://10.0.0.174:4200";
 //global.URL_BASE = "http://iraflor.com.br";
@@ -26,16 +26,18 @@ global.NPI_LABELS = {
   status: 'Status',
   npiRef: 'NPI de Referência',
   complexity: 'Complexidade',
+  designThinking: "Design Thinking",
+  description: 'Requisitos',
   annex: 'Anexos',
   client: 'Cliente',
   requester: 'Autor',
   name: 'Nome da NPI',
-  cost: 'Custo',
-  price: 'Preço',
-  resources: 'Recursos',
+  cost: 'Custo do Produto',
+  price: 'Preço de Venda',
+  resources: 'Recursos/Capacidade Fabril',
   norms: 'Normas Aplicáveis',
   investment: 'Valor de Investimento',
-  fiscals: 'Inc. Fiscais',
+  fiscals: 'Incentivos Fiscais',
   projectCost: 'Custo do Projeto',
   activities: 'Atividades',
   inStockDate: 'Data em Estoque',
