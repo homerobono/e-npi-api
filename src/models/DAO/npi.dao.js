@@ -365,6 +365,7 @@ exports.updateNpi = async function (user, npi) {
 
     oldNpi = updateResult.updatedObject
 
+    oldNpi.oemActivities = activitySign(user, oldNpi.oemActivities, changedFields.oemActivities)
     oldNpi.critical = criticalSign(user, oldNpi.critical, changedFields.critical)
     oldNpi.activities = activitySign(user, oldNpi.activities, changedFields.activities)
     oldNpi.requests = requestSign(user, oldNpi.requests, changedFields.requests)
@@ -549,6 +550,11 @@ exports.findNpiById = async npiId => {
         .populate('npiRef', '_id number name stage created')
         .populate('requester', '_id firstName lastName')
         .populate({
+            path: 'oemActivities.signature.user',
+            model: 'User',
+            select: '_id firstName lastName'
+        })
+        .populate({
             path: 'critical.signature.user',
             model: 'User',
             select: '_id firstName lastName'
@@ -585,6 +591,11 @@ exports.findNpiByNumber = async npiNumber => {
     var npi = await Npi.find({ number: npiNumber }).sort('-version')
         .populate('npiRef', '_id number name stage created')
         .populate('requester', 'firstName lastName')
+        .populate({
+            path: 'oemActivities.signature.user',
+            model: 'User',
+            select: '_id firstName lastName'
+        })
         .populate({
             path: 'critical.signature.user',
             model: 'User',
@@ -983,39 +994,50 @@ function hasInvalidFields(data, npi) {
         case 'internal':
             break;
         case 'oem':
-            if (data.inStockDate != undefined &&
-                (data.inStockDate == null ||
-                    (
+            if (data.stage == 1 || data.stage == 2) {
+                if (data.inStockDate != undefined &&
+                    (data.inStockDate == null ||
                         (
-                            data.inStockDate.fixed == null ||
-                            data.inStockDate.fixed == ''
-                        )
-                        &&
-                        (
-                            data.inStockDate.offset == null ||
-                            data.inStockDate.offset == ''
-                        )
-                    ))
-            ) {
-                invalidFields.inStockDateType = data.inStockDate
-            }
-            /*if (data.oemActivities) {
-                for (let i = 0; i < data.oemActivities.length; i++) {
-                    let activity = data.oemActivities[i]
-                    if (!activity.date)
-                        invalidFields['oemActivities.' + i + '.date'] = activity.date
-                    //if (!activity.comment)
-                    //    invalidFields['oemActivities.' + i + '.comment'] = activity.comment
-                    //if (!activity.annex)
-                    //    invalidFields['oemActivities.' + i + '.annex'] = activity.annex
+                            (
+                                data.inStockDate.fixed == null ||
+                                data.inStockDate.fixed == ''
+                            )
+                            &&
+                            (
+                                data.inStockDate.offset == null ||
+                                data.inStockDate.offset == ''
+                            )
+                        ))
+                ) {
+                    invalidFields.inStockDateType = data.inStockDate
                 }
-            }*/
-            if (data.regulations) {
-                if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg => reg != true)))
-                    invalidFields['regulations'] = data.regulations
-                if (data.regulations.standard && data.regulations.standard.other &&
-                    (!data.regulations.additional || data.regulations.additional == ''))
-                    invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
+                if (data.regulations) {
+                    if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg => reg != true)))
+                        invalidFields['regulations'] = data.regulations
+                    if (data.regulations.standard && data.regulations.standard.other &&
+                        (!data.regulations.additional || data.regulations.additional == ''))
+                        invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
+                }
+                if (data.oemActivities) {
+                    for (let i = 0; i < data.oemActivities.length; i++) {
+                        let activity = data.oemActivities[i]
+                        //if (!activity.date)
+                        //    invalidFields['oemActivities.' + i + '.date'] = activity.date
+                        //if (!activity.comment)
+                        //    invalidFields['oemActivities.' + i + '.comment'] = activity.comment
+                        if (!activity.annex)
+                            invalidFields['oemActivities.' + i + '.annex'] = activity.annex
+                        if (!activity.closed)
+                            invalidFields['oemActivities.' + i + '.closed'] = activity.closed
+                    }
+                }
+                /*if (data.regulations) {
+                    if ((!data.regulations.none && Object.values(data.regulations.standard).every(reg => reg != true)))
+                        invalidFields['regulations'] = data.regulations
+                    if (data.regulations.standard && data.regulations.standard.other &&
+                        (!data.regulations.additional || data.regulations.additional == ''))
+                        invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
+                }*/
             }
             break;
         case 'custom':

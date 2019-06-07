@@ -93,7 +93,7 @@ exports.sendNpiStatusEmail = async (users, updateData) => {
         case 1:
             return "E-mail shouldn't be sent for draft status"
         case 2:
-            if (updateData.npi.activities) {
+            if (updateData.npi.activities && updateData.npi.activities.length) {
                 users = users.filter(user => user.department == "MPR" && user.level == 1)
                 var email = {
                     subject: 'NPI #' + updateData.npi.number + ' Aprovada na Análise Crítica',
@@ -114,6 +114,30 @@ exports.sendNpiStatusEmail = async (users, updateData) => {
                         'margin: 10px auto 10px 20px; display: inline-block;">' +
                         '<b>' + npiLink + '</b><br>' +
                         '<b>Autor:</b> ' + authorOfChanges + '</div><div>' +
+                        'Acesse a ' + npiLink + ' para conferir os detalhes da proposta.<br></div>'
+                }
+            }
+            notifyField = 'critical'
+            break;
+        case 3:
+            if (updateData.npi.activities && updateData.npi.activities.length) {
+                users = users.filter(user => user.department == "MPR" && user.level == 1)
+                var email = {
+                    subject: 'NPI #' + updateData.npi.number + ' Aprovada pelo Cliente',
+                    body:
+                        'Caro usuário, <br><br>' +
+                        'A ' + npiLink + ' foi <b>aprovada pelo cliente</b> e está pendente ' +
+                        'na definição das etapas macro do projeto.<br>' +
+                        'Acesse a ' + npiLink + ' para definir as atividades da fase desenvolvimento.<br>'
+                }
+            } else {
+                users = users.filter(user => user.department == "COM" && user.level == 1)
+                var email = {
+                    subject: 'NPI #' + updateData.npi.number + ' Aprovada na Análise Crítica',
+                    body:
+                        'Caro usuário, <br><br>' +
+                        'A ' + npiLink + ' foi <b>aprovada na análise crítica</b> e avançou para ' +
+                        'aprovação do cliente.<br>' +
                         'Acesse a ' + npiLink + ' para conferir os detalhes da proposta.<br></div>'
                 }
             }

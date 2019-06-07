@@ -12,8 +12,8 @@ var lastRemind = {}
 
 //exports.schedule = function() {
 
-//cron.schedule('30 7 * * 1,2,3,4,5', async () => {
-cron.schedule('* * * * 1,2,3,4,5', async () => {
+cron.schedule('30 7 * * 1,2,3,4,5', async () => {
+//cron.schedule('* * * * 1,2,3,4,5', async () => {
     //console.log('running a task every minute');
     let npis = await npiDAO.getNpis({})
     let users = await userDAO.getUsers({ status: 'active' }, {})
@@ -32,8 +32,8 @@ cron.schedule('* * * * 1,2,3,4,5', async () => {
         switch (npi.stage) {
             //NPI em análise crítica
             case 2:
-                //if (npi.notify && npi.notify.critical && Math.round(((new Date()) - npi.notify.critical) / DAYS) < 3)
-                if (npi.notify && npi.notify.critical && Math.round(((new Date()) - npi.notify.critical) / MINUTES) < 10)
+                if (npi.notify && npi.notify.critical && Math.round(((new Date()) - npi.notify.critical) / DAYS) < 3)
+                //if (npi.notify && npi.notify.critical && Math.round(((new Date()) - npi.notify.critical) / MINUTES) < 10)
                     break
                 /*    console.log(`[scheduler] is time: ${npi.number}`, npi.notify.critical, Math.round(((new Date()) - npi.notify.critical) / MINUTES))
                 } else {
