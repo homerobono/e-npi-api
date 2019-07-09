@@ -369,6 +369,12 @@ exports.updateNpi = async function (user, npi) {
     oldNpi.critical = criticalSign(user, oldNpi.critical, changedFields.critical)
     oldNpi.activities = activitySign(user, oldNpi.activities, changedFields.activities)
     oldNpi.requests = requestSign(user, oldNpi.requests, changedFields.requests)
+    /*oldNpi.requests.forEach((r, i) => {
+        if (!r.class) {
+            console.log('deleting', i)
+            oldNpi.requests.splice(i, 1)
+        }
+    })*/
     //oldNpi.validation = validationSign(user, oldNpi.validation, changedFields.validation)
     /*
         console.log("updated Object")
@@ -641,7 +647,7 @@ exports.promoteNpi = async req => {
 
     try {
         var invalidFields = hasInvalidFields(npi)
-        console.log(invalidFields)
+        console.log("REQ: ", npi.requests[0])
         if (invalidFields) throw ({ errors: invalidFields })
 
         let oldStatus = npi.stage
@@ -767,12 +773,14 @@ function advanceToDevelopment(data, user) {
         console.log('REQUESTS:', data.requests)
         if (data.requests) {
             let request = data.requests.find(r => r.class == "DELAYED_RELEASE")
+            console.log("Delayed request: ", request)
             if (request) {
                 data = analyzeAndCloseRequest(data, "DELAYED_RELEASE")
+                console.log("Closed request: ", data.requests)
                 if (request.closed && request.approval == 'accept')
                     data.stage = 4
-                else
-                    throw ('Solicitação de desenvolvimento com data de lançamento em atraso nao foi aprovada, NPI nao pode avançar.')
+                //else
+                    //throw ('Solicitação de desenvolvimento com data de lançamento em atraso não foi aprovada, NPI não pode avançar.')
             } else
                 data = openRequest(data, user, 'DELAYED_RELEASE')
         } else
@@ -782,8 +790,9 @@ function advanceToDevelopment(data, user) {
 }
 
 function analyzeAndCloseRequest(npi, requestClass) {
-    let i = npi.requests.findIndex(r => r.class = requestClass)
-    if (npi.requests[i]) {
+    let i = npi.requests.findIndex(r => r.class == requestClass)
+    if (i > -1) {
+        console.log("Request to close: ", npi.requests[i])
         if (npi.requests[i].analysis.every(a => a.status == "accept")) {
             npi.requests[i].closed = true
             npi.requests[i].approval = 'accept'
@@ -811,7 +820,8 @@ function openRequest(npi, user, requestLabel) {
     let npiEntry = npi.entry ? npi.entry : npi.__t
     if (!npi.requests)
         npi.requests = []
-    if (npi.requests.find(r => r.class == requestLabel)) throw "Chamado ja foi aberto, aguarde conclusao da analise."
+    if (npi.requests.find(r => r.class == requestLabel))
+        throw "Chamado já foi aberto, aguarde conclusão da análise."
 
     npi.requests.push({
         class: requestLabel,
@@ -824,17 +834,17 @@ function openRequest(npi, user, requestLabel) {
     let i = npi.requests.findIndex(r => r.class = requestLabel)
     switch (requestLabel) {
         case 'DELAYED_RELEASE':
-            let analysisDeptsArray = global.REQUEST_DEPTS[npiEntry]
+            /*let analysisDeptsArray = global.REQUEST_DEPTS[npiEntry]
             analysisDeptsArray.forEach(analysisDept => {
                 npi.requests[i].analysis.push({
-                    dept: analysisDept,
+                    responsible: analysisDept,
                     status: null,
                     comment: null,
                     signature: null,
                 })
-            })
+            })*/
             npi.requests[i].analysis.push({
-                dept: user.department,
+                responsible: npi.requester,
                 author: npi.requester,
                 status: null,
                 comment: null,
@@ -895,7 +905,7 @@ function advanceToClientApproval(data) {
 }
 
 function hasInvalidFields(data, npi) {
-    console.log('[npi-dao] [invalid-fields] Analysing invalid fields', data)
+    //console.log('[npi-dao] [invalid-fields] Analysing invalid fields', data)
     var invalidFields = {}
 
     if (data.stage == 1) {
@@ -1303,9 +1313,9 @@ function updateObject(oldObject, newObject) {
                     }
                 }
             } else if (Array.isArray(newObject[prop])) {
-                //console.log(prop + ' is array')
+                console.log(prop + ' is array')
                 if (!oldObject[prop]) {
-                    //console.log('property is new, setting it entirely')
+                    console.log('property is new, setting it entirely')
                     oldObject[prop] = newObject[prop]
                     changedFields[prop] = newObject[prop]
                 } else {
@@ -1316,12 +1326,13 @@ function updateObject(oldObject, newObject) {
                         for (let j = 0; j < oldObject[prop].length; j++) {
                             let oldChild = oldObject[prop][j]
                             if (newChild._id == oldChild._id ||
-                                (newChild.activity != null && (newChild.activity == oldChild.activity))) {
-                                //console.log('recursing array object')
+                                (newChild.activity != null && (newChild.activity == oldChild.activity)) ||
+                                (newChild.class != null && (newChild.class == oldChild.class))) {
+                                console.log('recursing array object', newChild)
                                 let childResult = updateObject(oldChild, newChild)
                                 Object.assign(oldObject[prop][j], childResult.updatedObject)
                                 if (Object.keys(childResult.changedFields).length > 0) {
-                                    //console.log('child return with changes')
+                                    console.log('child return with changes')
                                     childResult.changedFields._id = oldChild._id
                                     changedFieldsArr.push(childResult.changedFields)
                                 }

@@ -256,6 +256,10 @@ var NpiSchema = new mongoose.Schema({
                 type: String,
                 default: null
             },
+            approval: {
+                type : String,
+                default: false
+            },
             closed: {
                 type: Boolean,
                 default: false
@@ -273,9 +277,8 @@ var NpiSchema = new mongoose.Schema({
             },
             analysis: {
                 type: [{
-                    dept: {
+                    responsible: {
                         type: String,
-                        enum: global.DEPARTMENTS,
                         default: null
                     },
                     status: {
