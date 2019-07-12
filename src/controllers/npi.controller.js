@@ -279,6 +279,27 @@ async function sendChangesNotify(req, updateResult) {
       console.log(`[npi-controller] [changes-notifier] [critical-update]`, updateResult.changedFields)
       var result = await mailerService.sendNpiCriticalUpdateEmail(users, npiUpdate)
     }
+    else if (updateResult.changedFields.requests) {
+      var result = []
+      console.log(updateResult.changedFields)
+      updateResult.changedFields.requests.forEach(async request => {
+        if (request.analisys) {
+          if (request.analisys.every(analisys => analisys.status == 'accept' || analisys.status == 'deny')) {
+            if (request.analisys.some(analisys => analisys.status == 'deny')) {
+              console.log(`[npi-controller] [changes-notifier] [request-reproval]`, updateResult.changedFields)
+              let r = await mailerService.sendNpiRequestReprovalEmail(users, npiUpdate, request)
+              result.push(r)
+            }
+            //console.log(`[npi-controller] [changes-notifier] [request-approval]`, updateResult.changedFields)
+            //var result = await mailerService.sendNpiCriticalUpdateEmail(users, npiUpdate)
+          } else if (request.analisys.every(analisys => analisys.status !== undefined && analisys.status == null)) {
+            console.log(`[npi-controller] [changes-notifier] [request-open]`, updateResult.changedFields)
+            let r = await mailerService.sendNpiRequestOpenEmail(users, npiUpdate, request)
+            result.push(r)
+          }
+        }
+      });
+    }
     else {
       console.log("[npi-controller] [changes-notifier] Changes made but not elegible to notifications")
       return "Changes made but not elegible to notifications"

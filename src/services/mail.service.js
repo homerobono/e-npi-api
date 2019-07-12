@@ -416,3 +416,83 @@ exports.sendNpiCriticalUpdateEmail = async (elegibleUsers, updateData) => {
     npiDAO.updateNotify(npi._id, 'critical')
     return results
 }
+
+exports.sendNpiRequestOpenEmail = async (elegibleUsers, updateData, request) => {
+    var author = updateData.authorOfChanges.firstName +
+        (updateData.authorOfChanges.lastName ? ' ' + updateData.authorOfChanges.lastName : '')
+    let npi = updateData.npi
+
+    var users = elegibleUsers.filter(u=> u._id == request.analisys.includes(a.responsible == u._id.toString()))
+
+    console.log("[mail-service] Users", users.map(u => u.email))
+    var npiLink = '<a href="' + global.URL_BASE + '/npi/' +
+        npi.number + '">NPI #' + npi.number +
+        ' - ' + npi.name + '</a>'
+
+    var smtpTransport = await this.createTransport();
+    var results = []
+    console.log('[mail-service] Sending request reproval notification to', users.map(u => u.email));
+    for (var i = 0; i < users.length; i++) {
+        var user = users[i]
+        //console.log('preparing email to ' + user.email);
+        var mailOptions = {
+            to: user.email,
+            from: npiEmail,
+            subject: 'NPI #' + npi.number + ' - Solicitação Recusada',
+            html:
+                user.firstName + ', <br><br>' +
+                'A solicitação de ' + global.NPI_LABELS.requests[request.class] + ' para a NPI #' + npi.number + ' - ' + npi.name + ' foi recusada por' + author + '.<br>' +
+                'Acesse a ' + npiLink + ' para conferir os detalhes da análise.<br>' +
+                footNote
+        };
+        var result
+        try {
+            result = await smtpTransport.sendMail(mailOptions)
+        } catch (e) {
+            result = e
+        }
+        results.push(result)
+    };
+    npiDAO.updateNotify(npi._id, 'critical')
+    return results
+}
+
+exports.sendNpiRequestReprovalEmail = async (elegibleUsers, updateData, request) => {
+    var author = updateData.authorOfChanges.firstName +
+        (updateData.authorOfChanges.lastName ? ' ' + updateData.authorOfChanges.lastName : '')
+    let npi = updateData.npi
+
+    var users = elegibleUsers.filter(u=>u._id == request.analisys.includes(a.responsible == u._id.toString()) || u.level == 1 )
+
+    console.log("[mail-service] Users", users.map(u => u.email))
+    var npiLink = '<a href="' + global.URL_BASE + '/npi/' +
+        npi.number + '">NPI #' + npi.number +
+        ' - ' + npi.name + '</a>'
+
+    var smtpTransport = await this.createTransport();
+    var results = []
+    console.log('[mail-service] Sending request reproval notification to', users.map(u => u.email), updateData.changedFields);
+    for (var i = 0; i < users.length; i++) {
+        var user = users[i]
+        //console.log('preparing email to ' + user.email);
+        var mailOptions = {
+            to: user.email,
+            from: npiEmail,
+            subject: 'NPI #' + npi.number + ' - Solicitação Recusada',
+            html:
+                user.firstName + ', <br><br>' +
+                'A solicitação de ' + global.NPI_LABELS.requests[request.class] + ' para a NPI #' + npi.number + ' - ' + npi.name + ' foi recusada por' + author + '.<br>' +
+                'Acesse a ' + npiLink + ' para conferir os detalhes da análise.<br>' +
+                footNote
+        };
+        var result
+        try {
+            result = await smtpTransport.sendMail(mailOptions)
+        } catch (e) {
+            result = e
+        }
+        results.push(result)
+    };
+    npiDAO.updateNotify(npi._id, 'critical')
+    return results
+}

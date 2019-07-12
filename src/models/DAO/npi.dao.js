@@ -162,7 +162,7 @@ exports.migrateNpi = async function (req) {
 
         if (data.stage < 4) { //client approval and below
             delete data.activities
-            if (data.stage < 3) { //critical analysis and below
+            if (data.stage < 3) { //critical analisys and below
                 delete data.clientApproval
                 if (data.stage < 2) { //draft or canceled
                     delete data.critical
@@ -237,7 +237,7 @@ exports.migrateUpdateNpi = async function (user, npi) {
 
     //if (npi.stage < 4) { //client approval and below
     //    delete npi.activities
-    //    if (npi.stage < 3) { //critical analysis and below
+    //    if (npi.stage < 3) { //critical analisys and below
     //        delete npi.clientApproval
     //        if (npi.stage < 2) { //draft or canceled
     //            delete npi.critical
@@ -339,7 +339,7 @@ exports.updateNpi = async function (user, npi) {
 
     if (npi.stage < 4) { //client approval and below
         delete npi.activities
-        if (npi.stage < 3) { //critical analysis and below
+        if (npi.stage < 3) { //critical analisys and below
             delete npi.clientApproval
             if (npi.stage < 2) { //draft or canceled
                 delete npi.critical
@@ -581,6 +581,16 @@ exports.findNpiById = async npiId => {
             select: '_id firstName lastName'
         })
         .populate({
+            path: 'requests.analisys.signature.user',
+            model: 'User',
+            select: '_id firstName lastName'
+        })
+        .populate({
+            path: 'requests.finalApproval.signature.user',
+            model: 'User',
+            select: '_id firstName lastName'
+        })
+        .populate({
             path: 'validation.finalApproval.signature.user',
             model: 'User',
             select: '_id firstName lastName'
@@ -623,6 +633,16 @@ exports.findNpiByNumber = async npiNumber => {
             select: '_id firstName lastName'
         })
         .populate({
+            path: 'requests.analisys.signature.user',
+            model: 'User',
+            select: '_id firstName lastName'
+        })
+        .populate({
+            path: 'requests.finalApproval.signature.user',
+            model: 'User',
+            select: '_id firstName lastName'
+        })
+        .populate({
             path: 'validation.finalApproval.signature.user',
             model: 'User',
             select: '_id firstName lastName'
@@ -635,31 +655,35 @@ exports.findNpiByNumber = async npiNumber => {
 
 exports.promoteNpi = async req => {
     try {
-        var npi = await Npi.find({ number: req.params.npiNumber }).sort('-version')
+        var oldNpi = await Npi.find({ number: req.params.npiNumber }).sort('-version')
     } catch (e) {
         throw Error("Error occured while Finding the Npi")
     }
 
-    if (!npi) {
+    if (!oldNpi) {
         throw Error("No NPI number " + npiNumber)
     }
-    npi = npi[0]
+    oldNpi = oldNpi[0]
 
     try {
-        var invalidFields = hasInvalidFields(npi)
-        console.log("REQ: ", npi.requests[0])
+        var invalidFields = hasInvalidFields(oldNpi)
+        console.log("REQ: ", oldNpi.requests[0])
         if (invalidFields) throw ({ errors: invalidFields })
 
-        let oldStatus = npi.stage
-        npi = await evolve(req, npi)
-        npi.updated = Date.now()
-        var savedNpi = await npi.save()
-        return { npi: savedNpi, changedFields: { stage: npi.stage } }
+        let oldStatus = oldNpi.stage
+        console.log("OLDNPI", oldNpi.requests)
+        let newNpi = await evolve(req, oldNpi)
+        var changedFields = updateObject(oldNpi, JSON.parse(JSON.stringify(newNpi))).changedFields
+        console.log("[promote] [update-object] changed fields", changedFields, oldNpi.requests, newNpi.requests)
+
+        oldNpi.updated = Date.now()
+        var savedNpi = await newNpi.save()
+        return { npi: savedNpi, changedFields }
     } catch (e) {
         throw ({ message: e })
     }
 
-    return npi
+    return oldNpi
 }
 
 async function evolve(req, npi) {
@@ -676,7 +700,8 @@ async function evolve(req, npi) {
                     && npi.finalApproval.status == 'accept')) {
                 console.log('req.user')
                 console.log(req.user)
-                npi.finalApproval = finalSign(req.user.data, npi.finalApproval)
+                if (!(npi.finalApproval.signature && npi.finalApproval.signature.user && !npi.finalApproval.signature.date))
+                    npi.finalApproval = finalSign(req.user.data, npi.finalApproval)
                 if (npi.__t != 'oem') {
                     npi = advanceToDevelopment(npi, req.user.data)
                 } else {
@@ -776,11 +801,14 @@ function advanceToDevelopment(data, user) {
             console.log("Delayed request: ", request)
             if (request) {
                 data = analyzeAndCloseRequest(data, "DELAYED_RELEASE")
-                console.log("Closed request: ", data.requests)
-                if (request.closed && request.approval == 'accept')
-                    data.stage = 4
+                //console.log("Closed request: ", data.requests)
+                if (request.closed) {
+                    data.requests = requestsFinalSign(user, request)
+                    if (request.approval)
+                        data.stage = 4
+                }
                 //else
-                    //throw ('Solicitação de desenvolvimento com data de lançamento em atraso não foi aprovada, NPI não pode avançar.')
+                //throw ('Solicitação de desenvolvimento com data de lançamento em atraso não foi aprovada, NPI não pode avançar.')
             } else
                 data = openRequest(data, user, 'DELAYED_RELEASE')
         } else
@@ -793,12 +821,13 @@ function analyzeAndCloseRequest(npi, requestClass) {
     let i = npi.requests.findIndex(r => r.class == requestClass)
     if (i > -1) {
         console.log("Request to close: ", npi.requests[i])
-        if (npi.requests[i].analysis.every(a => a.status == "accept")) {
+        if (npi.requests[i].analisys.every(a => a.status == "accept")) {
             npi.requests[i].closed = true
-            npi.requests[i].approval = 'accept'
-        } else if (npi.requests[i].analysis.every(a => a.status == "accept" || a.status == "deny")) {
+            npi.requests[i].approval = true
+        } else if (npi.requests[i].analisys.every(a => a.status == "accept" || a.status == "deny") &&
+            npi.requests[i].finalApproval.status) {
             npi.requests[i].closed = true
-            npi.requests[i].approval = 'deny'
+            npi.requests[i].approval = npi.requests[i].finalApproval.status == 'accept' ? true : false
         } else npi.requests[i].closed = false
     }
     return npi
@@ -829,21 +858,21 @@ function openRequest(npi, user, requestLabel) {
         comment: '',
         closed: false,
         signature: null,
-        analysis: []
+        analisys: []
     })
     let i = npi.requests.findIndex(r => r.class = requestLabel)
     switch (requestLabel) {
         case 'DELAYED_RELEASE':
-            /*let analysisDeptsArray = global.REQUEST_DEPTS[npiEntry]
-            analysisDeptsArray.forEach(analysisDept => {
-                npi.requests[i].analysis.push({
-                    responsible: analysisDept,
+            /*let analisysDeptsArray = global.REQUEST_DEPTS[npiEntry]
+            analisysDeptsArray.forEach(analisysDept => {
+                npi.requests[i].analisys.push({
+                    responsible: analisysDept,
                     status: null,
                     comment: null,
                     signature: null,
                 })
             })*/
-            npi.requests[i].analysis.push({
+            npi.requests[i].analisys.push({
                 responsible: npi.requester,
                 author: npi.requester,
                 status: null,
@@ -887,12 +916,12 @@ function getCriticalApprovalDate(data) {
         if (isCriticallyApproved) {
             if (data.finalApproval && data.finalApproval.status == 'accept')
                 return data.finalApproval.signature.date
-            var lastAnalysisDate = data.critical[0].signature.date
-            data.critical.forEach(analysis => {
-                lastAnalysisDate = lastAnalysisDate < analysis.signature.date ?
-                    analysis.signature.date : lastAnalysisDate
+            var lastanalisysDate = data.critical[0].signature.date
+            data.critical.forEach(analisys => {
+                lastanalisysDate = lastanalisysDate < analisys.signature.date ?
+                    analisys.signature.date : lastanalisysDate
             })
-            return lastAnalysisDate
+            return lastanalisysDate
         }
     }
 }
@@ -1122,11 +1151,11 @@ function criticalSign(user, npiTask, changedFields) {
         changedFields.forEach(field => {
             let signChanged = false
             if (typeof field.status != 'undefined' && field.status == null) {
-                console.log('unsingning')
+                console.log('unsigning')
                 field.signature = null
                 signChanged = true
             } else if (field.status) {
-                console.log('singning')
+                console.log('signing')
                 field.signature = { user: user._id, date: Date.now() }
                 signChanged = true
             }
@@ -1144,21 +1173,21 @@ function criticalSign(user, npiTask, changedFields) {
     return npiTask
 }
 
-function activitySign(user, npiTask, changedFields) {
+function activitySign(user, npiTasks, changedFields) {
     if (changedFields) {
         changedFields.forEach(activity => {
             let signChanged = false
             if (typeof activity.closed != 'undefined' && activity.closed == null) {
-                console.log('unsingning')
+                console.log('unsigning')
                 activity.signature = null
                 signChanged = true
             } else if (activity.closed) {
-                console.log('singning')
+                console.log('signing')
                 activity.signature = { user: user._id, date: Date.now() }
                 signChanged = true
             }
             if (signChanged) {
-                npiTask.forEach(taskRow => {
+                npiTasks.forEach(taskRow => {
                     if (taskRow._id == activity._id) {
                         console.log('submited (un)signature ' + taskRow.dept)
                         console.log(activity.signature)
@@ -1168,7 +1197,7 @@ function activitySign(user, npiTask, changedFields) {
             }
         });
     }
-    return npiTask
+    return npiTasks
 }
 
 function migrateSign(npi) {
@@ -1210,43 +1239,56 @@ function validationSign(user, npiValidation, changedFields) {
     return npiValidation
 }
 
-function requestSign(user, npiRequest, changedFields) {
+function requestSign(user, npiRequests, changedFields) {
+    console.log("[request-sign] changed fields", changedFields, npiRequests)
     if (changedFields) {
-        changedFields.forEach(activity => {
-            let signChanged = false
-            if (typeof activity.closed != 'undefined' && activity.closed == null) {
-                console.log('unsingning')
-                activity.signature = null
-                signChanged = true
-            } else if (activity.closed) {
-                console.log('singning')
-                activity.signature = { user: user._id, date: Date.now() }
-                signChanged = true
-            }
-            if (signChanged) {
-                npiRequest.forEach(taskRow => {
-                    if (taskRow._id == activity._id) {
-                        console.log('submited (un)signature ' + taskRow.dept)
-                        console.log(activity.signature)
-                        taskRow.signature = activity.signature
+        changedFields.forEach(changedRequest => {
+            if (changedRequest.analisys) {
+                changedRequest.analisys.forEach(changedAnalisys => {
+                    if (typeof changedAnalisys.status != 'undefined' && changedAnalisys.status == null) {
+                        console.log('unsigning')
+                        changedAnalisys.signature = null
+                        signChanged = true
+                    } else if (changedAnalisys.status) {
+                        console.log('signing')
+                        changedAnalisys.signature = { user: user._id, date: Date.now() }
+                        signChanged = true
                     }
-                })
+                    if (signChanged) {
+                        requestIndex = npiRequests.findIndex(request => request._id == changedRequest._id)
+                        if (requestIndex > -1) {
+                            analisysIndex = npiRequests[requestIndex].analisys.findIndex(analisys => analisys._id == changedAnalisys._id)
+                            if (analisysIndex > -1) {
+                                npiRequests[requestIndex].analisys[analisysIndex].signature = changedAnalisys.signature
+                                console.log('submited (un)signature ' + changedAnalisys)
+                                console.log(npiRequests[requestIndex].analisys[analisysIndex].signature)
+                            }
+                        }
+                    }
+                });
             }
         });
     }
-    return npiRequest
+    return npiRequests
 }
 
 function finalSign(user, npiFinal) {
     npiFinal.signature = { user: user._id, date: Date.now() }
-    console.log(npiFinal.signature)
+    console.log("[critical] [final-sign] signature", npiFinal.signature)
     return npiFinal
 }
 
 function clientSign(user, npiClient) {
     npiClient.signature = { user: user._id, date: Date.now() }
-    console.log(npiClient.signature)
+    console.log("[client] [client-sign] signature", npiClient.signature)
     return npiClient
+}
+
+
+function requestsFinalSign(user, npiRequest) {
+    npiRequest.finalApproval.signature = { user: user._id, date: Date.now() }
+    console.log("[requests] [final-sign] signature", npiRequest.finalApproval)
+    return npiRequest
 }
 
 function updateObject(oldObject, newObject) {

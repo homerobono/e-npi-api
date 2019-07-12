@@ -252,30 +252,15 @@ var NpiSchema = new mongoose.Schema({
                 ref: 'User',
                 default: null
             },
-            comment: {
-                type: String,
-                default: null
-            },
             approval: {
-                type : String,
+                type : Boolean,
                 default: false
             },
             closed: {
                 type: Boolean,
                 default: false
             },
-            signature: {
-                date: {
-                    type: Date,
-                    default: null
-                },
-                user: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: 'User',
-                    default: null
-                }
-            },
-            analysis: {
+            analisys: {
                 type: [{
                     responsible: {
                         type: String,
@@ -301,7 +286,29 @@ var NpiSchema = new mongoose.Schema({
                         }
                     }
                 }]
-            }
+            },
+            finalApproval: {
+                status: {
+                    type: String,
+                    enum: [null, 'deny', 'accept'],
+                    default: null
+                },
+                comment: {
+                    type: String,
+                    default: null
+                },
+                signature: {
+                    date: {
+                        type: Date,
+                        default: null
+                    },
+                    user: {
+                        type: mongoose.Schema.Types.ObjectId,
+                        ref: 'User',
+                        default: null
+                    }
+                }
+            },
         }]
     },
     updated: {
