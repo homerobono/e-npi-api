@@ -1057,6 +1057,11 @@ function hasInvalidFields(data, npi) {
                         (!data.regulations.additional || data.regulations.additional == ''))
                         invalidFields['regulations.additional'] = 'É necessário descrever se existem outras regulamentações'
                 }
+                if (!data.demand) invalidFields.demand = data.demand
+                else {
+                    if (!data.demand.amount && data.demand.amount != 0) invalidFields['demand.amount'] = data.demand.amount
+                    if (!data.demand.period) invalidFields['demand.period'] = data.demand.period
+                }
                 if (data.oemActivities) {
                     for (let i = 0; i < data.oemActivities.length; i++) {
                         let activity = data.oemActivities[i]
@@ -1064,10 +1069,10 @@ function hasInvalidFields(data, npi) {
                         //    invalidFields['oemActivities.' + i + '.date'] = activity.date
                         //if (!activity.comment)
                         //    invalidFields['oemActivities.' + i + '.comment'] = activity.comment
-                        if (!activity.annex)
-                            invalidFields['oemActivities.' + i + '.annex'] = activity.annex
-                        if (!activity.closed)
-                            invalidFields['oemActivities.' + i + '.closed'] = activity.closed
+                        if (activity.apply && !activity.annex)
+                            invalidFields['oemActivities.' + i + '.annex'] = activity.activity
+                        //if (!activity.closed)
+                        //    invalidFields['oemActivities.' + i + '.closed'] = activity.closed
                     }
                 }
                 /*if (data.regulations) {

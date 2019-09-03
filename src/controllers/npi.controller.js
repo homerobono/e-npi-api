@@ -279,6 +279,10 @@ async function sendChangesNotify(req, updateResult) {
       console.log(`[npi-controller] [changes-notifier] [critical-update]`, updateResult.changedFields)
       var result = await mailerService.sendNpiCriticalUpdateEmail(users, npiUpdate)
     }
+    else if (updateResult.changedFields.activities) {
+      console.log(`[npi-controller] [changes-notifier] [activity]`, updateResult.changedFields)
+      var result = await mailerService.sendActivityUnlockEmail(users, npiUpdate)
+    }
     else if (updateResult.changedFields.requests) {
       var result = []
       console.log(updateResult.changedFields)

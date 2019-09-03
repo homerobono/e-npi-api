@@ -253,7 +253,7 @@ var NpiSchema = new mongoose.Schema({
                 default: null
             },
             approval: {
-                type : Boolean,
+                type: Boolean,
                 default: false
             },
             closed: {
@@ -323,6 +323,34 @@ var NpiSchema = new mongoose.Schema({
     },
     options
 });
+
+NpiSchema.methods.getActivityDependencies = function (activity) {
+    let directDependenciesLabels = global.MACRO_STAGES.find((a => a.value == activity.activity)).dep
+    let dependencies = this.activities.filter(a=>directDependenciesLabels.includes(a.activity))
+    for (let i = 0; i < dependencies.length; i++) {
+        let act = dependencies[i]
+        if (!act.apply) {
+            dependencies.splice(i, 1)
+            dependencies = dependencies.concat(this.getActivityDependencies(act))
+            i--
+        }
+    }
+    return dependencies
+}
+
+NpiSchema.methods.getActivityDependents = function (activity) {
+    let directDependentsLabels = global.MACRO_STAGES.filter(a => a.dep && a.dep.includes(activity.activity)).map(a => a.value)
+    let dependents = this.activities.filter(a => directDependentsLabels.includes(a.activity))
+    for (let i = 0; i < dependents.length; i++) {
+        let act = dependents[i]
+        if (!act.apply) {
+            dependents.splice(i, 1)
+            dependents = dependents.concat(this.getActivityDependents(act))
+            i--
+        }
+    }
+    return dependents
+}
 
 NpiSchema.pre('save', async function () {
     console.log("Saving")

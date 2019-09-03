@@ -1,9 +1,9 @@
 "use strict";
 
-global.URL_BASE = "http://191.252.113.160";
+//global.URL_BASE = "http://191.252.113.160";
 //global.URL_BASE = "http://192.168.1.135";
 //global.URL_BASE = "http://192.168.0.4";
-//global.URL_BASE = "http://localhost";
+global.URL_BASE = "http://localhost";
 //global.URL_BASE = "http://localhost:6002";
 //global.URL_BASE = "http://10.0.0.174:4200";
 //global.URL_BASE = "http://iraflor.com.br";
@@ -183,13 +183,13 @@ global.MACRO_STAGES = [
 		{ value: 'PRODUCTION',	label: 'Compra do Primeiro Lote de Produção',		dept: 'OSC', term: 90,dep: ["BOM_SUBMIT", "CHECKLIST"], required: true, annex: true },
 		{ value: 'ASSEMBLY',    label: 'Instrução de Montagem', 					dept: 'PRO', term: 5, dep: ["JIG", "CHECKLIST", "GOLDEN", "PRODUCTION"], required: true, annex: true },
 		{ value: 'PILOT', 		label: 'Lote Piloto', 								dept: 'PRO', term: 5, dep: ["ASSEMBLY", "PRODUCTION"], required: true, annex: true },
-		{ value: 'RELEASE',		label: 'Data de Lançamento', 						dept: null,  term: 0, dep: ["MECH_LAYOUT", "SPEC_TAG", "SPEC_PACKING", "SMT", "DOCUMENT_FW", "DOCUMENT_SW", "RELEASE_PLAN", "PILOT"], required: true, annex: false }
+		{ value: 'RELEASE',		label: 'Data de Lançamento', 						dept: null,  term: 0, dep: ["MECH_LAYOUT", "SPEC_TAG", "SPEC_PACKING", "SMT", "DOCUMENT_FW", "DOCUMENT_SW", "HOMOLOG", "TRYOUT", "RELEASE_PLAN", "PILOT"], required: true, annex: false }
 	],
 	
 global.OEM_STAGES = [
-		{ value: 'SPECS_HW', 	label:'Especificação Técnica - Funcionalidade HW',  dept: null, term: 1, annex: true },
-		{ value: 'SPECS_SW', 	label:'Especificação Técnica - Funcionalidade de SW',dept:null, term: 1, annex: true },
-		{ value: 'MECH_SPEC', 	label: 'Especificação Mecânica/Dimensional', 		dept: null, term: 1, annex: true },
+		{ value: 'SPECS_HW', 	label:'Especificação Técnica - Funcionalidade HW',  dept: 'MPR', term: 1, annex: true },
+		{ value: 'SPECS_SW', 	label:'Especificação Técnica - Funcionalidade de SW',dept:'MPR', term: 1, annex: true },
+		{ value: 'MECH_SPEC', 	label: 'Especificação Mecânica/Dimensional', 		dept: 'MPR', term: 1, annex: true },
 		{ value: 'ELETRIC_LAYOUT',label:'Esquema Elétrico/Layout', 					dept: 'PRO', term: 60, annex: true },
 		{ value: 'BOM_DESC', 	label: 'BOM com P/N, Descrição', 					dept: 'PRO', term: 5,  required: true, annex: true },
 		{ value: 'GERBER', 		label: 'Arquivo Gerber e Centroide', 				dept: 'PRO', term: 5,  annex: true },
