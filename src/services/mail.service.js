@@ -1,6 +1,8 @@
 var mailer = require('nodemailer');
 var npiDAO = require('../models/DAO/npi.dao')
 
+const DAYS = 1000 * 3600 * 24 // Days in milisecs
+
 var footNote = '<div style="color: #888; background-color: #f2f2f2; ' +
     'padding: 10px 16px 10px 16px; margin: 25px 40px 10px 40px"><small>' +
     'Essa é uma mensagem automática gerada pelo sistema e-NPI. Se você não ' +
@@ -330,6 +332,58 @@ exports.sendCriticalAnalisysReminder = async (elegibleUsers, npi) => {
     return results
 }
 
+exports.sendActivityReminder = async (users, npi, activity, endDate) => {
+    var results = []
+    //console.log("[mail-service] Dependent Activity", activity)
+    //console.log("NOTIFY", users)
+
+
+    var npiLink = '<a href="' + global.URL_BASE + '/npi/' +
+        npi.number + '">NPI #' + npi.number + ' ' + npi.name + '</a>'
+
+    let dateDiff = endDate.valueOf() - Date.now()
+    let diffDays = Math.floor(dateDiff / DAYS)
+
+    console.log(`[mail-service] ${activity.activity} end date: ${endDate} difference: ${dateDiff} ${diffDays}`)
+
+    var relativePeriodString = diffDays > 1 ? `a em <b>${diffDays} dias</b>` : (
+        diffDays == 1 ? `a <b>amanhã</b>` : (
+            diffDays == 0 ? `a <b>hoje</b>` : (
+                diffDays == -1 ? `ou <b style='color: red'>ontem</b>` : (
+                    diffDays < -1 ? `ou a <b style='color: red'>${Math.abs(diffDays)} dias</b>` : diffDays
+                )
+            )
+        )
+    )
+
+    if (diffDays <= 5) {
+        var smtpTransport = await this.createTransport();
+        let activityLabel = global.MACRO_STAGES.find(a => a.value == activity.activity).label
+        console.log(`[mail-service] Sending ${activityLabel} unlock notification to ${users.map(u => u.email)}`);
+        var mailOptions = {
+            to: users.map(u => u.email),
+            from: npiEmail,
+            subject: `NPI #${npi.number} ${npi.name} - ${activityLabel} Pendente`,
+            html:
+                `Caro usuário, <br><br>` +
+                `O prazo para conclusão de <b>${activityLabel}</b> da ${npiLink} expir${relativePeriodString}.<br>` +
+                `Acesse a ${npiLink} para acessar os documentos necessários e concluir a atividade.` +
+                footNote
+        };
+        var result
+        try {
+            result = await smtpTransport.sendMail(mailOptions)
+        } catch (e) {
+            result = e
+        }
+        console.log("[mail-service] Send result", result)
+        results.push(result)
+        npiDAO.updateNotify(npi._id, 'activities')
+    } else {
+        results = ["Activity's deadline ends in more then 5 days, emails not sent."]
+    }
+    return results
+}
 
 exports.sendNpiCriticalReprovalEmail = async (users, updateData) => {
     var author = updateData.authorOfChanges.firstName +
@@ -416,54 +470,58 @@ exports.sendNpiCriticalUpdateEmail = async (elegibleUsers, updateData) => {
     npiDAO.updateNotify(npi._id, 'critical')
     return results
 }
-exports.sendActivityUnlockEmail = async (elegibleUsers, updateData) => {
-    var author = updateData.authorOfChanges.firstName +
-        (updateData.authorOfChanges.lastName ? ' ' + updateData.authorOfChanges.lastName : '')
+
+exports.sendActivityUnlockEmail = async (elegibleUsers, updateData, bareActivity) => {
     let npi = updateData.npi
 
-    //console.log(npi)
-    let activities = npi.getActivityDependents(npi.activities[1])
+    //console.log("[mail-service] NPI", npi, "CHANGED FIELDS", updateData.changedFields)
+    let closedActivity = npi.activities.find(a => a._id.toString() == bareActivity._id.toString())
+    //console.log("[mail-service] Closed Activity:", closedActivity)
+    let activities = npi.getActivityDependents(closedActivity)
+    //console.log("[mail-service] Possibly opened activities", activities)
     var users = []
     var results = []
-    activities.forEach(activity => {
+    activities.forEach(async activity => {
+        //console.log("[mail-service] Dependent Activity", activity)
         if (npi.getActivityDependencies(activity).every(a => a.closed)) {
             users = elegibleUsers.filter(u => u.department == activity.dept && u.level == 1)
-            let responsible = elegibleUsers.find(u => u._id.toString() == activity.responsible)
-            if (responsible)
+            //console.log("[mail-service]", users)
+            if (activity.responsible) {
+                //console.log("[mail-service] IT HAS RESPONSIBLE")
+                let responsible = elegibleUsers.find(u => u._id.toString() == activity.responsible.toString())
                 users.push(responsible)
-            //console.log("NOTIFY", activity.responsible, "ABOUT", activity.activity)
+            }
+            //console.log("NOTIFY", users)
 
-            var users = elegibleUsers.filter(u => u._id == activity.analisys.includes(a.responsible == u._id.toString()))
-
-            console.log("[mail-service] Users", users.map(u => u.email))
+            //console.log("[mail-service] Users", users.map(u => u.email))
             var npiLink = '<a href="' + global.URL_BASE + '/npi/' +
-                npi.number + '">NPI #' + npi.number +
-                ' - ' + npi.name + '</a>'
+                npi.number + '">NPI #' + npi.number + ' ' + npi.name + '</a>'
 
             var smtpTransport = await this.createTransport();
-            console.log('[mail-service] Sending request reproval notification to', users.map(u => u.email));
-            for (var i = 0; i < users.length; i++) {
-                var user = users[i]
-                //console.log('preparing email to ' + user.email);
-                var mailOptions = {
-                    to: user.email,
-                    from: npiEmail,
-                    subject: 'NPI #' + npi.number + ' - Solicitação Recusada',
-                    html:
-                        user.firstName + ', <br><br>' +
-                        'A solicitação de ' + global.NPI_LABELS.requests[request.class] + ' para a NPI #' + npi.number + ' - ' + npi.name + ' foi recusada por' + author + '.<br>' +
-                        'Acesse a ' + npiLink + ' para conferir os detalhes da análise.<br>' +
-                        footNote
-                };
-                var result
-                try {
-                    result = await smtpTransport.sendMail(mailOptions)
-                } catch (e) {
-                    result = e
-                }
-                results.push(result)
+
+            let activityLabel = global.MACRO_STAGES.find(a => a.value == activity.activity).label
+            console.log(`[mail-service] Sending ${activityLabel} unlock notification to ${users.map(u => u.email)}`);
+            var mailOptions = {
+                to: users.map(u => u.email),
+                from: npiEmail,
+                subject: `NPI #${npi.number} ${npi.name} - ${activityLabel} Pendente`,
+                html:
+                    `Caro usuário, <br><br>` +
+                    `A atividade <b>${activityLabel}</b> da NPI #${npi.number} ${npi.name} acaba de ser liberada.<br>` +
+                    `Acesse a ${npiLink} para acessar os documentos necessários e concluir a atividade.` +
+                    footNote
             };
+            var result
+            try {
+                result = await smtpTransport.sendMail(mailOptions)
+            } catch (e) {
+                result = e
+            }
+            console.log("[mail-service] Send result", result)
+            results.push(result)
             npiDAO.updateNotify(npi._id, 'activities')
+        } else {
+            console.log("[mail-service] Stills locked")
         }
     })
     return results

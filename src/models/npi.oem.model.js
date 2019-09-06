@@ -1,6 +1,8 @@
 var mongoose = require('mongoose')
 let Npi = require('./npi.model')
 
+const DAYS = 1000 * 3600 * 24 // Days in milisecs
+
 var OemSchema = new mongoose.Schema({
     inStockDate: {
         fixed: {
@@ -140,6 +142,32 @@ var OemSchema = new mongoose.Schema({
         }
     },
 })
+
+OemSchema.methods.getActivityEndDate = function (activity) {
+    //console.log("POLYMORPHISM WORKS!!!!")
+    if (this.stage < 4)
+        return null
+
+    var endDate = Date.now()
+
+    var dayZero = this.clientApproval.signature.date
+
+    if (activity.closed)
+        endDate = activity.signature.date
+    else {
+        var dependencies = this.getActivityDependencies(activity)
+        if (!dependencies || dependencies.length == 0) {
+            endDate = new Date(dayZero.valueOf() + (DAYS - dayZero.valueOf() % DAYS) + activity.term * DAYS)
+        } else {
+            let dependenciesEndDatesValues = []
+            dependenciesEndDatesValues = dependencies.map(d => this.getActivityEndDate(d).valueOf())
+            endDate = new Date(Math.max(...dependenciesEndDatesValues) + activity.term * DAYS)
+            console.log(`[npi-oem-model] [activity-end-date] #${this.number} ${activity.activity} end date: ${endDate} dependencies end dates:`, dependenciesEndDatesValues)
+        }
+    }
+
+    return endDate
+}
 
 Npi.discriminator(
     'oem',

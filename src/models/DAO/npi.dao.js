@@ -52,10 +52,7 @@ exports.getNpis = async function (query) {
     try {
         //var npis = await Npi.find(query)
         var npisQuery = await Npi.aggregate([aggregations]).sort('_id')
-
         let npisVec = npisQuery.map(npi => npi.npi)
-
-        //console.log(npis)
         return npisVec;
     } catch (e) {
         throw Error(e)
@@ -393,7 +390,8 @@ exports.updateNpi = async function (user, npi) {
             console.log('[npi-update] invalid fields', invalidFields)
             if (invalidFields) throw ({ errors: invalidFields })
         }
-        if (!Object.keys(changedFields).length) return { npi: oldNpi, changedFields }
+        if (!Object.keys(changedFields).length) 
+            return { npi: oldNpi, changedFields }
         oldNpi.updated = Date.now()
         var savedNpi = await oldNpi.save()
         return { npi: savedNpi, changedFields: changedFields }
@@ -1425,8 +1423,9 @@ function updateObject(oldObject, newObject) {
 exports.updateNotify = async function (npiId, param) {
     let npi = await Npi.findById(npiId)
     var data
+    let params = param.split('.')
     if (npi) {
-        switch (param) {
+        switch (param[0]) {
             case 'all':
                 data = {
                     notify: {
@@ -1438,6 +1437,15 @@ exports.updateNotify = async function (npiId, param) {
                 data = {
                     notify: {
                         'critical': new Date()
+                    }
+                }
+                break
+            case 'activities':
+                data = {
+                    notify: {
+                        'activities': {
+                            activityLabel : new Date()
+                        }
                     }
                 }
                 break

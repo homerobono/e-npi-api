@@ -247,14 +247,14 @@ async function sendChangesNotify(req, updateResult) {
   var author = req.user.data
   var npi = updateResult.npi
 
-  var users = await userDAO.getUsers(
-    { status: 'active', notify: true },
+  var users = (await userDAO.getUsers(
+    { status: 'active' },
     '_id email firstName lastName level department'
-  )
+  )).filter(u => /^.+@.+\.+$/.test(u.email))
   var requester = (await userDAO.getUsers({ _id: npi.requester }))
-  console.log(`[npi-controller] [changes-notifier] Requester: ${requester[0].email}`)
+  console.log(`[npi-controller] [changes-notifier] Requester: ${requester[0].email} ${users}`)
 
-  //console.log(users)
+  console.log(`[npi-controller] [changes-notifier] Update Result: ${updateResult}`)
   if (!users || users.length == 0) return "No users to send notifications"
 
   var changedFields = npiLabelOf(updateResult.changedFields)
@@ -268,7 +268,7 @@ async function sendChangesNotify(req, updateResult) {
       return "No changes made: emails not sent"
     }
     if (updateResult.changedFields.stage) {
-      console.log("[npi-controller] [changes-notifier] Update result:", updateResult)
+      console.log("[npi-controller] [changes-notifier] [any] Update result:", updateResult)
       var result = await mailerService.sendNpiStatusEmail(users, npiUpdate)
     }
     else if (updateResult.changedFields.critical && updateResult.changedFields.critical.some(analisys => analisys.status == 'deny')) {
@@ -281,7 +281,8 @@ async function sendChangesNotify(req, updateResult) {
     }
     else if (updateResult.changedFields.activities) {
       console.log(`[npi-controller] [changes-notifier] [activity]`, updateResult.changedFields)
-      var result = await mailerService.sendActivityUnlockEmail(users, npiUpdate)
+      let activity = updateResult.changedFields.activities[0]
+      var result = await mailerService.sendActivityUnlockEmail(users, npiUpdate, activity)
     }
     else if (updateResult.changedFields.requests) {
       var result = []
@@ -314,7 +315,7 @@ async function sendChangesNotify(req, updateResult) {
       console.log(result)
       return result;
     } else {
-      console.log('Algo deu errado :(')
+      console.log('Algo deu errado :(', result)
       throw new Error('Erro ao enviar e-mail de notificação');
     }
   } catch (err) {
