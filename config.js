@@ -6,7 +6,6 @@ global.URL_BASE = "http://191.252.113.160";
 //global.URL_BASE = "http://localhost";
 //global.URL_BASE = "http://localhost:6002";
 //global.URL_BASE = "http://10.0.0.174:4200";
-//global.URL_BASE = "http://iraflor.com.br";
 
 global.ENCRYPT_KEY =
   "addc92733c4b0545ca7d036027d197e3aafe8fdc33e1b3bb34b7bea76d" +
