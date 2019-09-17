@@ -396,7 +396,7 @@ NpiSchema.methods.getActivityEndDate = function (activity) {
         return null
 
     var endDate = Date.now()
-    var dayZero = new Date(Math.max(this.critical.map(c => c.signature.date.valueOf())))
+    var dayZero = new Date(Math.max(...this.critical.map(c => c.signature.date.valueOf())))
 
     if (activity.closed)
         endDate = activity.signature.date

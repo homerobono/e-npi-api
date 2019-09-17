@@ -359,7 +359,7 @@ exports.sendActivityReminder = async (users, npi, activity, endDate) => {
     if (diffDays <= 5) {
         var smtpTransport = await this.createTransport();
         let activityLabel = global.MACRO_STAGES.find(a => a.value == activity.activity).label
-        console.log(`[mail-service] Sending ${activityLabel} unlock notification to ${users.map(u => u.email)}`);
+        console.log(`[mail-service] Sending ${activityLabel} pending activity reminder to ${users.map(u => u.email)}`);
         var mailOptions = {
             to: users.map(u => u.email),
             from: npiEmail,

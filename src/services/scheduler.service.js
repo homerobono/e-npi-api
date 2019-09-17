@@ -63,16 +63,16 @@ async function sendReminderMails() {
                 let activeActivities = Npi(npi).getActiveActivities()
                 activeActivities.forEach(activity => {
                     let activityEndDate = npi.__t == 'oem' ? Oem(npi).getActivityEndDate(activity) : Npi(npi).getActivityEndDate(activity)
-                    console.log(`[scheduler] #${npi.number} active activity: ${activity.activity}, End date: ${activityEndDate}`)
+                    //console.log(`[scheduler] #${npi.number} active activity: ${activity.activity}, End date: ${activityEndDate}`)
                     //if (Math.round((Date.now() - activityEndDate) / MINUTES) > 1) {
                         try {
                             let responsibles = users.filter(u =>
                                 (/^.+@.+\..+$/.test(u.email)) && (
                                     (activity.responsible && u._id.toString() == activity.responsible.toString()) ||
-                                    (u.department == activity.dept && u.level == 1)
+                                    (!activity.responsible && u.department == activity.dept && u.level == 1)
                                 )
                             )
-                            console.log(`[scheduler] Activity Requesters:`, responsibles.map(r => r.email))
+                            //console.log(`[scheduler] Activity Requesters:`, responsibles.map(r => r.email))
                             if (responsibles.length)
                                 mailerService.sendActivityReminder(responsibles.filter(unique), npi, activity, activityEndDate)
                         } catch (err) {
@@ -93,7 +93,7 @@ function unique(value, index, self) {
     return self.indexOf(value) === index;
 }
 
-sendReminderMails()
+//sendReminderMails()
 
 cron.schedule('30 7 * * 1,2,3,4,5', sendReminderMails)
 

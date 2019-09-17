@@ -15,7 +15,7 @@ if [ "$1" == "backup" ]; then
 
 
 else if [ "$1" == 'restoring' ]; then
-        echo "Restoring e-npi mongodb database and files"
+        echo "Restoring e-npi mongodb database and files (just kidding)"
     fi
 fi
 

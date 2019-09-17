@@ -474,66 +474,6 @@ exports.getAnnexList = async (npiId, field) => {
     return null
 }
 
-exports.updateAnnexList = async (npiId, field) => {
-    try {
-        var npi = await Npi.findById(npiId)
-    } catch (e) {
-        throw Error("[file-controller] Error occured while Finding the Npi")
-    }
-
-    if (!npi) {
-        throw Error("[file-controller] No NPI id " + npiId)
-    }
-    //console.log('NPI for files:', npi)
-    try {
-        //console.log('dir structure')
-        console.log("[file-controller] path, field", `${global.FILES_DIR}${npiId}/${field}`, field)
-        //var files = fs.readdirSync() 
-        var files = read(`${global.FILES_DIR}${npiId}/${field}`).map(filePath => {
-            //console.log("REGEXP", filePath, filePath.replace(/.*\/([^\/]*)$/, '$1'),
-            //filePath.replace(/.*\/([^\/]*)$/, ''),
-            //)
-            try {
-                var stat = fs.statSync(filePath)
-            } catch (err) {
-                throw ("[file-controller] error reading stats:", err)
-            }
-            //console.log("STAT", stat)
-            return {
-                name: filePath.replace(/.*\/([^\/]*)$/, '$1'),
-                rights: `${stat.isDirectory() ? 'd' : '-'}rwxr-xr-x`, // TODO
-                size: stat.size,
-                date: dateformat.dateToString(stat.mtime),
-                type: stat.isDirectory() ? 'dir' : 'file',
-                path: filePath.replace(/(.*)\/[^\/]*$/, '$1'),
-            }
-        })
-
-        console.log("[file-controller] files readed")
-        //files = await files.map(file => file.replace(`${global.FILES_DIR}${npiId}`, ''))
-        //console.log("[file-controller] files", files)
-        let subfields = field.split('.')
-        //console.log('[file-controller] subfields', subfields)
-        if (subfields[0] == 'activities' || subfields[0] == 'oemActivities')
-            var actIndex = npi[subfields[0]].findIndex(act => act.activity == subfields[1])
-        npi[subfields[0]][actIndex].annex = files
-        /*var invalidFields = hasInvalidFields(npi)
-        console.log(invalidFields)
-        if (invalidFields) throw ({ errors: invalidFields })
-        npi = await evolve(req, npi)*/
-        if (actIndex > -1) {
-            //console.log("[file-controlller] npi:", npi[subfields[0]][actIndex])
-            var savedNpi = await npi.save()
-            return savedNpi[subfields[0]][actIndex].annex
-        }
-        return null
-    } catch (e) {
-        throw ({ message: e })
-    }
-
-    return npi
-}
-
 exports.deleteAllNpis = async function (user) {
     // Delete the Npi
     if (user.email != 'admin') throw Error("Apenas o administrador pode realizar essa operação")
@@ -931,6 +871,67 @@ function advanceToClientApproval(data) {
     return data
 }
 
+
+exports.updateAnnexList = async (npiId, field) => {
+    try {
+        var npi = await Npi.findById(npiId)
+    } catch (e) {
+        throw Error("[file-controller] Error occured while Finding the Npi")
+    }
+
+    if (!npi) {
+        throw Error("[file-controller] No NPI id " + npiId)
+    }
+    //console.log('NPI for files:', npi)
+    try {
+        //console.log('dir structure')
+        console.log("[file-controller] path, field", `${global.FILES_DIR}${npiId}/${field}`, field)
+        //var files = fs.readdirSync() 
+        var files = read(`${global.FILES_DIR}${npiId}/${field}`).map(filePath => {
+            //console.log("REGEXP", filePath, filePath.replace(/.*\/([^\/]*)$/, '$1'),
+            //filePath.replace(/.*\/([^\/]*)$/, ''),
+            //)
+            try {
+                var stat = fs.statSync(filePath)
+            } catch (err) {
+                throw ("[file-controller] error reading stats:", err)
+            }
+            //console.log("STAT", stat)
+            return {
+                name: filePath.replace(/.*\/([^\/]*)$/, '$1'),
+                rights: `${stat.isDirectory() ? 'd' : '-'}rwxr-xr-x`, // TODO
+                size: stat.size,
+                date: dateformat.dateToString(stat.mtime),
+                type: stat.isDirectory() ? 'dir' : 'file',
+                path: filePath.replace(/(.*)\/[^\/]*$/, '$1'),
+            }
+        })
+
+        console.log("[file-controller] files readed")
+        //files = await files.map(file => file.replace(`${global.FILES_DIR}${npiId}`, ''))
+        //console.log("[file-controller] files", files)
+        let subfields = field.split('.')
+        //console.log('[file-controller] subfields', subfields)
+        if (subfields[0] == 'activities' || subfields[0] == 'oemActivities')
+            var actIndex = npi[subfields[0]].findIndex(act => act.activity == subfields[1])
+        npi[subfields[0]][actIndex].annex = files
+        /*var invalidFields = hasInvalidFields(npi)
+        console.log(invalidFields)
+        if (invalidFields) throw ({ errors: invalidFields })
+        npi = await evolve(req, npi)*/
+        if (actIndex > -1) {
+            //console.log("[file-controlller] npi:", npi[subfields[0]][actIndex])
+            var savedNpi = await npi.save()
+            return savedNpi[subfields[0]][actIndex].annex
+        }
+        return null
+    } catch (e) {
+        throw ({ message: e })
+    }
+
+    return npi
+}
+
 function hasInvalidFields(data, npi) {
     //console.log('[npi-dao] [invalid-fields] Analysing invalid fields', data)
     var invalidFields = {}
@@ -974,7 +975,7 @@ function hasInvalidFields(data, npi) {
         console.log("[invalid-fields] Data:", data)
         if (data.activities)
             data.activities.forEach(activity => {
-                files = this.updateAnnexList(data.id, `activities.${activity.activity}`)
+                files = updateAnnexList(data.id, `activities.${activity.activity}`)
                 console.log(`[npi-dao] [invalid-fields] files:`, files)
                 if (!files || !files.length)
                     invalidFields[`activities.${activity.activity}`] = 'Atividade não possui anexos'
@@ -1358,9 +1359,9 @@ function updateObject(oldObject, newObject) {
                     }
                 }
             } else if (Array.isArray(newObject[prop])) {
-                console.log(prop + ' is array')
+                //console.log(prop + ' is array')
                 if (!oldObject[prop]) {
-                    console.log('property is new, setting it entirely')
+                    //console.log('property is new, setting it entirely')
                     oldObject[prop] = newObject[prop]
                     changedFields[prop] = newObject[prop]
                 } else {
@@ -1373,11 +1374,11 @@ function updateObject(oldObject, newObject) {
                             if (newChild._id == oldChild._id ||
                                 (newChild.activity != null && (newChild.activity == oldChild.activity)) ||
                                 (newChild.class != null && (newChild.class == oldChild.class))) {
-                                console.log('recursing array object', newChild)
+                                //console.log('recursing array object', newChild)
                                 let childResult = updateObject(oldChild, newChild)
                                 Object.assign(oldObject[prop][j], childResult.updatedObject)
                                 if (Object.keys(childResult.changedFields).length > 0) {
-                                    console.log('child return with changes')
+                                    //console.log('child return with changes')
                                     childResult.changedFields._id = oldChild._id
                                     changedFieldsArr.push(childResult.changedFields)
                                 }
@@ -1386,7 +1387,7 @@ function updateObject(oldObject, newObject) {
                             }
                         }
                         if (!childExists) {
-                            console.log('Arrays are different, pushing new child')
+                            //console.log('Arrays are different, pushing new child')
                             oldObject[prop].push(newChild)
                             if (!changedFields[prop])
                                 changedFields[prop] = []
