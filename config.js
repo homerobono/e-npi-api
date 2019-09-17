@@ -7,6 +7,8 @@ global.URL_BASE = "http://191.252.113.160";
 //global.URL_BASE = "http://localhost:6002";
 //global.URL_BASE = "http://10.0.0.174:4200";
 
+global.DB_URL = 'mongodb://127.0.0.1/e-npi'
+
 global.ENCRYPT_KEY =
   "addc92733c4b0545ca7d036027d197e3aafe8fdc33e1b3bb34b7bea76d" +
   "a9377ff2ef0746b27e412402fa02ec8f466ead362d21a215516e21b5e6" +
