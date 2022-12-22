@@ -21,7 +21,7 @@
     "fs-extra": "^7.0.0",
     "git-auto-pull": "^1.0.9",
     "http-errors": "~1.6.2",
-    "jsonwebtoken": "^8.3.0",
+    "jsonwebtoken": "^9.0.0",
     "mongoose": "^5.2.6",
     "mongoose-paginate": "^5.0.3",
     "mongoose-sequence": "^4.0.1",
